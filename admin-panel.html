@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Learning - Teacher Admin</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f5f7fa;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .login-box {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 400px;
+            margin: 50px auto;
+            display: block;
+        }
+
+        .login-box h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #34495e;
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: 0.3s;
+            margin: 5px;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        .danger-btn {
+            background: #e74c3c;
+        }
+
+        .danger-btn:hover {
+            background: #c0392b;
+        }
+
+        .admin-dashboard {
+            display: none;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .section {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+        }
+
+        .section h2 {
+            color: #3498db;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .news-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .news-item {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logout-btn {
+            background: #7f8c8d;
+            margin-bottom: 20px;
+        }
+
+        .program-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-box" id="loginScreen">
+    <h2>Teacher Login</h2>
+    <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="password" placeholder="Enter admin password">
+    </div>
+    <button onclick="login()">Login</button>
+</div>
+
+<div class="admin-dashboard" id="adminPanel">
+    <button class="logout-btn" onclick="logout()">Logout</button>
+    
+    <div class="header">
+        <h1>Service Learning Admin Panel</h1>
+        <p>Manage programs, info, and news</p>
+    </div>
+
+    <!-- NEW: MANAGE PROGRAMS (ADD/EDIT/DELETE) -->
+    <div class="section">
+        <h2>Manage Service Learning Programs</h2>
+        <div class="form-group">
+            <label>Add New Program</label>
+            <input type="text" id="newProgramName" placeholder="Program Name (e.g. Animal Rescue)">
+            <button onclick="addNewProgram()">Add Program</button>
+        </div>
+        <div id="programsList"></div>
+    </div>
+
+    <!-- EDIT BASIC INFO -->
+    <div class="section">
+        <h2>Update Program Basic Information</h2>
+        <div class="form-group">
+            <label>Select Program</label>
+            <select id="infoProgram"></select>
+        </div>
+        <div class="form-group">
+            <label>Full Basic Info Text</label>
+            <textarea id="basicInfoText" placeholder="Type all basic program info here..."></textarea>
+        </div>
+        <button onclick="saveBasicInfo()">Save Basic Info</button>
+    </div>
+
+    <!-- EDIT CONTACT INFO -->
+    <div class="section">
+        <h2>Update Sign-Up & Contact Details</h2>
+        <div class="form-group">
+            <label>Select Program</label>
+            <select id="contactProgram"></select>
+        </div>
+        <div class="form-group">
+            <label>Full Sign-Up & Contact Text</label>
+            <textarea id="contactText" placeholder="Type sign-up info, teacher contact, email, room..."></textarea>
+        </div>
+        <button onclick="saveContactInfo()">Save Contact Info</button>
+    </div>
+
+    <!-- ADD NEWS -->
+    <div class="section">
+        <h2>Add New Program News</h2>
+        <div class="form-group">
+            <label>Program</label>
+            <select id="newsProgram"></select>
+        </div>
+        <div class="form-group">
+            <label>News Title</label>
+            <input type="text" id="newsTitle" placeholder="e.g. Spring Clean-Up Event">
+        </div>
+        <div class="form-group">
+            <label>Article Link (local page)</label>
+            <input type="text" id="newsLink" placeholder="e.g. news/spring-cleanup.html">
+        </div>
+        <div class="form-group">
+            <label>Date</label>
+            <input type="text" id="newsDate" placeholder="e.g. March 25, 2026">
+        </div>
+        <button onclick="addNews()">Add News Article</button>
+        <div class="news-list" id="savedNewsList"></div>
+    </div>
+</div>
+
+<script>
+const ADMIN_PASSWORD = "teacher123";
+
+// Login / Logout
+function login() {
+    if (document.getElementById("password").value === ADMIN_PASSWORD) {
+        document.getElementById("loginScreen").style.display = "none";
+        document.getElementById("adminPanel").style.display = "block";
+        refreshAll();
+    } else alert("Incorrect Password!");
+}
+
+function logout() {
+    document.getElementById("adminPanel").style.display = "none";
+    document.getElementById("loginScreen").style.display = "block";
+}
+
+// Program Management
+function getPrograms() {
+    return JSON.parse(localStorage.getItem('servicePrograms')) || [
+        { id: 'community', name: 'Community Service' },
+        { id: 'environmental', name: 'Environmental Action' },
+        { id: 'tutoring', name: 'Student Tutoring' },
+        { id: 'charity', name: 'Charity Fundraising' }
+    ];
+}
+
+function savePrograms(programs) {
+    localStorage.setItem('servicePrograms', JSON.stringify(programs));
+}
+
+function addNewProgram() {
+    const name = document.getElementById("newProgramName").value.trim();
+    if (!name) { alert("Enter a program name!"); return; }
+    const id = name.toLowerCase().replace(/\s+/g, '-');
+    const programs = getPrograms();
+    programs.push({ id, name });
+    savePrograms(programs);
+    document.getElementById("newProgramName").value = "";
+    refreshAll();
+    alert("Program added!");
+}
+
+function editProgramName(id) {
+    const programs = getPrograms();
+    const program = programs.find(p => p.id === id);
+    const newName = prompt("Edit Program Name:", program.name);
+    if (newName && newName.trim()) {
+        program.name = newName.trim();
+        savePrograms(programs);
+        refreshAll();
+    }
+}
+
+function deleteProgram(id) {
+    if (!confirm("DELETE this program? All data will be lost!")) return;
+    let programs = getPrograms().filter(p => p.id !== id);
+    savePrograms(programs);
+    localStorage.removeItem(`basic_${id}`);
+    localStorage.removeItem(`contact_${id}`);
+    localStorage.removeItem(`news_${id}`);
+    refreshAll();
+}
+
+// Refresh UI
+function refreshAll() {
+    const programs = getPrograms();
+    const infoSelect = document.getElementById("infoProgram");
+    const contactSelect = document.getElementById("contactProgram");
+    const newsSelect = document.getElementById("newsProgram");
+    const programsList = document.getElementById("programsList");
+
+    [infoSelect, contactSelect, newsSelect].forEach(select => select.innerHTML = "");
+    programsList.innerHTML = "";
+
+    programs.forEach(p => {
+        infoSelect.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+        contactSelect.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+        newsSelect.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+        programsList.innerHTML += `
+            <div class="program-item">
+                <span>${p.name}</span>
+                <div>
+                    <button onclick="editProgramName('${p.id}')">Rename</button>
+                    <button class="danger-btn" onclick="deleteProgram('${p.id}')">Delete</button>
+                </div>
+            </div>
+        `;
+    });
+    loadNewsList();
+}
+
+// Save Data Functions
+function saveBasicInfo() {
+    const p = document.getElementById("infoProgram").value;
+    localStorage.setItem(`basic_${p}`, document.getElementById("basicInfoText").value);
+    alert("Saved!");
+}
+
+function saveContactInfo() {
+    const p = document.getElementById("contactProgram").value;
+    localStorage.setItem(`contact_${p}`, document.getElementById("contactText").value);
+    alert("Saved!");
+}
+
+// News Functions
+function addNews() {
+    const p = document.getElementById("newsProgram").value;
+    const title = document.getElementById("newsTitle").value;
+    const link = document.getElementById("newsLink").value;
+    const date = document.getElementById("newsDate").value;
+    if (!title || !link || !date) { alert("Fill all fields!"); return; }
+    
+    let news = JSON.parse(localStorage.getItem(`news_${p}`)) || [];
+    news.unshift({ title, link, date });
+    localStorage.setItem(`news_${p}`, JSON.stringify(news));
+    
+    document.getElementById("newsTitle").value = "";
+    document.getElementById("newsLink").value = "";
+    document.getElementById("newsDate").value = "";
+    loadNewsList();
+    alert("News added!");
+}
+
+function loadNewsList() {
+    const p = document.getElementById("newsProgram").value;
+    const list = document.getElementById("savedNewsList");
+    const news = JSON.parse(localStorage.getItem(`news_${p}`)) || [];
+    list.innerHTML = "";
+    news.forEach((item, i) => {
+        list.innerHTML += `
+            <div class="news-item">
+                <div><strong>${item.title}</strong><br><small>${item.date}</small></div>
+                <button class="danger-btn" onclick="deleteNews('${p}',${i})">Delete</button>
+            </div>
+        `;
+    });
+}
+
+function deleteNews(p, index) {
+    if (!confirm("Delete news?")) return;
+    let news = JSON.parse(localStorage.getItem(`news_${p}`)) || [];
+    news.splice(index, 1);
+    localStorage.setItem(`news_${p}`, JSON.stringify(news));
+    loadNewsList();
+}
+
+document.getElementById("newsProgram").addEventListener("change", loadNewsList);
+</script>
+</body>
+</html>
