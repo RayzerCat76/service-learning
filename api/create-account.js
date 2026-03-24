@@ -1,8 +1,17 @@
 import { sql } from './db.js';
 
 export default async (req, res) => {
-  const { username, password } = await req.json();
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   try {
+    const { username, password } = await req.json();
     await sql`
       INSERT INTO users (username, password, name, role)
       VALUES (${username}, ${password}, ${username}, 'teacher')
