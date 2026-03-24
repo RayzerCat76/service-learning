@@ -3,283 +3,340 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Service Learning Admin</title>
+    <title>Teacher Admin - Service Learning</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
         body { background: #f5f7fa; padding: 20px; max-width: 1200px; margin: auto; }
         .box { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
         h2 { margin-bottom: 15px; color: #2c3e50; border-bottom: 1px solid #eee; padding-bottom: 10px; }
         .form-group { margin-bottom: 12px; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.9em; }
         input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
         button { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; margin: 3px; }
         .btn-blue { background: #3498db; color: white; }
         .btn-red { background: #e74c3c; color: white; }
-        .btn-gray { background: #95a5a6; color: white; }
         .hidden { display: none; }
         .flex-row { display: flex; gap: 15px; flex-wrap: wrap; }
-        .preview-container { border: 2px dashed #aaa; padding: 15px; min-height: 400px; position: relative; background: #eee; margin-top: 15px; }
-        .editable-module { position: absolute; padding: 15px; border-radius: 8px; min-width: 200px; cursor: move; overflow: auto; border: 2px solid transparent; }
-        .editable-module:hover { border-color: #3498db; }
-        .resize-handle { position: absolute; bottom: 0; right: 0; width: 15px; height: 15px; background: #3498db; cursor: se-resize; border-radius: 4px 0 0 0; }
-        .color-picker-row { display: flex; gap: 10px; }
-        .color-picker-row div { flex: 1; }
+        .preview { border: 2px dashed #aaa; padding: 15px; min-height: 450px; background: #eee; position: relative; }
+        .drag-module { position: absolute; padding: 15px; border-radius: 8px; cursor: move; border: 2px solid transparent; overflow:auto; }
+        .drag-module:hover { border-color:#3498db; }
+        .resize-handle { position:absolute; right:0; bottom:0; width:15px; height:15px; background:#3498db; cursor:se-resize; }
+        .tab-bg-preview { width:100%; height:100px; border-radius:6px; margin-top:10px; background-size:cover; background-position:center; }
     </style>
 </head>
 <body>
 
-<!-- 1. LOGIN / REGISTER -->
-<div class="box" id="authScreen">
-    <h2>Teacher Login / Create Account</h2>
-    <div class="form-group"><input type="text" id="loginUser" placeholder="Username"></div>
-    <div class="form-group"><input type="password" id="loginPass" placeholder="Password"></div>
-    <button class="btn-blue" onclick="loginUser()">Login</button>
-    <button class="btn-gray" onclick="registerUser()">Create New Account</button>
+<div class="box" id="loginScreen">
+    <h2>Teacher Login / Register</h2>
+    <div class="form-group"><input type="text" id="user" placeholder="Username"></div>
+    <div class="form-group"><input type="password" id="pass" placeholder="Password"></div>
+    <button class="btn-blue" onclick="login()">Login</button>
+    <button class="btn-red" onclick="register()">Create New Account</button>
 </div>
 
-<!-- 2. MAIN DASHBOARD -->
-<div id="mainApp" class="hidden">
+<div id="dashboard" class="hidden">
     <div class="box">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h2>Welcome, <span id="currentUserName"></span></h2>
+        <div style="display:flex;justify-content:space-between;">
+            <h2>Welcome, <span id="uname"></span></h2>
             <button class="btn-red" onclick="logout()">Logout</button>
         </div>
     </div>
 
-    <!-- My Programs Management -->
     <div class="box">
-        <h2>My Accessible Programs (Owner/Shared)</h2>
-        <div class="form-group"><input type="text" id="newProjName" placeholder="Create New Program Name"><button class="btn-blue" onclick="createProgram()">Create & Own</button></div>
-        <div id="myProjList"></div>
+        <h2>Create New Program (You Own It)</h2>
+        <div class="form-group"><input type="text" id="newPName" placeholder="Program Name"><button class="btn-blue" onclick="createProj()">Create</button></div>
+        <div id="myList"></div>
     </div>
 
-    <!-- Invite Permissions -->
     <div class="box">
-        <h2>Manage Editors For My Own Programs</h2>
-        <div class="form-group"><select id="ownerProjSelect"></select><input type="text" id="inviteUser" placeholder="Editor Username"><button class="btn-blue" onclick="grantAccess()">Grant Edit Permission</button></div>
+        <h2>Give Edit Permission To Another Teacher</h2>
+        <div class="form-group"><select id="ownerSel"></select><input type="text" id="shareUser" placeholder="Teacher Username"><button class="btn-blue" onclick="shareAccess()">Grant</button></div>
     </div>
 
-    <!-- Visual Layout & Content Editor -->
     <div class="box">
-        <h2>Visual Drag & Drop Editor (Select Program First)</h2>
-        <div class="form-group"><select id="editProjSelect" onchange="loadVisualEditor()"></select></div>
-        
+        <h2>Tab Background (Color or Upload Image)</h2>
+        <div class="form-group"><select id="bgProjSelect"></select></div>
+        <div class="form-group">
+            <label>Background Type</label>
+            <select id="bgType">
+                <option value="color">Solid Color</option>
+                <option value="image">Image Upload</option>
+            </select>
+        </div>
+        <div class="form-group" id="colorGroup">
+            <input type="color" id="tabBgColor" value="#ffffff">
+        </div>
+        <div class="form-group hidden" id="imageGroup">
+            <input type="file" id="tabBgImage" accept="image/*">
+        </div>
+        <div class="tab-bg-preview" id="bgPreview"></div>
+        <button class="btn-blue" onclick="saveTabBg()">Save Tab Background</button>
+    </div>
+
+    <div class="box">
+        <h2>Visual Layout & Color Editor</h2>
+        <div class="form-group"><select id="editSel" onchange="renderPreview()"></select></div>
         <div class="flex-row">
-            <div style="flex:1; min-width:250px;">
-                <h4>Edit Block Content</h4>
-                <div class="form-group"><label>Edit Selected Block Text</label><textarea id="blockTextArea" rows="6"></textarea><button class="btn-blue" onclick="saveBlockText()">Save Text</button></div>
-                
-                <h4>Customize Block Colors</h4>
-                <div class="color-picker-row">
-                    <div><label>Bg</label><input type="color" id="blockBgColor"></div>
-                    <div><label>Text</label><input type="color" id="blockTxtColor"></div>
-                    <div><label>Border</label><input type="color" id="blockBorderColor"></div>
-                </div>
-                <button class="btn-blue" onclick="applyBlockColors()">Apply Colors To Block</button>
+            <div style="flex:1;min-width:280px;">
+                <h4>Edit Selected Block Content</h4>
+                <textarea id="editHTML" rows="8"></textarea>
+                <button class="btn-blue" onclick="saveHTML()">Save Text</button>
+                <hr>
+                <h4>Block Theme Colors</h4>
+                <input type="color" id="cBg"><label>BG</label>
+                <input type="color" id="cTxt"><label>Text</label>
+                <input type="color" id="cBor"><label>Border</label>
+                <button class="btn-blue" onclick="saveColors()">Apply Colors</button>
             </div>
             <div style="flex:2;">
-                <h4>Preview (Drag to Move, Corner to Resize)</h4>
-                <div id="visualPreview" class="preview-container"></div>
-                <button class="btn-blue" onclick="saveLayoutPosition()">Save Layout Positions Sizes</button>
+                <h4>Drag To Move / Resize Corner</h4>
+                <div id="previewArea" class="preview"></div>
+                <button class="btn-blue" onclick="saveLayout()">Save Positions & Sizes</button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-// === DATA STRUCTURES ===
-let currentUser = null;
-let dragging = null; let resizing = null; let offsetX, offsetY; let selectedModuleId = null;
-
-// Init Defaults
 if(!localStorage.accounts) localStorage.accounts = JSON.stringify({});
 if(!localStorage.projects) localStorage.projects = JSON.stringify({});
+let currentUser = null;
+let dragObj = null;
+let resizeObj = null;
+let selKey = null;
+let storedImage = null;
 
-// === AUTH SYSTEM ===
-function registerUser(){
-    let u = document.getElementById('loginUser').value;
-    let p = document.getElementById('loginPass').value;
-    if(!u||!p) return alert("Fill fields");
-    let accs = JSON.parse(localStorage.accounts);
-    if(accs[u]) return alert("User exists");
-    accs[u] = {pass:p, owns:[], access:[]};
-    localStorage.accounts = JSON.stringify(accs);
-    alert("Account created, login now");
+function register(){
+    let u = document.getElementById('user').value;
+    let p = document.getElementById('pass').value;
+    if(!u||!p)return;
+    let a = JSON.parse(localStorage.accounts);
+    if(a[u])return alert("Account already exists");
+    a[u]={pass:p,owns:[],access:[]};
+    localStorage.accounts=JSON.stringify(a);
+    alert("Account created! Now login.");
 }
-function loginUser(){
-    let u = document.getElementById('loginUser').value;
-    let p = document.getElementById('loginPass').value;
-    let accs = JSON.parse(localStorage.accounts);
-    if(!accs[u]||accs[u].pass!==p) return alert("Wrong Cred");
-    currentUser = {name:u, data:accs[u]};
-    document.getElementById('authScreen').classList.add('hidden');
-    document.getElementById('mainApp').classList.remove('hidden');
-    document.getElementById('currentUserName').innerText = u;
-    refreshAllPanels();
-}
-function logout(){ location.reload(); }
 
-// === PROJECT PERMISSION LOGIC ===
-function getProjects(){ return JSON.parse(localStorage.projects); }
-function saveProjects(obj){ localStorage.projects = JSON.stringify(obj); }
-function createProgram(){
-    let name = document.getElementById('newProjName').value.trim();
-    if(!name) return;
-    let pid = name.toLowerCase().replace(/\s/g,'-')+Date.now();
-    let projs = getProjects();
-    // Default Template with Layout Positions
-    projs[pid] = {
-        name:name, owner:currentUser.name, editors:[],
-        modules: {
-            info:{text:'Default Info', style:{bg:'#ffffff', txt:'#333', border:'#ddd', x:0,y:0,w:48,h:40}},
-            signup:{text:'Default Signup', style:{bg:'#f8f9fa', txt:'#333', border:'#ddd', x:50,y:0,w:48,h:40}},
-            news:{text:'Default News List HTML', style:{bg:'#ffffff', txt:'#333', border:'#ddd', x:0,y:42,w:98,h:55}}
+function login(){
+    let u = document.getElementById('user').value;
+    let p = document.getElementById('pass').value;
+    let a = JSON.parse(localStorage.accounts);
+    if(!a[u]||a[u].pass!==p)return alert("Incorrect username or password");
+    currentUser={name:u,data:a[u]};
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('dashboard').classList.remove('hidden');
+    document.getElementById('uname').innerText=u;
+    refreshAll();
+}
+
+function logout(){location.reload();}
+
+function getProj(){return JSON.parse(localStorage.projects);}
+function setProj(o){localStorage.projects=JSON.stringify(o);}
+
+function createProj(){
+    let n = document.getElementById('newPName').value.trim();
+    if(!n)return;
+    let id = 'prog_'+Date.now();
+    let p = getProj();
+    p[id]={
+        name:n,owner:currentUser.name,editors:[],
+        tabBgType:'color',tabBg:'#ffffff',
+        modules:{
+            info:{title:"Basic Program Information",html:"Enter basic program details here.",style:{bg:"#ffffff",txt:"#333",bor:"#ddd",x:0,y:0,w:98,h:32}},
+            signup:{title:"Sign Up & Contact",html:"Enter sign-up and contact info here.",style:{bg:"#f8f9fa",txt:"#333",bor:"#ddd",x:0,y:33,w:98,h:32}},
+            news:{title:"Latest Program News",html:"<div class='news-list'>Add news links in the admin panel.</div>",style:{bg:"#ffffff",txt:"#333",bor:"#ddd",x:0,y:66,w:98,h:32}}
         }
     };
-    currentUser.data.owns.push(pid);
-    let accs = JSON.parse(localStorage.accounts);
-    accs[currentUser.name] = currentUser.data;
-    localStorage.accounts = JSON.stringify(accs);
-    saveProjects(projs);
-    refreshAllPanels();
-}
-function grantAccess(){
-    let pid = document.getElementById('ownerProjSelect').value;
-    let uname = document.getElementById('inviteUser').value;
-    let accs = JSON.parse(localStorage.accounts);
-    let projs = getProjects();
-    if(!accs[uname]) return alert("User not found");
-    if(projs[pid].editors.includes(uname)) return;
-    projs[pid].editors.push(uname);
-    accs[uname].access.push(pid);
-    saveProjects(projs);
-    localStorage.accounts = JSON.stringify(accs);
-    alert("Permission Granted");
-    refreshAllPanels();
-}
-function getUserAccessibleProjects(){
-    let list = [];
-    currentUser.data.owns.forEach(id=>list.push(id));
-    currentUser.data.access.forEach(id=>list.push(id));
-    return list;
+    currentUser.data.owns.push(id);
+    let acc = JSON.parse(localStorage.accounts);
+    acc[currentUser.name]=currentUser.data;
+    localStorage.accounts=JSON.stringify(acc);
+    setProj(p);
+    refreshAll();
 }
 
-// === UI REFRESH ===
-function refreshAllPanels(){
-    let accessible = getUserAccessibleProjects();
-    let projs = getProjects();
-    // List My Proj
+function shareAccess(){
+    let pid = document.getElementById('ownerSel').value;
+    let un = document.getElementById('shareUser').value;
+    let acc = JSON.parse(localStorage.accounts);
+    let pro = getProj();
+    if(!acc[un])return alert("User not found");
+    pro[pid].editors.push(un);
+    acc[un].access.push(pid);
+    setProj(pro);
+    localStorage.accounts=JSON.stringify(acc);
+    alert("Edit access granted!");
+    refreshAll();
+}
+
+function getUserList(){
+    let arr=[];
+    currentUser.data.owns.forEach(i=>arr.push(i));
+    currentUser.data.access.forEach(i=>arr.push(i));
+    return arr;
+}
+
+function refreshAll(){
+    let all = getProj();
     let listHtml='';
-    document.getElementById('editProjSelect').innerHTML='';
-    document.getElementById('ownerProjSelect').innerHTML='';
-    accessible.forEach(pid=>{
-        let p = projs[pid];
-        listHtml += `<p>${p.name} (${p.owner===currentUser.name?'Owner':'Editor'})</p>`;
-        document.getElementById('editProjSelect').innerHTML += `<option value="${pid}">${p.name}</option>`;
+    document.getElementById('editSel').innerHTML='';
+    document.getElementById('ownerSel').innerHTML='';
+    document.getElementById('bgProjSelect').innerHTML='';
+    getUserList().forEach(id=>{
+        listHtml+=`<p>${all[id].name}</p>`;
+        document.getElementById('editSel').innerHTML+=`<option value="${id}">${all[id].name}</option>`;
+        document.getElementById('bgProjSelect').innerHTML+=`<option value="${id}">${all[id].name}</option>`;
     });
-    // List Owned for Invite
-    currentUser.data.owns.forEach(pid=>{
-        let p = projs[pid];
-        document.getElementById('ownerProjSelect').innerHTML += `<option value="${pid}">${p.name}</option>`;
+    currentUser.data.owns.forEach(id=>{
+        document.getElementById('ownerSel').innerHTML+=`<option value="${id}">${all[id].name}</option>`;
     });
-    document.getElementById('myProjList').innerHTML = listHtml;
-    loadVisualEditor();
+    document.getElementById('myList').innerHTML=listHtml;
+    renderPreview();
+    loadBgPreview();
 }
 
-// === DRAG & DROP VISUAL EDITOR ENGINE ===
-function loadVisualEditor(){
-    let pid = document.getElementById('editProjSelect').value;
+document.getElementById('bgType').onchange = function(){
+    if(this.value==='color'){
+        document.getElementById('colorGroup').classList.remove('hidden');
+        document.getElementById('imageGroup').classList.add('hidden');
+    } else {
+        document.getElementById('colorGroup').classList.add('hidden');
+        document.getElementById('imageGroup').classList.remove('hidden');
+    }
+};
+
+document.getElementById('tabBgImage').onchange = function(e){
+    let file = e.target.files[0];
+    if(!file) return;
+    let reader = new FileReader();
+    reader.onload = function(ev){
+        storedImage = ev.target.result;
+        document.getElementById('bgPreview').style.backgroundImage = `url('${storedImage}')`;
+    };
+    reader.readAsDataURL(file);
+};
+
+document.getElementById('tabBgColor').oninput = function(){
+    document.getElementById('bgPreview').style.backgroundColor = this.value;
+    document.getElementById('bgPreview').style.backgroundImage = 'none';
+};
+
+function loadBgPreview(){
+    let pid = document.getElementById('bgProjSelect').value;
     if(!pid) return;
-    let proj = getProjects()[pid];
-    let preview = document.getElementById('visualPreview');
-    preview.innerHTML='';
-    // Render 3 Modules Absolutely Positioned
-    Object.keys(proj.modules).forEach(mid=>{
-        let m = proj.modules[mid];
-        let el = document.createElement('div');
-        el.id = mid;
-        el.className = 'editable-module';
-        el.style.left = m.style.x+'%';
-        el.style.top = m.style.y+'%';
-        el.style.width = m.style.w+'%';
-        el.style.height = m.style.h+'%';
-        el.style.background = m.style.bg;
-        el.style.color = m.style.txt;
-        el.style.borderColor = m.style.border;
-        el.innerHTML = `<strong>${mid.toUpperCase()} BLOCK</strong><br>${m.text.substring(0,80)}...<div class="resize-handle"></div>`;
-        el.onclick=(e)=>{e.stopPropagation(); selectModule(mid);};
-        preview.appendChild(el);
+    let p = getProj()[pid];
+    if(p.tabBgType==='color'){
+        document.getElementById('bgPreview').style.backgroundColor = p.tabBg;
+        document.getElementById('bgPreview').style.backgroundImage = 'none';
+        document.getElementById('tabBgColor').value = p.tabBg;
+    } else {
+        document.getElementById('bgPreview').style.backgroundImage = `url('${p.tabBg}')`;
+        storedImage = p.tabBg;
+    }
+}
+
+function saveTabBg(){
+    let pid = document.getElementById('bgProjSelect').value;
+    let type = document.getElementById('bgType').value;
+    let p = getProj();
+    p[pid].tabBgType = type;
+    if(type==='color'){
+        p[pid].tabBg = document.getElementById('tabBgColor').value;
+    } else {
+        if(storedImage) p[pid].tabBg = storedImage;
+    }
+    setProj(p);
+    alert("Tab background saved!");
+    loadBgPreview();
+}
+
+function renderPreview(){
+    let pid = document.getElementById('editSel').value;
+    if(!pid)return;
+    let proj = getProj()[pid];
+    let view = document.getElementById('previewArea');
+    view.innerHTML='';
+    Object.keys(proj.modules).forEach(k=>{
+        let m = proj.modules[k];
+        let d = document.createElement('div');
+        d.className="drag-module";
+        d.id="drag_"+k;
+        d.style.left=m.style.x+"%";
+        d.style.top=m.style.y+"%";
+        d.style.width=m.style.w+"%";
+        d.style.height=m.style.h+"%";
+        d.style.background=m.style.bg;
+        d.style.color=m.style.txt;
+        d.style.borderColor=m.style.bor;
+        d.innerHTML=`<strong>${m.title}</strong><br>Edit this block<div class='resize-handle'></div>`;
+        d.onclick=(e)=>{e.stopPropagation();select(k);};
+        view.appendChild(d);
     });
-    // Mouse Events Drag/Resize
-    preview.onmousedown=(e)=>{
-        if(e.target.classList.contains('resize-handle')){
-            resizing = e.target.parentElement;
-        } else if(e.target.classList.contains('editable-module')){
-            dragging = e.target;
-        }
-        offsetX = e.clientX; offsetY = e.clientY;
+    view.onmousedown=(e)=>{
+        if(e.target.classList.contains('resize-handle')) resizeObj=e.target.parentElement;
+        else if(e.target.classList.contains('drag-module')) dragObj=e.target;
     };
     document.onmousemove=(e)=>{
-        let rect = preview.getBoundingClientRect();
-        if(dragging){
-            let dx = (e.clientX - offsetX)/rect.width*100;
-            let dy = (e.clientY - offsetY)/rect.height*100;
-            let currLeft = parseFloat(dragging.style.left);
-            let currTop = parseFloat(dragging.style.top);
-            dragging.style.left = Math.max(0, Math.min(95, currLeft+dx))+'%';
-            dragging.style.top = Math.max(0, Math.min(95, currTop+dy))+'%';
-            offsetX = e.clientX; offsetY = e.clientY;
+        let r = view.getBoundingClientRect();
+        if(dragObj){
+            let x = ((e.clientX-r.left)/r.width)*100;
+            let y = ((e.clientY-r.top)/r.height)*100;
+            dragObj.style.left=Math.max(0,x)+"%";
+            dragObj.style.top=Math.max(0,y)+"%";
         }
-        if(resizing){
-            let dw = (e.clientX - offsetX)/rect.width*100;
-            let dh = (e.clientY - offsetY)/rect.height*100;
-            let currW = parseFloat(resizing.style.width);
-            let currH = parseFloat(resizing.style.height);
-            resizing.style.width = Math.max(10, Math.min(100, currW+dw))+'%';
-            resizing.style.height = Math.max(10, Math.min(100, currH+dh))+'%';
-            offsetX = e.clientX; offsetY = e.clientY;
+        if(resizeObj){
+            let w = ((e.clientX-r.left)/r.width)*100 - parseFloat(resizeObj.style.left);
+            let h = ((e.clientY-r.top)/r.height)*100 - parseFloat(resizeObj.style.top);
+            resizeObj.style.width=Math.max(10,w)+"%";
+            resizeObj.style.height=Math.max(10,h)+"%";
         }
     };
-    document.onmouseup=()=>{dragging=null; resizing=null;};
+    document.onmouseup=()=>{dragObj=null;resizeObj=null;};
 }
-function selectModule(mid){
-    selectedModuleId = mid;
-    let pid = document.getElementById('editProjSelect').value;
-    let mod = getProjects()[pid].modules[mid];
-    document.getElementById('blockTextArea').value = mod.text;
-    document.getElementById('blockBgColor').value = mod.style.bg;
-    document.getElementById('blockTxtColor').value = mod.style.txt;
-    document.getElementById('blockBorderColor').value = mod.style.border;
+
+function select(k){
+    selKey=k;
+    let p=getProj()[document.getElementById('editSel').value];
+    let m=p.modules[k];
+    document.getElementById('editHTML').value=m.html;
+    document.getElementById('cBg').value=m.style.bg;
+    document.getElementById('cTxt').value=m.style.txt;
+    document.getElementById('cBor').value=m.style.bor;
 }
-function saveBlockText(){
-    if(!selectedModuleId) return alert("Select block first");
-    let pid = document.getElementById('editProjSelect').value;
-    let projs = getProjects();
-    projs[pid].modules[selectedModuleId].text = document.getElementById('blockTextArea').value;
-    saveProjects(projs); loadVisualEditor();
+
+function saveHTML(){
+    if(!selKey)return alert("Click a block first to select it!");
+    let p=getProj();
+    let pid=document.getElementById('editSel').value;
+    p[pid].modules[selKey].html=document.getElementById('editHTML').value;
+    setProj(p);
+    renderPreview();
 }
-function applyBlockColors(){
-    if(!selectedModuleId) return alert("Select block first");
-    let pid = document.getElementById('editProjSelect').value;
-    let projs = getProjects();
-    let s = projs[pid].modules[selectedModuleId].style;
-    s.bg = document.getElementById('blockBgColor').value;
-    s.txt = document.getElementById('blockTxtColor').value;
-    s.border = document.getElementById('blockBorderColor').value;
-    saveProjects(projs); loadVisualEditor();
+
+function saveColors(){
+    if(!selKey)return alert("Click a block first to select it!");
+    let p=getProj();
+    let pid=document.getElementById('editSel').value;
+    let s=p[pid].modules[selKey].style;
+    s.bg=document.getElementById('cBg').value;
+    s.txt=document.getElementById('cTxt').value;
+    s.bor=document.getElementById('cBor').value;
+    setProj(p);
+    renderPreview();
 }
-function saveLayoutPosition(){
-    let pid = document.getElementById('editProjSelect').value;
-    let projs = getProjects();
-    Object.keys(projs[pid].modules).forEach(mid=>{
-        let el = document.getElementById(mid);
-        projs[pid].modules[mid].style.x = parseFloat(el.style.left);
-        projs[pid].modules[mid].style.y = parseFloat(el.style.top);
-        projs[pid].modules[mid].style.w = parseFloat(el.style.width);
-        projs[pid].modules[mid].style.h = parseFloat(el.style.height);
+
+function saveLayout(){
+    let p=getProj();
+    let pid=document.getElementById('editSel').value;
+    Object.keys(p[pid].modules).forEach(k=>{
+        let d=document.getElementById("drag_"+k);
+        p[pid].modules[k].style.x=parseFloat(d.style.left);
+        p[pid].modules[k].style.y=parseFloat(d.style.top);
+        p[pid].modules[k].style.w=parseFloat(d.style.width);
+        p[pid].modules[k].style.h=parseFloat(d.style.height);
     });
-    saveProjects(projs);
-    alert("Layout Saved! Student page updated.");
+    setProj(p);
+    alert("Layout saved! Check student page.");
 }
 </script>
 </body>
