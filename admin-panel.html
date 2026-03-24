@@ -3,450 +3,284 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Learning - Teacher Admin</title>
+    <title>Advanced Service Learning Admin</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-        }
-
-        body {
-            background: #f5f7fa;
-            padding: 20px;
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        .login-box {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            max-width: 400px;
-            margin: 50px auto;
-            display: block;
-        }
-
-        .login-box h2 {
-            color: #2c3e50;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #34495e;
-        }
-
-        .form-group input, .form-group textarea, .form-group select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 1rem;
-        }
-
-        .form-group textarea {
-            min-height: 80px;
-            resize: vertical;
-        }
-
-        button {
-            background: #3498db;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: 0.3s;
-            margin: 5px;
-        }
-
-        button:hover {
-            background: #2980b9;
-        }
-
-        .danger-btn {
-            background: #e74c3c;
-        }
-
-        .danger-btn:hover {
-            background: #c0392d;
-        }
-
-        .admin-dashboard {
-            display: none;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .header h1 {
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-
-        .section {
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 25px;
-        }
-
-        .section h2 {
-            color: #3498db;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-        }
-
-        .news-list {
-            max-height: 300px;
-            overflow-y: auto;
-            margin-top: 15px;
-        }
-
-        .news-item {
-            padding: 12px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logout-btn {
-            background: #7f8c8d;
-            margin-bottom: 20px;
-        }
-
-        .program-item, .theme-preview {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .color-inputs {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .color-box {
-            flex: 1;
-            min-width: 120px;
-        }
-
-        input[type="color"] {
-            height: 40px;
-            cursor: pointer;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+        body { background: #f5f7fa; padding: 20px; max-width: 1200px; margin: auto; }
+        .box { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h2 { margin-bottom: 15px; color: #2c3e50; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.9em; }
+        input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
+        button { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; margin: 3px; }
+        .btn-blue { background: #3498db; color: white; }
+        .btn-red { background: #e74c3c; color: white; }
+        .btn-gray { background: #95a5a6; color: white; }
+        .hidden { display: none; }
+        .flex-row { display: flex; gap: 15px; flex-wrap: wrap; }
+        .preview-container { border: 2px dashed #aaa; padding: 15px; min-height: 400px; position: relative; background: #eee; margin-top: 15px; }
+        .editable-module { position: absolute; padding: 15px; border-radius: 8px; min-width: 200px; cursor: move; overflow: auto; border: 2px solid transparent; }
+        .editable-module:hover { border-color: #3498db; }
+        .resize-handle { position: absolute; bottom: 0; right: 0; width: 15px; height: 15px; background: #3498db; cursor: se-resize; border-radius: 4px 0 0 0; }
+        .color-picker-row { display: flex; gap: 10px; }
+        .color-picker-row div { flex: 1; }
     </style>
 </head>
 <body>
 
-<div class="login-box" id="loginScreen">
-    <h2>Teacher Login</h2>
-    <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="password" placeholder="Enter admin password">
-    </div>
-    <button onclick="login()">Login</button>
+<!-- 1. LOGIN / REGISTER -->
+<div class="box" id="authScreen">
+    <h2>Teacher Login / Create Account</h2>
+    <div class="form-group"><input type="text" id="loginUser" placeholder="Username"></div>
+    <div class="form-group"><input type="password" id="loginPass" placeholder="Password"></div>
+    <button class="btn-blue" onclick="loginUser()">Login</button>
+    <button class="btn-gray" onclick="registerUser()">Create New Account</button>
 </div>
 
-<div class="admin-dashboard" id="adminPanel">
-    <button class="logout-btn" onclick="logout()">Logout</button>
-    
-    <div class="header">
-        <h1>Service Learning Admin Panel</h1>
-        <p>Manage programs, content, and website design</p>
+<!-- 2. MAIN DASHBOARD -->
+<div id="mainApp" class="hidden">
+    <div class="box">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h2>Welcome, <span id="currentUserName"></span></h2>
+            <button class="btn-red" onclick="logout()">Logout</button>
+        </div>
     </div>
 
-    <!-- THEME CUSTOMIZATION -->
-    <div class="section">
-        <h2>Website Theme & Design Customization</h2>
-        <div class="color-inputs">
-            <div class="color-box">
-                <label>Primary Color (Buttons/Links)</label>
-                <input type="color" id="colorPrimary" value="#3498db">
+    <!-- My Programs Management -->
+    <div class="box">
+        <h2>My Accessible Programs (Owner/Shared)</h2>
+        <div class="form-group"><input type="text" id="newProjName" placeholder="Create New Program Name"><button class="btn-blue" onclick="createProgram()">Create & Own</button></div>
+        <div id="myProjList"></div>
+    </div>
+
+    <!-- Invite Permissions -->
+    <div class="box">
+        <h2>Manage Editors For My Own Programs</h2>
+        <div class="form-group"><select id="ownerProjSelect"></select><input type="text" id="inviteUser" placeholder="Editor Username"><button class="btn-blue" onclick="grantAccess()">Grant Edit Permission</button></div>
+    </div>
+
+    <!-- Visual Layout & Content Editor -->
+    <div class="box">
+        <h2>Visual Drag & Drop Editor (Select Program First)</h2>
+        <div class="form-group"><select id="editProjSelect" onchange="loadVisualEditor()"></select></div>
+        
+        <div class="flex-row">
+            <div style="flex:1; min-width:250px;">
+                <h4>Edit Block Content</h4>
+                <div class="form-group"><label>Edit Selected Block Text</label><textarea id="blockTextArea" rows="6"></textarea><button class="btn-blue" onclick="saveBlockText()">Save Text</button></div>
+                
+                <h4>Customize Block Colors</h4>
+                <div class="color-picker-row">
+                    <div><label>Bg</label><input type="color" id="blockBgColor"></div>
+                    <div><label>Text</label><input type="color" id="blockTxtColor"></div>
+                    <div><label>Border</label><input type="color" id="blockBorderColor"></div>
+                </div>
+                <button class="btn-blue" onclick="applyBlockColors()">Apply Colors To Block</button>
             </div>
-            <div class="color-box">
-                <label>Background Color</label>
-                <input type="color" id="colorBg" value="#f5f7fa">
-            </div>
-            <div class="color-box">
-                <label>Main Text Color</label>
-                <input type="color" id="colorText" value="#2c3e50">
-            </div>
-            <div class="color-box">
-                <label>Card/Box Color</label>
-                <input type="color" id="colorCard" value="#ffffff">
+            <div style="flex:2;">
+                <h4>Preview (Drag to Move, Corner to Resize)</h4>
+                <div id="visualPreview" class="preview-container"></div>
+                <button class="btn-blue" onclick="saveLayoutPosition()">Save Layout Positions Sizes</button>
             </div>
         </div>
-        <button onclick="saveTheme()">Save Color Theme</button>
-        <button onclick="resetTheme()">Reset to Default Colors</button>
-    </div>
-
-    <!-- MANAGE PROGRAMS -->
-    <div class="section">
-        <h2>Manage Service Learning Programs</h2>
-        <div class="form-group">
-            <label>Add New Program</label>
-            <input type="text" id="newProgramName" placeholder="e.g. Animal Rescue">
-            <button onclick="addNewProgram()">Add Program</button>
-        </div>
-        <div id="programsList"></div>
-    </div>
-
-    <!-- EDIT BASIC INFO -->
-    <div class="section">
-        <h2>Update Program Basic Information</h2>
-        <div class="form-group">
-            <label>Select Program</label>
-            <select id="infoProgram"></select>
-        </div>
-        <div class="form-group">
-            <textarea id="basicInfoText" placeholder="Type all basic program info here..."></textarea>
-        </div>
-        <button onclick="saveBasicInfo()">Save Basic Info</button>
-    </div>
-
-    <!-- EDIT CONTACT INFO -->
-    <div class="section">
-        <h2>Update Sign-Up & Contact Details</h2>
-        <div class="form-group">
-            <label>Select Program</label>
-            <select id="contactProgram"></select>
-        </div>
-        <div class="form-group">
-            <textarea id="contactText" placeholder="Type sign-up info, teacher contact, email..."></textarea>
-        </div>
-        <button onclick="saveContactInfo()">Save Contact Info</button>
-    </div>
-
-    <!-- MANAGE NEWS -->
-    <div class="section">
-        <h2>Add / Manage News</h2>
-        <div class="form-group">
-            <label>Program</label>
-            <select id="newsProgram"></select>
-        </div>
-        <div class="form-group">
-            <input type="text" id="newsTitle" placeholder="News Title">
-        </div>
-        <div class="form-group">
-            <input type="text" id="newsLink" placeholder="Article Link (e.g. news/event.html)">
-        </div>
-        <div class="form-group">
-            <input type="text" id="newsDate" placeholder="Date (e.g. April 1, 2026)">
-        </div>
-        <button onclick="addNews()">Add News Article</button>
-        <div class="news-list" id="savedNewsList"></div>
     </div>
 </div>
 
 <script>
-const ADMIN_PASSWORD = "teacher123";
+// === DATA STRUCTURES ===
+let currentUser = null;
+let dragging = null; let resizing = null; let offsetX, offsetY; let selectedModuleId = null;
 
-// Login / Logout
-function login() {
-    if (document.getElementById("password").value === ADMIN_PASSWORD) {
-        document.getElementById("loginScreen").style.display = "none";
-        document.getElementById("adminPanel").style.display = "block";
-        loadTheme();
-        refreshAll();
-    } else alert("Incorrect Password!");
+// Init Defaults
+if(!localStorage.accounts) localStorage.accounts = JSON.stringify({});
+if(!localStorage.projects) localStorage.projects = JSON.stringify({});
+
+// === AUTH SYSTEM ===
+function registerUser(){
+    let u = document.getElementById('loginUser').value;
+    let p = document.getElementById('loginPass').value;
+    if(!u||!p) return alert("Fill fields");
+    let accs = JSON.parse(localStorage.accounts);
+    if(accs[u]) return alert("User exists");
+    accs[u] = {pass:p, owns:[], access:[]};
+    localStorage.accounts = JSON.stringify(accs);
+    alert("Account created, login now");
 }
-
-function logout() {
-    document.getElementById("adminPanel").style.display = "none";
-    document.getElementById("loginScreen").style.display = "block";
+function loginUser(){
+    let u = document.getElementById('loginUser').value;
+    let p = document.getElementById('loginPass').value;
+    let accs = JSON.parse(localStorage.accounts);
+    if(!accs[u]||accs[u].pass!==p) return alert("Wrong Cred");
+    currentUser = {name:u, data:accs[u]};
+    document.getElementById('authScreen').classList.add('hidden');
+    document.getElementById('mainApp').classList.remove('hidden');
+    document.getElementById('currentUserName').innerText = u;
+    refreshAllPanels();
 }
+function logout(){ location.reload(); }
 
-// Theme Customization
-function loadTheme() {
-    const theme = JSON.parse(localStorage.getItem('siteTheme')) || {
-        primary: "#3498db",
-        bg: "#f5f7fa",
-        text: "#2c3e50",
-        lightText: "#7f8c8d",
-        card: "#ffffff"
+// === PROJECT PERMISSION LOGIC ===
+function getProjects(){ return JSON.parse(localStorage.projects); }
+function saveProjects(obj){ localStorage.projects = JSON.stringify(obj); }
+function createProgram(){
+    let name = document.getElementById('newProjName').value.trim();
+    if(!name) return;
+    let pid = name.toLowerCase().replace(/\s/g,'-')+Date.now();
+    let projs = getProjects();
+    // Default Template with Layout Positions
+    projs[pid] = {
+        name:name, owner:currentUser.name, editors:[],
+        modules: {
+            info:{text:'Default Info', style:{bg:'#ffffff', txt:'#333', border:'#ddd', x:0,y:0,w:48,h:40}},
+            signup:{text:'Default Signup', style:{bg:'#f8f9fa', txt:'#333', border:'#ddd', x:50,y:0,w:48,h:40}},
+            news:{text:'Default News List HTML', style:{bg:'#ffffff', txt:'#333', border:'#ddd', x:0,y:42,w:98,h:55}}
+        }
     };
-    document.getElementById("colorPrimary").value = theme.primary;
-    document.getElementById("colorBg").value = theme.bg;
-    document.getElementById("colorText").value = theme.text;
-    document.getElementById("colorCard").value = theme.card;
+    currentUser.data.owns.push(pid);
+    let accs = JSON.parse(localStorage.accounts);
+    accs[currentUser.name] = currentUser.data;
+    localStorage.accounts = JSON.stringify(accs);
+    saveProjects(projs);
+    refreshAllPanels();
+}
+function grantAccess(){
+    let pid = document.getElementById('ownerProjSelect').value;
+    let uname = document.getElementById('inviteUser').value;
+    let accs = JSON.parse(localStorage.accounts);
+    let projs = getProjects();
+    if(!accs[uname]) return alert("User not found");
+    if(projs[pid].editors.includes(uname)) return;
+    projs[pid].editors.push(uname);
+    accs[uname].access.push(pid);
+    saveProjects(projs);
+    localStorage.accounts = JSON.stringify(accs);
+    alert("Permission Granted");
+    refreshAllPanels();
+}
+function getUserAccessibleProjects(){
+    let list = [];
+    currentUser.data.owns.forEach(id=>list.push(id));
+    currentUser.data.access.forEach(id=>list.push(id));
+    return list;
 }
 
-function saveTheme() {
-    const theme = {
-        primary: document.getElementById("colorPrimary").value,
-        bg: document.getElementById("colorBg").value,
-        text: document.getElementById("colorText").value,
-        lightText: "#7f8c8d",
-        card: document.getElementById("colorCard").value
-    };
-    localStorage.setItem('siteTheme', JSON.stringify(theme));
-    alert("Website theme saved! Refresh student page to see changes.");
-}
-
-function resetTheme() {
-    const defaultTheme = {
-        primary: "#3498db",
-        bg: "#f5f7fa",
-        text: "#2c3e50",
-        lightText: "#7f8c8d",
-        card: "#ffffff"
-    };
-    localStorage.setItem('siteTheme', JSON.stringify(defaultTheme));
-    loadTheme();
-    alert("Reset to default colors!");
-}
-
-// Program Management
-function getPrograms() {
-    return JSON.parse(localStorage.getItem('servicePrograms')) || [
-        { id: 'community', name: 'Community Service' },
-        { id: 'environmental', name: 'Environmental Action' },
-        { id: 'tutoring', name: 'Student Tutoring' },
-        { id: 'charity', name: 'Charity Fundraising' }
-    ];
-}
-
-function savePrograms(programs) {
-    localStorage.setItem('servicePrograms', JSON.stringify(programs));
-}
-
-function addNewProgram() {
-    const name = document.getElementById("newProgramName").value.trim();
-    if (!name) { alert("Enter a program name!"); return; }
-    const id = name.toLowerCase().replace(/\s+/g, '-');
-    const programs = getPrograms();
-    programs.push({ id, name });
-    savePrograms(programs);
-    document.getElementById("newProgramName").value = "";
-    refreshAll();
-    alert("Program added!");
-}
-
-function editProgramName(id) {
-    const programs = getPrograms();
-    const program = programs.find(p => p.id === id);
-    const newName = prompt("Edit Program Name:", program.name);
-    if (newName && newName.trim()) {
-        program.name = newName.trim();
-        savePrograms(programs);
-        refreshAll();
-    }
-}
-
-function deleteProgram(id) {
-    if (!confirm("DELETE this program? All data will be lost!")) return;
-    let programs = getPrograms().filter(p => p.id !== id);
-    savePrograms(programs);
-    localStorage.removeItem(`basic_${id}`);
-    localStorage.removeItem(`contact_${id}`);
-    localStorage.removeItem(`news_${id}`);
-    refreshAll();
-}
-
-// Refresh UI
-function refreshAll() {
-    const programs = getPrograms();
-    const infoSelect = document.getElementById("infoProgram");
-    const contactSelect = document.getElementById("contactProgram");
-    const newsSelect = document.getElementById("newsProgram");
-    const programsList = document.getElementById("programsList");
-
-    [infoSelect, contactSelect, newsSelect].forEach(select => select.innerHTML = "");
-    programsList.innerHTML = "";
-
-    programs.forEach(p => {
-        infoSelect.innerHTML += `<option value="${p.id}">${p.name}</option>`;
-        contactSelect.innerHTML += `<option value="${p.id}">${p.name}</option>`;
-        newsSelect.innerHTML += `<option value="${p.id}">${p.name}</option>`;
-        programsList.innerHTML += `
-            <div class="program-item">
-                <span>${p.name}</span>
-                <div>
-                    <button onclick="editProgramName('${p.id}')">Rename</button>
-                    <button class="danger-btn" onclick="deleteProgram('${p.id}')">Delete</button>
-                </div>
-            </div>
-        `;
+// === UI REFRESH ===
+function refreshAllPanels(){
+    let accessible = getUserAccessibleProjects();
+    let projs = getProjects();
+    // List My Proj
+    let listHtml='';
+    document.getElementById('editProjSelect').innerHTML='';
+    document.getElementById('ownerProjSelect').innerHTML='';
+    accessible.forEach(pid=>{
+        let p = projs[pid];
+        listHtml += `<p>${p.name} (${p.owner===currentUser.name?'Owner':'Editor'})</p>`;
+        document.getElementById('editProjSelect').innerHTML += `<option value="${pid}">${p.name}</option>`;
     });
-    loadNewsList();
-}
-
-// Save Content
-function saveBasicInfo() {
-    const p = document.getElementById("infoProgram").value;
-    localStorage.setItem(`basic_${p}`, document.getElementById("basicInfoText").value);
-    alert("Basic information saved!");
-}
-
-function saveContactInfo() {
-    const p = document.getElementById("contactProgram").value;
-    localStorage.setItem(`contact_${p}`, document.getElementById("contactText").value);
-    alert("Contact information saved!");
-}
-
-// News Management
-function addNews() {
-    const p = document.getElementById("newsProgram").value;
-    const title = document.getElementById("newsTitle").value;
-    const link = document.getElementById("newsLink").value;
-    const date = document.getElementById("newsDate").value;
-    if (!title || !link || !date) { alert("Fill all fields!"); return; }
-    
-    let news = JSON.parse(localStorage.getItem(`news_${p}`)) || [];
-    news.unshift({ title, link, date });
-    localStorage.setItem(`news_${p}`, JSON.stringify(news));
-    
-    document.getElementById("newsTitle").value = "";
-    document.getElementById("newsLink").value = "";
-    document.getElementById("newsDate").value = "";
-    loadNewsList();
-    alert("News added!");
-}
-
-function loadNewsList() {
-    const p = document.getElementById("newsProgram").value;
-    const list = document.getElementById("savedNewsList");
-    const news = JSON.parse(localStorage.getItem(`news_${p}`)) || [];
-    list.innerHTML = "";
-    news.forEach((item, i) => {
-        list.innerHTML += `
-            <div class="news-item">
-                <div><strong>${item.title}</strong><br><small>${item.date}</small></div>
-                <button class="danger-btn" onclick="deleteNews('${p}',${i})">Delete</button>
-            </div>
-        `;
+    // List Owned for Invite
+    currentUser.data.owns.forEach(pid=>{
+        let p = projs[pid];
+        document.getElementById('ownerProjSelect').innerHTML += `<option value="${pid}">${p.name}</option>`;
     });
+    document.getElementById('myProjList').innerHTML = listHtml;
+    loadVisualEditor();
 }
 
-function deleteNews(p, index) {
-    if (!confirm("Delete this news item?")) return;
-    let news = JSON.parse(localStorage.getItem(`news_${p}`)) || [];
-    news.splice(index, 1);
-    localStorage.setItem(`news_${p}`, JSON.stringify(news));
-    loadNewsList();
+// === DRAG & DROP VISUAL EDITOR ENGINE ===
+function loadVisualEditor(){
+    let pid = document.getElementById('editProjSelect').value;
+    if(!pid) return;
+    let proj = getProjects()[pid];
+    let preview = document.getElementById('visualPreview');
+    preview.innerHTML='';
+    // Render 3 Modules Absolutely Positioned
+    Object.keys(proj.modules).forEach(mid=>{
+        let m = proj.modules[mid];
+        let el = document.createElement('div');
+        el.id = mid;
+        el.className = 'editable-module';
+        el.style.left = m.style.x+'%';
+        el.style.top = m.style.y+'%';
+        el.style.width = m.style.w+'%';
+        el.style.height = m.style.h+'%';
+        el.style.background = m.style.bg;
+        el.style.color = m.style.txt;
+        el.style.borderColor = m.style.border;
+        el.innerHTML = `<strong>${mid.toUpperCase()} BLOCK</strong><br>${m.text.substring(0,80)}...<div class="resize-handle"></div>`;
+        el.onclick=(e)=>{e.stopPropagation(); selectModule(mid);};
+        preview.appendChild(el);
+    });
+    // Mouse Events Drag/Resize
+    preview.onmousedown=(e)=>{
+        if(e.target.classList.contains('resize-handle')){
+            resizing = e.target.parentElement;
+        } else if(e.target.classList.contains('editable-module')){
+            dragging = e.target;
+        }
+        offsetX = e.clientX; offsetY = e.clientY;
+    };
+    document.onmousemove=(e)=>{
+        let rect = preview.getBoundingClientRect();
+        if(dragging){
+            let dx = (e.clientX - offsetX)/rect.width*100;
+            let dy = (e.clientY - offsetY)/rect.height*100;
+            let currLeft = parseFloat(dragging.style.left);
+            let currTop = parseFloat(dragging.style.top);
+            dragging.style.left = Math.max(0, Math.min(95, currLeft+dx))+'%';
+            dragging.style.top = Math.max(0, Math.min(95, currTop+dy))+'%';
+            offsetX = e.clientX; offsetY = e.clientY;
+        }
+        if(resizing){
+            let dw = (e.clientX - offsetX)/rect.width*100;
+            let dh = (e.clientY - offsetY)/rect.height*100;
+            let currW = parseFloat(resizing.style.width);
+            let currH = parseFloat(resizing.style.height);
+            resizing.style.width = Math.max(10, Math.min(100, currW+dw))+'%';
+            resizing.style.height = Math.max(10, Math.min(100, currH+dh))+'%';
+            offsetX = e.clientX; offsetY = e.clientY;
+        }
+    };
+    document.onmouseup=()=>{dragging=null; resizing=null;};
 }
-
-document.getElementById("newsProgram").addEventListener("change", loadNewsList);
+function selectModule(mid){
+    selectedModuleId = mid;
+    let pid = document.getElementById('editProjSelect').value;
+    let mod = getProjects()[pid].modules[mid];
+    document.getElementById('blockTextArea').value = mod.text;
+    document.getElementById('blockBgColor').value = mod.style.bg;
+    document.getElementById('blockTxtColor').value = mod.style.txt;
+    document.getElementById('blockBorderColor').value = mod.style.border;
+}
+function saveBlockText(){
+    if(!selectedModuleId) return alert("Select block first");
+    let pid = document.getElementById('editProjSelect').value;
+    let projs = getProjects();
+    projs[pid].modules[selectedModuleId].text = document.getElementById('blockTextArea').value;
+    saveProjects(projs); loadVisualEditor();
+}
+function applyBlockColors(){
+    if(!selectedModuleId) return alert("Select block first");
+    let pid = document.getElementById('editProjSelect').value;
+    let projs = getProjects();
+    let s = projs[pid].modules[selectedModuleId].style;
+    s.bg = document.getElementById('blockBgColor').value;
+    s.txt = document.getElementById('blockTxtColor').value;
+    s.border = document.getElementById('blockBorderColor').value;
+    saveProjects(projs); loadVisualEditor();
+}
+function saveLayoutPosition(){
+    let pid = document.getElementById('editProjSelect').value;
+    let projs = getProjects();
+    Object.keys(projs[pid].modules).forEach(mid=>{
+        let el = document.getElementById(mid);
+        projs[pid].modules[mid].style.x = parseFloat(el.style.left);
+        projs[pid].modules[mid].style.y = parseFloat(el.style.top);
+        projs[pid].modules[mid].style.w = parseFloat(el.style.width);
+        projs[pid].modules[mid].style.h = parseFloat(el.style.height);
+    });
+    saveProjects(projs);
+    alert("Layout Saved! Student page updated.");
+}
 </script>
 </body>
 </html>
