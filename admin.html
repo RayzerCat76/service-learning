@@ -4,51 +4,66 @@
   <meta charset="UTF-8">
   <title>Admin Panel</title>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
-    body{background:#f4f4f4;padding:20px;max-width:1200px;margin:auto}
-    .card{background:white;padding:20px;border-radius:12px;margin-bottom:20px}
-    h2,h3{border-bottom:1px solid #ddd;padding-bottom:10px;margin-bottom:15px}
-    input,textarea,select{width:100%;padding:10px;margin:6px 0;border:1px solid #ddd;border-radius:6px}
-    button{padding:10px 16px;background:#3498db;color:white;border:none;border-radius:6px;cursor:pointer;margin:5px 0}
-    .del{background:#e74c3c}
-    .preview{border:2px dashed #ccc;padding:20px;min-height:420px;position:relative;background:#fafafa}
-    .drag{position:absolute;padding:14px;background:white;border:2px solid #3498db;border-radius:8px;cursor:move}
-    .resize{position:absolute;right:0;bottom:0;width:16px;height:16px;background:#3498db}
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial; }
+    body { background: #f4f4f4; padding: 20px; max-width: 1000px; margin: auto; }
+    .box { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+    h2 { margin-bottom: 15px; }
+    input, textarea, select {
+      width: 100%; padding: 10px; margin: 6px 0;
+      border: 1px solid #ddd; border-radius: 6px;
+    }
+    button {
+      padding: 10px 16px; background: #3498db;
+      color: white; border: none; border-radius: 6px; cursor: pointer;
+    }
+    .red { background: #e74c3c; }
+    .preview {
+      border: 2px dashed #ccc; padding: 20px;
+      min-height: 400px; position: relative; background: #fafafa;
+    }
+    .drag {
+      position: absolute; padding: 14px; background: white;
+      border: 2px solid #3498db; border-radius: 8px; cursor: move;
+    }
+    .resize {
+      position: absolute; right: 0; bottom: 0;
+      width: 16px; height: 16px; background: #3498db;
+    }
   </style>
 </head>
 <body>
-  <div id="login" class="card">
-    <h2>Login</h2>
+
+  <div id="authScreen" class="box">
+    <h2>Login / Create Account</h2>
     <input id="user" placeholder="Username"><br>
     <input id="pass" type="password" placeholder="Password"><br>
     <button onclick="login()">Login</button>
+    <button onclick="createAccount()">Create Account</button>
   </div>
 
-  <div id="dash" style="display:none">
-    <div class="card"><h2>Welcome, <span id="uname"></span></h2></div>
-    <div class="card" id="masterTools" style="display:none">
-      <h3>Global Website Settings</h3>
-      <input id="title" placeholder="Title"><br>
-      <input id="subtitle" placeholder="Subtitle"><br>
-      <button onclick="saveGlobal()">Save</button>
-    </div>
-    <div class="card">
-      <h3>Programs</h3>
-      <input id="newProg" placeholder="New Program"><button onclick="createProg()">Create</button>
+  <div id="dashboard" style="display:none">
+    <div class="box"><h2>Welcome, <span id="uname"></span></h2></div>
+
+    <div class="box">
+      <h3>My Programs</h3>
+      <input id="newProg" placeholder="Program name">
+      <button onclick="createProgram()">Create Program</button>
       <select id="progSelect"></select>
     </div>
-    <div class="card">
+
+    <div class="box">
       <h3>Blocks</h3>
       <button onclick="addBlock()">Add Block</button>
-      <button onclick="deleteBlock()" class="del">Delete</button><br>
-      <input id="bTitle" placeholder="Block Title"><br>
+      <button onclick="deleteBlock()" class="red">Delete Block</button><br>
+      <input id="bTitle" placeholder="Block title"><br>
       <textarea id="bContent" rows="4"></textarea><br>
       <input type="color" id="bBg">
       <input type="color" id="bText">
       <input type="color" id="bBorder"><br>
-      <button onclick="saveBlock()">Save Block</button>
+      <button onclick="saveBlock()">Save</button>
     </div>
-    <div class="card">
+
+    <div class="box">
       <h3>Drag & Drop Layout</h3>
       <div id="preview" class="preview"></div>
       <button onclick="saveLayout()">Save Position & Size</button>
@@ -57,6 +72,7 @@
 
   <script>
     let token = null;
+    let currentUser = null;
     let selectedBlock = null;
     let drag = null, resize = null;
 
@@ -65,21 +81,34 @@
       const p = document.getElementById("pass").value;
       const res = await fetch("/api/login", {
         method: "POST",
-        body: JSON.stringify({ username:u, password:p })
+        body: JSON.stringify({ username: u, password: p })
       });
       const data = await res.json();
-      if (data.token) {
+      if (data.success) {
         token = data.token;
-        document.getElementById("login").style.display = "none";
-        document.getElementById("dash").style.display = "block";
+        currentUser = data;
+        document.getElementById("authScreen").style.display = "none";
+        document.getElementById("dashboard").style.display = "block";
         document.getElementById("uname").innerText = data.name;
-        if (data.role === "master") document.getElementById("masterTools").style.display = "block";
-        refresh();
+        refreshPrograms();
       } else alert("Invalid login");
     }
 
-    async function refresh() {
-      const progs = await fetch("/api/programs").then(r=>r.json());
+    async function createAccount() {
+      const u = document.getElementById("user").value;
+      const p = document.getElementById("pass").value;
+      const res = await fetch("/api/create-account", {
+        method: "POST",
+        body: JSON.stringify({ username: u, password: p })
+      });
+      const data = await res.json();
+      if (data.success) alert("Account created! Now login.");
+      else alert("Username taken");
+    }
+
+    async function refreshPrograms() {
+      const res = await fetch("/api/programs");
+      const progs = await res.json();
       const sel = document.getElementById("progSelect");
       sel.innerHTML = "";
       progs.forEach(p => {
@@ -89,8 +118,10 @@
     }
 
     async function loadPreview() {
-      const id = document.getElementById("progSelect").value;
-      const blocks = await fetch(`/api/blocks?program_id=${id}`).then(r=>r.json());
+      const pid = document.getElementById("progSelect").value;
+      if (!pid) return;
+      const res = await fetch(`/api/blocks?program_id=${pid}`);
+      const blocks = await res.json();
       const prev = document.getElementById("preview");
       prev.innerHTML = "";
       blocks.forEach(b => {
@@ -98,10 +129,10 @@
         el.className = "drag";
         el.dataset.id = b.id;
         el.innerText = b.title;
-        el.style.left = b.x+"%";
-        el.style.top = b.y+"%";
-        el.style.width = b.w+"%";
-        el.style.height = b.h+"%";
+        el.style.left = b.x + "%";
+        el.style.top = b.y + "%";
+        el.style.width = b.w + "%";
+        el.style.height = b.h + "%";
         el.innerHTML += '<div class="resize"></div>';
         el.onclick = () => {
           selectedBlock = b;
@@ -129,15 +160,15 @@
     document.onmousemove = e => {
       const r = document.getElementById("preview").getBoundingClientRect();
       if (drag) {
-        drag.style.left = Math.max(0, (e.clientX-r.left)/r.width*100)+"%";
-        drag.style.top = Math.max(0, (e.clientY-r.top)/r.height*100)+"%";
+        drag.style.left = Math.max(0, (e.clientX - r.left) / r.width * 100) + "%";
+        drag.style.top = Math.max(0, (e.clientY - r.top) / r.height * 100) + "%";
       }
       if (resize) {
-        resize.style.width = Math.max(10, (e.clientX-r.left)/r.width*100 - parseFloat(resize.style.left))+"%";
-        resize.style.height = Math.max(10, (e.clientY-r.top)/r.height*100 - parseFloat(resize.style.top))+"%";
+        resize.style.width = Math.max(10, (e.clientX - r.left) / r.width * 100 - parseFloat(resize.style.left)) + "%";
+        resize.style.height = Math.max(10, (e.clientY - r.top) / r.height * 100 - parseFloat(resize.style.top)) + "%";
       }
     };
-    document.onmouseup = () => { drag=null; resize=null; };
+    document.onmouseup = () => { drag = null; resize = null; };
   </script>
 </body>
 </html>
