@@ -4,85 +4,45 @@
   <meta charset="UTF-8">
   <title>Admin Panel</title>
   <style>
-    * { box-sizing:border-box; margin:0; padding:0; font-family:Arial; }
-    body { background:#f4f4f4; padding:20px; max-width:1000px; margin:auto; }
-    .box { background:white; padding:25px; border-radius:12px; margin-bottom:20px; }
-    h2 { margin-bottom:15px; }
-    input {
-      width:100%; padding:12px; margin:8px 0;
-      border:1px solid #ddd; border-radius:6px;
-    }
-    button {
-      padding:12px 16px; background:#3498db; color:white;
-      border:none; border-radius:6px; cursor:pointer; margin:5px 0;
-    }
-    .red { background:#e74c3c; }
+    body { padding: 20px; font-family: Arial; max-width: 400px; }
+    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px #ccc; }
+    input { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; }
+    button { padding: 10px 15px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; }
   </style>
 </head>
 <body>
+  <div class="card">
+    <h2>Login</h2>
+    <input id="user" value="master" placeholder="Username">
+    <input id="pass" type="password" value="master123" placeholder="Password">
+    <button onclick="login()">Login</button>
+  </div>
 
-<div id="auth" class="box">
-  <h2>Login / Create Account</h2>
-  <input id="user" placeholder="Username"><br>
-  <input id="pass" type="password" placeholder="Password"><br>
-  <button onclick="login()">Login</button>
-  <button onclick="createAccount()">Create Account</button>
-</div>
+  <div id="dash" style="display:none; margin-top:20px;" class="card">
+    <h2>Welcome!</h2>
+    <p>You are logged in.</p>
+  </div>
 
-<div id="dashboard" style="display:none">
-  <div class="box"><h2>Welcome! Dashboard Loaded</h2></div>
-</div>
+  <script>
+    async function login() {
+      const u = document.getElementById('user').value;
+      const p = document.getElementById('pass').value;
 
-<script>
-// FIXED LOGIN WITH FULL ERROR ALERTS
-async function login() {
-  let u = document.getElementById("user").value;
-  let p = document.getElementById("pass").value;
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: u, password: p })
+        });
 
-  try {
-    let res = await fetch("/api/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" }, // THIS WAS MISSING
-      body: JSON.stringify({ username: u, password: p })
-    });
-
-    let data = await res.json();
-    console.log(data);
-
-    if (data.success) {
-      alert("Login successful!");
-      document.getElementById("auth").style.display = "none";
-      document.getElementById("dashboard").style.display = "block";
-    } else {
-      alert("Invalid username or password");
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('dash').style.display = 'block';
+        } else alert('Login failed');
+      } catch (err) {
+        alert('Network error: ' + err.message);
+      }
     }
-  } catch (err) {
-    alert("Login error: " + err.message);
-  }
-}
-
-// FIXED CREATE ACCOUNT
-async function createAccount() {
-  let u = document.getElementById("user").value;
-  let p = document.getElementById("pass").value;
-
-  try {
-    let res = await fetch("/api/create-account", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: u, password: p })
-    });
-
-    let data = await res.json();
-    if (data.success) {
-      alert("Account created! Now login.");
-    } else {
-      alert("Username already taken");
-    }
-  } catch (err) {
-    alert("Error: " + err.message);
-  }
-}
-</script>
+  </script>
 </body>
 </html>
