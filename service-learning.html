@@ -12,8 +12,18 @@
             font-family: 'Arial', sans-serif;
         }
 
+        :root {
+            --primary: #3498db;
+            --bg: #f5f7fa;
+            --text: #2c3e50;
+            --light-text: #7f8c8d;
+            --card: #ffffff;
+            --border: #eee;
+        }
+
         body {
-            background-color: #f5f7fa;
+            background-color: var(--bg);
+            color: var(--text);
             padding: 20px;
             max-width: 1200px;
             margin: 0 auto;
@@ -22,17 +32,17 @@
         .page-header {
             text-align: center;
             margin-bottom: 30px;
-            color: #2c3e50;
         }
 
         .page-header h1 {
             font-size: 2.2rem;
             margin-bottom: 10px;
+            color: var(--text);
         }
 
         .page-header p {
             font-size: 1.1rem;
-            color: #7f8c8d;
+            color: var(--light-text);
         }
 
         .tabs-container {
@@ -51,14 +61,14 @@
             border: none;
             border-radius: 6px;
             background-color: #e0e6ed;
-            color: #2c3e50;
+            color: var(--text);
             font-size: 1rem;
             cursor: pointer;
             transition: all 0.3s ease;
         }
 
         .tab-btn.active {
-            background-color: #3498db;
+            background-color: var(--primary);
             color: white;
         }
 
@@ -67,7 +77,7 @@
         }
 
         .tab-content {
-            background-color: white;
+            background-color: var(--card);
             padding: 25px;
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
@@ -81,7 +91,7 @@
         .section {
             margin-bottom: 30px;
             padding-bottom: 20px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--border);
         }
 
         .section:last-child {
@@ -91,7 +101,7 @@
         }
 
         .section h2 {
-            color: #3498db;
+            color: var(--primary);
             margin-bottom: 15px;
             font-size: 1.5rem;
         }
@@ -99,12 +109,11 @@
         .section p {
             font-size: 1rem;
             line-height: 1.6;
-            color: #34495e;
             margin-bottom: 10px;
         }
 
         .contact-info {
-            background-color: #f8f9fa;
+            background-color: rgba(0,0,0,0.03);
             padding: 15px;
             border-radius: 6px;
             margin-top: 10px;
@@ -118,7 +127,7 @@
 
         .news-item {
             padding: 12px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--border);
         }
 
         .news-item:last-child {
@@ -126,7 +135,7 @@
         }
 
         .news-link {
-            color: #3498db;
+            color: var(--primary);
             text-decoration: none;
             font-size: 1.05rem;
             font-weight: 500;
@@ -138,7 +147,7 @@
 
         .news-date {
             font-size: 0.85rem;
-            color: #7f8c8d;
+            color: var(--light-text);
             margin-top: 5px;
         }
 
@@ -147,7 +156,7 @@
         }
 
         .news-list::-webkit-scrollbar-thumb {
-            background-color: #3498db;
+            background-color: var(--primary);
             border-radius: 10px;
         }
     </style>
@@ -165,7 +174,22 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Load programs from admin storage
+            // Load themes
+            const theme = JSON.parse(localStorage.getItem('siteTheme')) || {
+                primary: "#3498db",
+                bg: "#f5f7fa",
+                text: "#2c3e50",
+                lightText: "#7f8c8d",
+                card: "#ffffff"
+            };
+
+            document.documentElement.style.setProperty('--primary', theme.primary);
+            document.documentElement.style.setProperty('--bg', theme.bg);
+            document.documentElement.style.setProperty('--text', theme.text);
+            document.documentElement.style.setProperty('--light-text', theme.lightText);
+            document.documentElement.style.setProperty('--card', theme.card);
+
+            // Load programs
             let programs = JSON.parse(localStorage.getItem('servicePrograms')) || [
                 { id: 'community', name: 'Community Service' },
                 { id: 'environmental', name: 'Environmental Action' },
@@ -175,31 +199,27 @@
 
             const buttonContainer = document.getElementById('dynamicTabButtons');
             const contentContainer = document.getElementById('dynamicTabContents');
-            
             buttonContainer.innerHTML = '';
             contentContainer.innerHTML = '';
 
-            // Create tabs dynamically
             programs.forEach((program, index) => {
-                // Tab Button
                 const btn = document.createElement('button');
                 btn.className = 'tab-btn' + (index === 0 ? ' active' : '');
                 btn.setAttribute('data-tab', program.id);
                 btn.textContent = program.name;
                 buttonContainer.appendChild(btn);
 
-                // Tab Content
                 const content = document.createElement('div');
                 content.className = 'tab-content' + (index === 0 ? ' active' : '');
                 content.id = program.id;
                 content.innerHTML = `
                     <div class="section">
                         <h2>Basic Program Information</h2>
-                        <div id="basic_${program.id}">Click "Edit Basic Info" in Admin Panel to add details</div>
+                        <div id="basic_${program.id}">Update in Admin Panel</div>
                     </div>
                     <div class="section">
                         <h2>Sign Up & Contact</h2>
-                        <div id="contact_${program.id}">Click "Edit Contact Info" in Admin Panel to add details</div>
+                        <div id="contact_${program.id}">Update in Admin Panel</div>
                     </div>
                     <div class="section">
                         <h2>Latest Program News</h2>
@@ -209,7 +229,7 @@
                 contentContainer.appendChild(content);
             });
 
-            // Tab switching logic
+            // Tab switching
             const tabButtons = document.querySelectorAll('.tab-btn');
             const tabContents = document.querySelectorAll('.tab-content');
             tabButtons.forEach(button => {
@@ -222,7 +242,7 @@
                 });
             });
 
-            // Load all saved data
+            // Load content
             programs.forEach(program => {
                 const basic = localStorage.getItem(`basic_${program.id}`);
                 if (basic) document.getElementById(`basic_${program.id}`).innerHTML = basic;
