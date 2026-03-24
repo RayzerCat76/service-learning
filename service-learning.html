@@ -63,18 +63,32 @@
         }
 
         .tab-content {
-            background-color: white;
+            background: white;
             padding: 25px;
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             display: none;
+            position: relative;
+            overflow: hidden;
         }
 
         .tab-content.active {
             display: block;
         }
 
-        /* Dynamic Module Blocks Edited By Teacher */
+        .tab-bg {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover;
+            background-position: center;
+            z-index: 0;
+        }
+
+        .tab-content-inner {
+            position: relative;
+            z-index: 1;
+        }
+
         .dyn-section {
             margin-bottom: 30px;
             padding: 20px;
@@ -128,31 +142,40 @@
         const btnHolder = document.getElementById('dynamicTabButtons');
         const contentHolder = document.getElementById('dynamicTabContents');
 
-        // Render Static Tabs & Dynamic Styled Sections
         Object.keys(projects).forEach(pid => {
             const p = projects[pid];
-            // Tab Button
-            btnHolder.innerHTML += `<button class="tab-btn ${firstLoad?'active':''}" data-tab="${pid}">${p.name}</button>`;
-            
-            // Tab Content Container
-            let html = `<div class="tab-content ${firstLoad?'active':''}" id="${pid}">`;
-            
-            // 3 Dynamic Styled Blocks (Info / Signup / News)
-            Object.keys(p.modules).forEach(mkey => {
-                const m = p.modules[mkey];
-                html += `
-                <div class="dyn-section" style="background:${m.style.bg};color:${m.style.txt};border-color:${m.style.border};">
-                    <h2>${m.title}</h2>
-                    ${m.html}
-                </div>`;
-            });
+            btnHolder.innerHTML += `<button class="tab-btn ${firstLoad ? 'active' : ''}" data-tab="${pid}">${p.name}</button>`;
 
-            html += `</div>`;
+            let bgStyle = '';
+            if (p.tabBgType === 'image') {
+                bgStyle = `background-image: url('${p.tabBg}');`;
+            } else {
+                bgStyle = `background-color: ${p.tabBg};`;
+            }
+
+            let html = `
+            <div class="tab-content ${firstLoad ? 'active' : ''}" id="${pid}">
+                <div class="tab-bg" style="${bgStyle}"></div>
+                <div class="tab-content-inner">
+                    <div class="dyn-section" style="background:${p.modules.info.style.bg};color:${p.modules.info.style.txt};border-color:${p.modules.info.style.bor};">
+                        <h2>${p.modules.info.title}</h2>
+                        ${p.modules.info.html}
+                    </div>
+                    <div class="dyn-section" style="background:${p.modules.signup.style.bg};color:${p.modules.signup.style.txt};border-color:${p.modules.signup.style.bor};">
+                        <h2>${p.modules.signup.title}</h2>
+                        ${p.modules.signup.html}
+                    </div>
+                    <div class="dyn-section" style="background:${p.modules.news.style.bg};color:${p.modules.news.style.txt};border-color:${p.modules.news.style.bor};">
+                        <h2>${p.modules.news.title}</h2>
+                        ${p.modules.news.html}
+                    </div>
+                </div>
+            </div>`;
+
             contentHolder.innerHTML += html;
             firstLoad = false;
         });
 
-        // Standard Tab Switch Logic
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.onclick = () => {
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
