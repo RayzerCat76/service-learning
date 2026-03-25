@@ -19,39 +19,32 @@
         .flex{display:flex;gap:15px;flex-wrap:wrap}
 
         .preview{
-            position:relative;
-            width:100%;
-            height:600px;
-            background:#f5f7fa;
-            border:2px solid #ccc;
-            border-radius:8px;
-            overflow:hidden;
+            position:relative;width:100%;height:600px;
+            background:#f5f7fa;border:2px solid #ccc;
+            border-radius:8px;overflow:hidden;
         }
         .preview-header{
-            background:white;
-            padding:15px;
-            text-align:center;
+            background:white;padding:15px;text-align:center;
             border-bottom:1px solid #ddd;
         }
         .preview-stage{
-            position:relative;
-            width:100%;
-            height:calc(100% - 60px);
-            background:white;
-            overflow:hidden;
+            position:relative;width:100%;height:calc(100% - 60px);
+            background:white;overflow:hidden;
         }
 
         .drag-block{
-            position:absolute;
-            padding:12px;
-            border-radius:8px;
-            cursor:move;
-            background:white;
-            overflow:hidden;
+            position:absolute;padding:12px;border-radius:8px;
+            cursor:move;background:white;overflow:hidden;
             white-space:pre-line;
         }
+        .drag-block[style*="border: none"] {
+            outline: 1px dashed #ccc !important;
+        }
         .resize{
-            position:absolute;right:0;bottom:0;width:16px;height:16px;background:#3498db;cursor:se-resize;border-radius:0 0 6px 0;}
+            position:absolute;right:0;bottom:0;
+            width:18px;height:18px;background:#3498db;
+            cursor:se-resize;border-radius:0 0 6px 0;
+        }
     </style>
 </head>
 <body>
@@ -66,12 +59,6 @@
 
 <div id="dashboard" class="hidden">
     <div class="box"><h2>Welcome, <span id="uname"></span> | <button class="btn-red" onclick="logout()">Logout</button></h2></div>
-
-    <div class="box hidden" id="masterPanel">
-        <h3>Master Settings</h3>
-        <div class="form-group"><input type="text" id="mTitle" placeholder="Title"></div>
-        <button class="btn-blue" onclick="saveMaster()">Save Global</button>
-    </div>
 
     <div class="box">
         <h3>My Programs</h3>
@@ -91,41 +78,25 @@
         <div class="form-group"><textarea id="bContent" rows="4" placeholder="Text"></textarea></div>
 
         <div class="flex">
+            <div class="form-group"><label>Background</label><input type="color" id="bBg" value="#ffffff"></div>
+            <div class="form-group"><label>Text Color</label><input type="color" id="bText" value="#000000"></div>
             <div class="form-group">
-                <label>Background</label>
-                <input type="color" id="bBg" value="#ffffff">
-            </div>
-            <div class="form-group">
-                <label>Text Color</label>
-                <input type="color" id="bText" value="#000000">
-            </div>
-
-            <!-- ✅ BORDER TOGGLE ON/OFF -->
-            <div class="form-group">
-                <label>Block Border</label>
+                <label>Border</label>
                 <select id="bBorder">
-                    <option value="none">NO BORDER</option>
-                    <option value="2px solid #3498db">BORDER ON</option>
+                    <option value="none">OFF (Dotted Preview)</option>
+                    <option value="2px solid #3498db">ON (Solid Blue)</option>
                 </select>
             </div>
-
             <div class="form-group">
                 <label>Font Size</label>
                 <select id="bSize">
-                    <option value="14px">14</option>
-                    <option value="16px" selected>16</option>
-                    <option value="18px">18</option>
-                    <option value="20px">20</option>
-                    <option value="24px">24</option>
+                    <option value="14px">14</option><option value="16px" selected>16</option><option value="18px">18</option><option value="20px">20</option>
                 </select>
             </div>
-
             <div class="form-group">
                 <label>Font</label>
                 <select id="bFont">
-                    <option value="Arial">Arial</option>
-                    <option value="Georgia">Georgia</option>
-                    <option value="Helvetica">Helvetica</option>
+                    <option value="Arial">Arial</option><option value="Georgia">Georgia</option>
                 </select>
             </div>
         </div>
@@ -139,121 +110,186 @@
             <div class="preview-header"><h4>Service Learning</h4></div>
             <div id="previewArea" class="preview-stage"></div>
         </div>
-        <button class="btn-blue" onclick="saveLayout()">Save Position</button>
+        <button class="btn-blue" onclick="saveLayout()">Save Position & Size</button>
     </div>
 </div>
 
 <script>
-let currentUser, selectedBlock, imgSrc, drag, area;
-let offsetX=0, offsetY=0;
+let currentUser, selectedBlock, area;
+let drag = null, resize = null;
+let offsetX = 0, offsetY = 0;
 
-async function login(){
-  const u=document.getElementById("user").value,p=document.getElementById("pass").value;
-  const r=await fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:u,password:p})});
-  const d=await r.json();if(!d.success)return alert("Fail");
-  currentUser=u;document.getElementById("loginBox").classList.add("hidden");document.getElementById("dashboard").classList.remove("hidden");
-  document.getElementById("uname").innerText=u;if(u==="master")document.getElementById("masterPanel").classList.remove("hidden");
+async function login() {
+  const u = document.getElementById("user").value, p = document.getElementById("pass").value;
+  const r = await fetch("/api/login", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username: u, password: p })
+  });
+  const d = await r.json();
+  if (!d.success) return alert("Failed");
+  currentUser = u;
+  document.getElementById("loginBox").classList.add("hidden");
+  document.getElementById("dashboard").classList.remove("hidden");
   refreshPrograms();
 }
 
-async function register(){
-  const u=document.getElementById("user").value,p=document.getElementById("pass").value;
-  const r=await fetch("/api/create-account",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:u,password:p})});
-  alert((await r.json()).success?"Created":"Fail");
+async function register() {
+  const u = document.getElementById("user").value, p = document.getElementById("pass").value;
+  const r = await fetch("/api/create-account", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username: u, password: p })
+  });
+  alert((await r.json()).success ? "Created" : "Error");
 }
 
-function logout(){location.reload();}
+function logout() { location.reload(); }
 
-async function refreshPrograms(){
-  const p=await(await fetch("/api/programs")).json();
-  const l=document.getElementById("progList"),e=document.getElementById("editProg");l.innerHTML="";e.innerHTML="";
-  p.forEach(x=>{l.innerHTML+=`<p>${x.name}</p>`;e.innerHTML+=`<option value="${x.id}">${x.name}</option>`;});
+async function refreshPrograms() {
+  const progs = await (await fetch("/api/programs")).json();
+  const list = document.getElementById("progList"), sel = document.getElementById("editProg");
+  list.innerHTML = ""; sel.innerHTML = "";
+  progs.forEach(p => {
+    list.innerHTML += `<p>${p.name}</p>`;
+    sel.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+  });
   renderPreview();
 }
 
-async function createProg(){
-  await fetch("/api/add-program",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:document.getElementById("newProg").value})});
+async function createProg() {
+  await fetch("/api/add-program", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name: document.getElementById("newProg").value })
+  });
   refreshPrograms();
 }
 
-async function renderPreview(){
-  area=document.getElementById("previewArea");
-  const b=await(await fetch("/api/blocks?program_id="+document.getElementById("editProg").value)).json();
-  area.innerHTML="";
-  b.forEach(bl=>{
-    const el=document.createElement("div");el.className="drag-block";el.dataset.id=bl.id;
-    el.innerHTML=`<strong>${bl.title}</strong><br>${bl.content}`;
-    el.style.left=bl.x+"%";el.style.top=bl.y+"%";el.style.width=bl.w+"%";el.style.height=bl.h+"%";
-    el.style.background=bl.bg;el.style.color=bl.text;el.style.border=bl.border;el.style.fontSize=bl.fontSize;el.style.fontFamily=bl.font;
-    el.onclick=e=>{e.stopPropagation();selectedBlock=bl;loadBlock(bl);};
-    el.onmousedown=e=>{e.preventDefault();drag=el;offsetX=e.clientX-el.getBoundingClientRect().left;offsetY=e.clientY-el.getBoundingClientRect().top;};
+async function renderPreview() {
+  area = document.getElementById("previewArea");
+  const blocks = await (await fetch("/api/blocks?program_id=" + document.getElementById("editProg").value)).json();
+  area.innerHTML = "";
+
+  blocks.forEach(b => {
+    const el = document.createElement("div");
+    el.className = "drag-block";
+    el.dataset.id = b.id;
+    el.innerHTML = `<strong>${b.title}</strong><br>${b.content}`;
+    el.style.left = b.x + "%";
+    el.style.top = b.y + "%";
+    el.style.width = b.w + "%";
+    el.style.height = b.h + "%";
+    el.style.background = b.bg;
+    el.style.color = b.text;
+    el.style.border = b.border;
+    el.style.fontSize = b.fontSize;
+    el.style.fontFamily = b.font;
+
+    const resizeNode = document.createElement("div");
+    resizeNode.className = "resize";
+    el.appendChild(resizeNode);
+
+    el.onclick = e => { e.stopPropagation(); selectedBlock = b; loadBlock(b); };
+
+    el.onmousedown = e => {
+        e.preventDefault();
+        if (e.target.classList.contains("resize")) { resize = el; return; }
+        drag = el;
+        offsetX = e.clientX - el.getBoundingClientRect().left;
+        offsetY = e.clientY - el.getBoundingClientRect().top;
+    };
+
     area.appendChild(el);
   });
 }
 
-document.onmousemove=e=>{
-  if(!drag)return;
-  const r=area.getBoundingClientRect();
-  drag.style.left=(e.clientX-r.left-offsetX)+"px";
-  drag.style.top=(e.clientY-r.top-offsetY)+"px";
+document.onmousemove = e => {
+  if (!area) return;
+  const rect = area.getBoundingClientRect();
+  if (drag) {
+    drag.style.left = Math.max(0, e.clientX - rect.left - offsetX) + "px";
+    drag.style.top = Math.max(0, e.clientY - rect.top - offsetY) + "px";
+  }
+  if (resize) {
+    const w = e.clientX - rect.left - parseInt(resize.style.left);
+    const h = e.clientY - rect.top - parseInt(resize.style.top);
+    resize.style.width = Math.max(50, w) + "px";
+    resize.style.height = Math.max(30, h) + "px";
+  }
 };
-document.onmouseup=()=>drag=null;
 
-function loadBlock(b){
-  document.getElementById("bTitle").value=b.title;
-  document.getElementById("bContent").value=b.content;
-  document.getElementById("bBg").value=b.bg||"#fff";
-  document.getElementById("bText").value=b.text||"#000";
-  document.getElementById("bBorder").value=b.border||"none";
-  document.getElementById("bSize").value=b.fontSize||"16px";
-  document.getElementById("bFont").value=b.font||"Arial";
+document.onmouseup = () => { drag = null; resize = null; };
+
+function loadBlock(b) {
+  document.getElementById("bTitle").value = b.title;
+  document.getElementById("bContent").value = b.content;
+  document.getElementById("bBg").value = b.bg || "#fff";
+  document.getElementById("bText").value = b.text || "#000";
+  document.getElementById("bBorder").value = b.border || "none";
+  document.getElementById("bSize").value = b.fontSize || "16px";
+  document.getElementById("bFont").value = b.font || "Arial";
 }
 
-// ✅ SAVE WITHOUT RESETTING POSITION
-async function saveBlock(){
-  if(!selectedBlock)return;
-  const u={
-    id:selectedBlock.id,
-    title:document.getElementById("bTitle").value,
-    content:document.getElementById("bContent").value,
-    bg:document.getElementById("bBg").value,
-    text:document.getElementById("bText").value,
-    border:document.getElementById("bBorder").value,
-    fontSize:document.getElementById("bSize").value,
-    font:document.getElementById("bFont").value
+async function saveBlock() {
+  if (!selectedBlock) return;
+  const data = {
+    id: selectedBlock.id,
+    title: document.getElementById("bTitle").value,
+    content: document.getElementById("bContent").value,
+    bg: document.getElementById("bBg").value,
+    text: document.getElementById("bText").value,
+    border: document.getElementById("bBorder").value,
+    fontSize: document.getElementById("bSize").value,
+    font: document.getElementById("bFont").value
   };
-  await fetch("/api/update-block",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(u)});
-  const el=document.querySelector(`[data-id="${selectedBlock.id}"]`);
-  el.innerHTML=`<strong>${u.title}</strong><br>${u.content}`;
-  el.style.background=u.bg;el.style.color=u.text;el.style.border=u.border;el.style.fontSize=u.fontSize;el.style.fontFamily=u.font;
+  await fetch("/api/update-block", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
+  const el = document.querySelector(`[data-id="${selectedBlock.id}"]`);
+  el.innerHTML = `<strong>${data.title}</strong><br>${data.content}`;
+  el.style.background = data.bg;
+  el.style.color = data.text;
+  el.style.border = data.border;
+  el.style.fontSize = data.fontSize;
+  el.style.fontFamily = data.font;
 }
 
-async function addBlock(){
-  await fetch("/api/add-block",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({program_id:document.getElementById("editProg").value})});
+async function addBlock() {
+  await fetch("/api/add-block", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ program_id: document.getElementById("editProg").value })
+  });
   renderPreview();
 }
 
-async function deleteBlock(){
-  if(!selectedBlock)return;
-  await fetch("/api/delete-block",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:selectedBlock.id})});
-  selectedBlock=null;renderPreview();
+async function deleteBlock() {
+  if (!selectedBlock) return;
+  await fetch("/api/delete-block", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id: selectedBlock.id })
+  });
+  selectedBlock = null; renderPreview();
 }
 
-async function saveLayout(){
-  const b=await(await fetch("/api/blocks?program_id="+document.getElementById("editProg").value)).json();
-  const r=area.getBoundingClientRect();
-  for(const x of b){
-    const el=document.querySelector(`[data-id="${x.id}"]`);
-    await fetch("/api/update-position",{
-      method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({id:x.id,x:(parseFloat(el.style.left)/r.width)*100,y:(parseFloat(el.style.top)/r.height)*100,w:(parseFloat(el.style.width)/r.width)*100,h:(parseFloat(el.style.height)/r.height)*100})
+async function saveLayout() {
+  const blocks = await (await fetch("/api/blocks?program_id=" + document.getElementById("editProg").value)).json();
+  const r = area.getBoundingClientRect();
+  for (const b of blocks) {
+    const el = document.querySelector(`[data-id="${b.id}"]`);
+    await fetch("/api/update-position", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: b.id,
+        x: (parseFloat(el.style.left) / r.width) * 100,
+        y: (parseFloat(el.style.top) / r.height) * 100,
+        w: (parseFloat(el.style.width) / r.width) * 100,
+        h: (parseFloat(el.style.height) / r.height) * 100
+      })
     });
   }
-  alert("Saved!");
+  alert("Position & Size Saved!");
 }
 
-function saveMaster(){alert("Global saved");}
-document.getElementById("editProg").onchange=renderPreview;
+document.getElementById("editProg").onchange = renderPreview;
 </script>
 </body>
 </html>
