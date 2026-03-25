@@ -5,56 +5,58 @@
   <title>Service Learning</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0;font-family:Arial}
-    body{padding:30px;max-width:1100px;margin:auto;background:#f8f9fa}
+    body{padding:30px;max-width:1200px;margin:auto;background:#f8f9fa}
     .header{text-align:center;padding:30px;background:white;border-radius:12px;margin-bottom:30px}
     .tabs{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px}
-    .tab{padding:12px 24px;background:white;border-radius:8px;cursor:pointer;border:none}
+    .tab{padding:12px 24px;background:white;border-radius:8px;border:none;cursor:pointer}
     .tab.active{background:#0d6efd;color:white}
-    .content{background:white;padding:30px;border-radius:12px}
-    .block{margin-bottom:18px;padding:20px;border:1px solid #ddd;border-radius:8px}
+    .stage{position:relative;background:white;width:100%;height:700px;border-radius:12px;overflow:hidden}
+    .block{position:absolute;padding:20px;border-radius:8px;transform-origin:center}
   </style>
 </head>
 <body>
-  <div class="header"><h1>Service Learning</h1><p>Our Programs</p></div>
-  <div id="tabs" class="tabs"></div>
-  <div id="content" class="content"></div>
+<div class="header"><h1>Service Learning</h1></div>
+<div id="tabs" class="tabs"></div>
+<div id="stage" class="stage"></div>
 
-  <script>
-    let programs = [];
-    let current = null;
-
-    async function load(){
-      const r = await fetch("/api/get-all");
-      const d = await r.json();
-      programs = d.programs;
-      if(programs.length>0) open(programs[0].id);
-
-      programs.forEach(p=>{
-        const b = document.createElement("button");
-        b.className="tab";
-        b.innerText=p.name;
-        b.onclick=()=>open(p.id);
-        document.getElementById("tabs").appendChild(b);
-      });
-    }
-
-    function open(id){
-      const p = programs.find(x=>x.id==id);
-      if(!p)return;
-      current=p;
-      document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-      const tabs=document.querySelectorAll(".tab");
-      tabs[programs.indexOf(p)].classList.add("active");
-
-      const html=p.blocks.map(b=>`
-        <div class="block" style="background:${b.bg};color:${b.text};border-color:${b.border}">
-          <h3>${b.title}</h3>
-          <p>${b.content}</p>
-        </div>
-      `).join("");
-      document.getElementById("content").innerHTML=html;
-    }
-    load();
-  </script>
+<script>
+let programs = [];
+async function load() {
+  const r = await fetch("/api/get-all");
+  const d = await r.json();
+  programs = d.programs;
+  if (programs.length > 0) open(programs[0].id);
+  programs.forEach(p => {
+    const b = document.createElement("button");
+    b.className = "tab";
+    b.innerText = p.name;
+    b.onclick = () => open(p.id);
+    document.getElementById("tabs").appendChild(b);
+  });
+}
+function open(id) {
+  const p = programs.find(x => x.id == id);
+  if (!p) return;
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  document.querySelectorAll(".tab")[programs.indexOf(p)].classList.add("active");
+  const s = document.getElementById("stage");
+  s.innerHTML = "";
+  p.blocks.forEach(b => {
+    const e = document.createElement("div");
+    e.className = "block";
+    e.style.left = b.x + "%";
+    e.style.top = b.y + "%";
+    e.style.width = b.w + "%";
+    e.style.height = b.h + "%";
+    e.style.transform = `rotate(${b.r || 0}deg)`;
+    e.style.background = b.bg;
+    e.style.color = b.text;
+    e.style.border = "2px solid " + b.border;
+    e.innerHTML = `<h3>${b.title}</h3><p>${b.content}</p>`;
+    s.appendChild(e);
+  });
+}
+load();
+</script>
 </body>
 </html>
