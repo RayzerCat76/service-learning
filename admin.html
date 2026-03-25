@@ -7,195 +7,254 @@
     *{box-sizing:border-box;margin:0;padding:0;font-family:Arial}
     body{padding:20px;background:#f8f9fa}
     .card{background:white;padding:20px;border-radius:12px;margin-bottom:16px}
-    input,textarea,select{width:100%;padding:10px;margin:6px 0;border:1px solid #ddd;border-radius:6px}
-    button{padding:10px 16px;background:#0d6efd;color:white;border:none;border-radius:6px;margin:4px;cursor:pointer}
+    input,textarea,select,button{width:100%;padding:10px;margin:6px 0;border:1px solid #ddd;border-radius:6px}
+    button{background:#0d6efd;color:white;border:none;cursor:pointer}
     .del{background:#dc3545}
-    .preview{border:2px dashed #ccc;padding:20px;min-height:300px;position:relative;background:white}
-    .drag{position:absolute;padding:14px;background:white;border:2px solid #0d6efd;border-radius:8px;cursor:move}
+    .preview{
+      position:relative;background:white;width:100%;height:600px;
+      border:2px dashed #ccc;margin-top:10px;overflow:hidden
+    }
+    .block{
+      position:absolute;background:white;border:2px solid #0d6efd;
+      padding:14px;border-radius:8px;cursor:move;
+      transform-origin:center center;
+    }
+    .rotate-btn{
+      position:absolute;top:-12px;right:-12px;width:24px;height:24px;
+      background:#0d6efd;color:white;border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      font-size:12px;cursor:pointer;user-select:none;
+    }
   </style>
 </head>
 <body>
 
-  <div id="auth" class="card">
-    <h2>Login / Create Account</h2>
-    <input id="user" placeholder="Username" value="master">
-    <input id="pass" type="password" placeholder="Password" value="master123">
-    <button onclick="login()">Login</button>
-    <button onclick="create()">Create Account</button>
+<div id="auth" class="card">
+  <h2>Login</h2>
+  <input id="user" placeholder="Username" value="master">
+  <input id="pass" type="password" placeholder="Password" value="master123">
+  <button onclick="login()">Login</button>
+  <button onclick="create()">Create Account</button>
+</div>
+
+<div id="dash" style="display:none">
+  <div class="card"><h2>Admin Panel</h2></div>
+
+  <div class="card">
+    <h3>Programs</h3>
+    <input id="pname" placeholder="Program Name">
+    <button onclick="addProg()">Create Program</button>
+    <select id="progSelect" onchange="loadBlocks()"></select>
   </div>
 
-  <div id="dash" style="display:none">
-    <div class="card"><h2>Welcome! Admin Panel</h2></div>
-
-    <div class="card">
-      <h3>Programs</h3>
-      <input id="pname" placeholder="Program Name">
-      <button onclick="addProg()">Create Program</button>
-      <select id="progSelect" onchange="loadBlocks()"></select>
-    </div>
-
-    <div class="card">
-      <h3>Blocks</h3>
-      <button onclick="addBlock()">Add Block</button>
-      <button onclick="delBlock()" class="del">Delete Selected</button><br>
-      <input id="bt" placeholder="Block Title">
-      <textarea id="bc" rows="3" placeholder="Content"></textarea><br>
-      <input type="color" id="bg" value="#ffffff">
-      <input type="color" id="tx" value="#000000">
-      <input type="color" id="bd" value="#dddddd">
-      <button onclick="saveBlock()">Save Block</button>
-    </div>
-
-    <div class="card">
-      <h3>Drag & Drop</h3>
-      <div id="preview" class="preview"></div>
-      <button onclick="savePos()">Save Position & Size</button>
-    </div>
+  <div class="card">
+    <h3>Block Editor</h3>
+    <button onclick="addBlock()">Add Block</button>
+    <button onclick="delBlock()" class="del">Delete Selected</button>
+    <input id="bt" placeholder="Title">
+    <textarea id="bc" rows="3" placeholder="Content"></textarea>
+    <input type="color" id="bg" value="#ffffff">
+    <input type="color" id="tx" value="#000000">
+    <input type="color" id="bd" value="#dddddd">
+    <button onclick="saveBlock()">Save Block</button>
   </div>
 
-  <script>
-    let selected=null;
-    let programs=[];
-    let blocks=[];
+  <div class="card">
+    <h3>Drag / Resize / Rotate</h3>
+    <div id="preview" class="preview"></div>
+    <button onclick="saveAll()" style="margin-top:10px">SAVE ALL POSITIONS & ROTATION</button>
+  </div>
+</div>
 
-    async function login(){
-      const u=document.getElementById("user").value;
-      const p=document.getElementById("pass").value;
-      const r=await fetch("/api/login",{
-        method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({username:u,password:p})
-      });
-      const d=await r.json();
-      if(d.success){
-        document.getElementById("auth").style.display="none";
-        document.getElementById("dash").style.display="block";
-        refreshProgs();
-      }else alert("Login failed: " + (d.reason || "Unknown error"));
-    }
+<script>
+let selected = null;
+let programs = [];
+let blocks = [];
 
-    async function create(){
-      const u=document.getElementById("user").value;
-      const p=document.getElementById("pass").value;
-      const r=await fetch("/api/create-account",{
-        method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({username:u,password:p})
-      });
-      const d=await r.json();
-      alert(d.success?"Created!":"Failed");
-    }
+async function login() {
+  const u = document.getElementById("user").value;
+  const p = document.getElementById("pass").value;
+  const r = await fetch("/api/login", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username: u, password: p })
+  });
+  const d = await r.json();
+  if (d.success) {
+    document.getElementById("auth").style.display = "none";
+    document.getElementById("dash").style.display = "block";
+    refreshProgs();
+  } else alert("Failed: " + (d.reason || ""));
+}
 
-    async function refreshProgs(){
-      const r=await fetch("/api/programs");
-      programs=await r.json();
-      const s=document.getElementById("progSelect");
-      s.innerHTML="";
-      programs.forEach(p=>{
-        s.innerHTML+=`<option value="${p.id}">${p.name}</option>`;
-      });
-      loadBlocks();
-    }
+async function create() {
+  const u = document.getElementById("user").value;
+  const p = document.getElementById("pass").value;
+  const r = await fetch("/api/create-account", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username: u, password: p })
+  });
+  const d = await r.json();
+  alert(d.success ? "Created!" : "Failed");
+}
 
-    async function addProg(){
-      const n=document.getElementById("pname").value;
-      await fetch("/api/add-program",{
-        method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({name:n})
-      });
-      refreshProgs();
-    }
+async function refreshProgs() {
+  const r = await fetch("/api/programs");
+  programs = await r.json();
+  const s = document.getElementById("progSelect");
+  s.innerHTML = "";
+  programs.forEach(x => s.innerHTML += `<option value="${x.id}">${x.name}</option>`);
+  loadBlocks();
+}
 
-    async function loadBlocks(){
-      const id=document.getElementById("progSelect").value;
-      const r=await fetch("/api/blocks?program_id="+id);
-      blocks=await r.json();
-      renderPrev();
-    }
+async function addProg() {
+  const n = document.getElementById("pname").value;
+  await fetch("/api/add-program", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name: n })
+  });
+  refreshProgs();
+}
 
-    async function addBlock(){
-      const id=document.getElementById("progSelect").value;
-      await fetch("/api/add-block",{
-        method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({program_id:id})
-      });
-      loadBlocks();
-    }
+async function loadBlocks() {
+  const id = document.getElementById("progSelect").value;
+  const r = await fetch("/api/blocks?program_id=" + id);
+  blocks = await r.json();
+  render();
+}
 
-    async function delBlock(){
-      if(!selected)return;
-      await fetch("/api/delete-block",{
-        method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({id:selected.id})
-      });
-      selected=null;
-      loadBlocks();
-    }
+async function addBlock() {
+  const id = document.getElementById("progSelect").value;
+  await fetch("/api/add-block", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ program_id: id })
+  });
+  loadBlocks();
+}
 
-    async function saveBlock(){
-      if(!selected)return;
-      const t=document.getElementById("bt").value;
-      const c=document.getElementById("bc").value;
-      const bg=document.getElementById("bg").value;
-      const tx=document.getElementById("tx").value;
-      const bd=document.getElementById("bd").value;
-      await fetch("/api/update-block",{
-        method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({id:selected.id,title:t,content:c,bg:bg,text:tx,border:bd})
-      });
-      loadBlocks();
-    }
+async function delBlock() {
+  if (!selected) return;
+  await fetch("/api/delete-block", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id: selected.id })
+  });
+  selected = null;
+  loadBlocks();
+}
 
-    function renderPrev(){
-      const p=document.getElementById("preview");
-      p.innerHTML="";
-      blocks.forEach(b=>{
-        const d=document.createElement("div");
-        d.className="drag";
-        d.dataset.id=b.id;
-        d.innerText=b.title;
-        d.style.left=b.x+"%";
-        d.style.top=b.y+"%";
-        d.style.width=b.w+"%";
-        d.style.height=b.h+"%";
-        d.onclick=()=>{selected=b;document.getElementById("bt").value=b.title;document.getElementById("bc").value=b.content;};
-        p.appendChild(d);
-      });
-      enableDrag();
-    }
+async function saveBlock() {
+  if (!selected) return;
+  const t = document.getElementById("bt").value;
+  const c = document.getElementById("bc").value;
+  const bg = document.getElementById("bg").value;
+  const tx = document.getElementById("tx").value;
+  const bd = document.getElementById("bd").value;
+  await fetch("/api/update-block", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id: selected.id, title: t, content: c, bg, text: tx, border: bd })
+  });
+  loadBlocks();
+}
 
-    function enableDrag(){
-      let el=null;
-      document.querySelectorAll(".drag").forEach(d=>{
-        d.onmousedown=(e)=>{el=d;e.preventDefault();};
-      });
-      window.onmouseup=()=>el=null;
-      window.onmousemove=(e)=>{
-        if(!el)return;
-        const p=document.getElementById("preview");
-        const r=p.getBoundingClientRect();
-        const x=((e.clientX-r.left)/r.width)*100;
-        const y=((e.clientY-r.top)/r.height)*100;
-        el.style.left=x+"%";
-        el.style.top=y+"%";
-      };
-    }
+function render() {
+  const p = document.getElementById("preview");
+  p.innerHTML = "";
+  blocks.forEach(b => {
+    const el = document.createElement("div");
+    el.className = "block";
+    el.dataset.id = b.id;
+    el.innerText = b.title;
+    el.style.left = b.x + "%";
+    el.style.top = b.y + "%";
+    el.style.width = b.w + "%";
+    el.style.height = b.h + "%";
+    el.style.transform = `rotate(${b.r || 0}deg)`;
 
-    async function savePos(){
-      const p=document.getElementById("preview");
-      const all=p.querySelectorAll(".drag");
-      for(const d of all){
-        const id=d.dataset.id;
-        const x=parseFloat(d.style.left);
-        const y=parseFloat(d.style.top);
-        const w=parseFloat(d.style.width);
-        const h=parseFloat(d.style.height);
-        await fetch("/api/update-position",{
-          method:"POST",headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({id,x,y,w,h})
-        });
-      }
-      alert("Saved!");
-      loadBlocks();
-    }
-  </script>
+    const rot = document.createElement("div");
+    rot.className = "rotate-btn";
+    rot.innerText = "R";
+    rot.onmousedown = (e) => {
+      e.stopPropagation();
+      startRotate(el, b);
+    };
+    el.appendChild(rot);
+
+    el.onclick = () => {
+      selected = b;
+      document.getElementById("bt").value = b.title;
+      document.getElementById("bc").value = b.content;
+    };
+    p.appendChild(el);
+  });
+  enableDrag();
+  enableResize();
+}
+
+function enableDrag() {
+  let el = null;
+  document.querySelectorAll(".block").forEach(d => {
+    d.onmousedown = (e) => {
+      if (e.target.classList.contains("rotate-btn")) return;
+      el = d;
+      e.preventDefault();
+    };
+  });
+  window.onmouseup = () => el = null;
+  window.onmousemove = (e) => {
+    if (!el) return;
+    const p = document.getElementById("preview");
+    const r = p.getBoundingClientRect();
+    const x = ((e.clientX - r.left) / r.width) * 100;
+    const y = ((e.clientY - r.top) / r.height) * 100;
+    el.style.left = x + "%";
+    el.style.top = y + "%";
+  };
+}
+
+function enableResize() {
+  document.querySelectorAll(".block").forEach(el => {
+    el.onwheel = (e) => {
+      e.preventDefault();
+      const w = parseFloat(el.style.width) + (e.deltaY < 0 ? 2 : -2);
+      const h = parseFloat(el.style.height) + (e.deltaY < 0 ? 2 : -2);
+      el.style.width = Math.max(10, Math.min(90, w)) + "%";
+      el.style.height = Math.max(10, Math.min(90, h)) + "%";
+    };
+  });
+}
+
+function startRotate(el, b) {
+  window.onmousemove = (e) => {
+    const rect = el.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const rad = Math.atan2(e.clientY - cy, e.clientX - cx);
+    const deg = rad * (180 / Math.PI);
+    el.style.transform = `rotate(${deg}deg)`;
+  };
+  window.onmouseup = () => {
+    window.onmousemove = null;
+  };
+}
+
+async function saveAll() {
+  const p = document.getElementById("preview");
+  const all = p.querySelectorAll(".block");
+  for (const el of all) {
+    const id = el.dataset.id;
+    const x = parseFloat(el.style.left);
+    const y = parseFloat(el.style.top);
+    const w = parseFloat(el.style.width);
+    const h = parseFloat(el.style.height);
+    const r = parseFloat(el.style.transform.replace(/[^0-9.-]/g, "")) || 0;
+
+    await fetch("/api/update-position", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, x, y, w, h, r })
+    });
+  }
+  alert("Saved ALL!");
+  loadBlocks();
+}
+</script>
 </body>
 </html>
