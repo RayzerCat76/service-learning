@@ -70,7 +70,7 @@
         document.getElementById("auth").style.display="none";
         document.getElementById("dash").style.display="block";
         refreshProgs();
-      }else alert("Failed");
+      }else alert("Login failed: " + (d.reason || "Unknown error"));
     }
 
     async function create(){
