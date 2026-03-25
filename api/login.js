@@ -10,7 +10,12 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { username, password } = await req.json();
+    // 手动解析 JSON 请求体（解决 req.json is not a function）
+    let body = '';
+    req.on('data', chunk => { body += chunk.toString(); });
+    await new Promise(resolve => req.on('end', resolve));
+    const { username, password } = JSON.parse(body);
+
     console.log("Trying login:", username, password);
 
     const result = await sql`
