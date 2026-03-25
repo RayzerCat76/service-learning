@@ -101,8 +101,8 @@ let currentUser = null;
 let selectedBlock = null;
 let imgSrc = null;
 let drag = null;
-let resize = null;
 let offsetX = 0, offsetY = 0;
+let area = null;
 
 async function login() {
   const u = document.getElementById("user").value;
@@ -175,17 +175,17 @@ async function saveTabBg() {
 }
 
 async function renderPreview() {
+  area = document.getElementById("previewArea");
   const pid = document.getElementById("editProg").value;
   const res = await fetch("/api/blocks?program_id=" + pid);
   const blocks = await res.json();
-  const area = document.getElementById("previewArea");
   area.innerHTML = "";
 
   blocks.forEach(b => {
     const d = document.createElement("div");
     d.className = "drag-block";
     d.dataset.id = b.id;
-    d.innerHTML = `<strong>${b.title}</strong><br>${b.content.substring(0, 30)}...`;
+    d.innerHTML = `<strong>${b.title}</strong>`;
     d.style.left = b.x + "%";
     d.style.top = b.y + "%";
     d.style.width = b.w + "%";
@@ -201,35 +201,48 @@ async function renderPreview() {
       loadBlock(b);
     };
 
-    // ======================
-    // FIX 1: SMOOTH DRAG — NO SNAP TO TOP LEFT
-    // ======================
+    // --------------------------
+    // FIXED DRAG — NO MORE WINDOW SNAP
+    // --------------------------
     d.onmousedown = (e) => {
-      if (e.target.classList.contains("resize")) return;
       e.preventDefault();
+      if (e.target.classList.contains("resize")) return;
+      
       drag = d;
       const rect = d.getBoundingClientRect();
-      offsetX = (e.clientX - rect.left) / rect.width * 100;
-      offsetY = (e.clientY - rect.top) / rect.height * 100;
+      const areaRect = area.getBoundingClientRect();
+      
+      offsetX = e.clientX - rect.left;
+      offsetY = e.clientY - rect.top;
     };
 
     area.appendChild(d);
   });
-
-  // MOVE MOUSE
-  document.onmousemove = (e) => {
-    if (!drag) return;
-    const r = area.getBoundingClientRect();
-    const x = ((e.clientX - r.left) / r.width * 100) - offsetX;
-    const y = ((e.clientY - r.top) / r.height * 100) - offsetY;
-    drag.style.left = Math.max(0, Math.min(100, x)) + "%";
-    drag.style.top = Math.max(0, Math.min(100, y)) + "%";
-  };
-
-  document.onmouseup = () => {
-    drag = null;
-  };
 }
+
+// --------------------------
+// GLOBAL MOUSE MOVE — 100% FIXED
+// --------------------------
+document.onmousemove = (e) => {
+  if (!drag) return;
+  const areaRect = area.getBoundingClientRect();
+  
+  let x = e.clientX - areaRect.left - offsetX;
+  let y = e.clientY - areaRect.top - offsetY;
+
+  let maxX = areaRect.width - drag.offsetWidth;
+  let maxY = areaRect.height - drag.offsetHeight;
+
+  x = Math.max(0, Math.min(x, maxX));
+  y = Math.max(0, Math.min(y, maxY));
+
+  drag.style.left = x + "px";
+  drag.style.top = y + "px";
+};
+
+document.onmouseup = () => {
+  drag = null;
+};
 
 function loadBlock(b) {
   document.getElementById("bTitle").value = b.title;
@@ -239,9 +252,6 @@ function loadBlock(b) {
   document.getElementById("bBor").value = b.border;
 }
 
-// ======================
-// FIX 2: AFTER SAVE — PREVIEW UPDATES INSTANTLY
-// ======================
 async function saveBlock() {
   if (!selectedBlock) return;
   await fetch("/api/update-block", {
@@ -255,7 +265,6 @@ async function saveBlock() {
       border: document.getElementById("bBor").value
     })
   });
-  // AUTO REFRESH PREVIEW
   renderPreview();
 }
 
@@ -286,18 +295,18 @@ async function saveLayout() {
   const pid = document.getElementById("editProg").value;
   const res = await fetch("/api/blocks?program_id=" + pid);
   const blocks = await res.json();
+  const areaRect = area.getBoundingClientRect();
+
   for (const b of blocks) {
     const el = document.querySelector(`[data-id="${b.id}"]`);
+    const x = (parseFloat(el.style.left) / areaRect.width) * 100;
+    const y = (parseFloat(el.style.top) / areaRect.height) * 100;
+    const w = (parseFloat(el.style.width) / areaRect.width) * 100;
+    const h = (parseFloat(el.style.height) / areaRect.height) * 100;
+
     await fetch("/api/update-position", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id: b.id,
-        x: parseFloat(el.style.left),
-        y: parseFloat(el.style.top),
-        w: parseFloat(el.style.width),
-        h: parseFloat(el.style.height),
-        r: 0
-      })
+      body: JSON.stringify({ id: b.id, x, y, w, h, r: 0 })
     });
   }
   alert("Layout Saved!");
