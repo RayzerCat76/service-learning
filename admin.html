@@ -1,47 +1,200 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="UTF-8">
-  <title>Admin Panel</title>
+  <title>Admin</title>
   <style>
-    body { padding: 20px; font-family: Arial; max-width: 400px; }
-    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px #ccc; }
-    input { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; }
-    button { padding: 10px 15px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    *{box-sizing:border-box;margin:0;padding:0;font-family:Arial}
+    body{padding:20px;background:#f8f9fa}
+    .card{background:white;padding:20px;border-radius:12px;margin-bottom:16px}
+    input,textarea,select{width:100%;padding:10px;margin:6px 0;border:1px solid #ddd;border-radius:6px}
+    button{padding:10px 16px;background:#0d6efd;color:white;border:none;border-radius:6px;margin:4px;cursor:pointer}
+    .del{background:#dc3545}
+    .preview{border:2px dashed #ccc;padding:20px;min-height:300px;position:relative;background:white}
+    .drag{position:absolute;padding:14px;background:white;border:2px solid #0d6efd;border-radius:8px;cursor:move}
   </style>
 </head>
 <body>
-  <div class="card">
-    <h2>Login</h2>
-    <input id="user" value="master" placeholder="Username">
-    <input id="pass" type="password" value="master123" placeholder="Password">
+
+  <div id="auth" class="card">
+    <h2>Login / Create Account</h2>
+    <input id="user" placeholder="Username" value="master">
+    <input id="pass" type="password" placeholder="Password" value="master123">
     <button onclick="login()">Login</button>
+    <button onclick="create()">Create Account</button>
   </div>
 
-  <div id="dash" style="display:none; margin-top:20px;" class="card">
-    <h2>Welcome!</h2>
-    <p>You are logged in.</p>
+  <div id="dash" style="display:none">
+    <div class="card"><h2>Welcome! Admin Panel</h2></div>
+
+    <div class="card">
+      <h3>Programs</h3>
+      <input id="pname" placeholder="Program Name">
+      <button onclick="addProg()">Create Program</button>
+      <select id="progSelect" onchange="loadBlocks()"></select>
+    </div>
+
+    <div class="card">
+      <h3>Blocks</h3>
+      <button onclick="addBlock()">Add Block</button>
+      <button onclick="delBlock()" class="del">Delete Selected</button><br>
+      <input id="bt" placeholder="Block Title">
+      <textarea id="bc" rows="3" placeholder="Content"></textarea><br>
+      <input type="color" id="bg" value="#ffffff">
+      <input type="color" id="tx" value="#000000">
+      <input type="color" id="bd" value="#dddddd">
+      <button onclick="saveBlock()">Save Block</button>
+    </div>
+
+    <div class="card">
+      <h3>Drag & Drop</h3>
+      <div id="preview" class="preview"></div>
+      <button onclick="savePos()">Save Position & Size</button>
+    </div>
   </div>
 
   <script>
-    async function login() {
-      const u = document.getElementById('user').value;
-      const p = document.getElementById('pass').value;
+    let selected=null;
+    let programs=[];
+    let blocks=[];
 
-      try {
-        const res = await fetch('/api/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: u, password: p })
+    async function login(){
+      const u=document.getElementById("user").value;
+      const p=document.getElementById("pass").value;
+      const r=await fetch("/api/login",{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({username:u,password:p})
+      });
+      const d=await r.json();
+      if(d.success){
+        document.getElementById("auth").style.display="none";
+        document.getElementById("dash").style.display="block";
+        refreshProgs();
+      }else alert("Failed");
+    }
+
+    async function create(){
+      const u=document.getElementById("user").value;
+      const p=document.getElementById("pass").value;
+      const r=await fetch("/api/create-account",{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({username:u,password:p})
+      });
+      const d=await r.json();
+      alert(d.success?"Created!":"Failed");
+    }
+
+    async function refreshProgs(){
+      const r=await fetch("/api/programs");
+      programs=await r.json();
+      const s=document.getElementById("progSelect");
+      s.innerHTML="";
+      programs.forEach(p=>{
+        s.innerHTML+=`<option value="${p.id}">${p.name}</option>`;
+      });
+      loadBlocks();
+    }
+
+    async function addProg(){
+      const n=document.getElementById("pname").value;
+      await fetch("/api/add-program",{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({name:n})
+      });
+      refreshProgs();
+    }
+
+    async function loadBlocks(){
+      const id=document.getElementById("progSelect").value;
+      const r=await fetch("/api/blocks?program_id="+id);
+      blocks=await r.json();
+      renderPrev();
+    }
+
+    async function addBlock(){
+      const id=document.getElementById("progSelect").value;
+      await fetch("/api/add-block",{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({program_id:id})
+      });
+      loadBlocks();
+    }
+
+    async function delBlock(){
+      if(!selected)return;
+      await fetch("/api/delete-block",{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({id:selected.id})
+      });
+      selected=null;
+      loadBlocks();
+    }
+
+    async function saveBlock(){
+      if(!selected)return;
+      const t=document.getElementById("bt").value;
+      const c=document.getElementById("bc").value;
+      const bg=document.getElementById("bg").value;
+      const tx=document.getElementById("tx").value;
+      const bd=document.getElementById("bd").value;
+      await fetch("/api/update-block",{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({id:selected.id,title:t,content:c,bg:bg,text:tx,border:bd})
+      });
+      loadBlocks();
+    }
+
+    function renderPrev(){
+      const p=document.getElementById("preview");
+      p.innerHTML="";
+      blocks.forEach(b=>{
+        const d=document.createElement("div");
+        d.className="drag";
+        d.dataset.id=b.id;
+        d.innerText=b.title;
+        d.style.left=b.x+"%";
+        d.style.top=b.y+"%";
+        d.style.width=b.w+"%";
+        d.style.height=b.h+"%";
+        d.onclick=()=>{selected=b;document.getElementById("bt").value=b.title;document.getElementById("bc").value=b.content;};
+        p.appendChild(d);
+      });
+      enableDrag();
+    }
+
+    function enableDrag(){
+      let el=null;
+      document.querySelectorAll(".drag").forEach(d=>{
+        d.onmousedown=(e)=>{el=d;e.preventDefault();};
+      });
+      window.onmouseup=()=>el=null;
+      window.onmousemove=(e)=>{
+        if(!el)return;
+        const p=document.getElementById("preview");
+        const r=p.getBoundingClientRect();
+        const x=((e.clientX-r.left)/r.width)*100;
+        const y=((e.clientY-r.top)/r.height)*100;
+        el.style.left=x+"%";
+        el.style.top=y+"%";
+      };
+    }
+
+    async function savePos(){
+      const p=document.getElementById("preview");
+      const all=p.querySelectorAll(".drag");
+      for(const d of all){
+        const id=d.dataset.id;
+        const x=parseFloat(d.style.left);
+        const y=parseFloat(d.style.top);
+        const w=parseFloat(d.style.width);
+        const h=parseFloat(d.style.height);
+        await fetch("/api/update-position",{
+          method:"POST",headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({id,x,y,w,h})
         });
-
-        const data = await res.json();
-        if (data.success) {
-          document.getElementById('dash').style.display = 'block';
-        } else alert('Login failed');
-      } catch (err) {
-        alert('Network error: ' + err.message);
       }
+      alert("Saved!");
+      loadBlocks();
     }
   </script>
 </body>
