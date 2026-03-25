@@ -1,7 +1,6 @@
 import { neon } from '@neondatabase/serverless';
 
 export default async function handler(req, res) {
-  // 跨域必须写
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -11,25 +10,21 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 连接数据库（绝对正确写法）
-    const sql = neon(process.env.DATABASE_URL);
-
-    // 读取前端传过来的账号密码
-    const { username, password } = await req.json();
-
-    // 查询数据库（绝对安全写法）
-    const result = await sql`
-      SELECT * FROM users
-      WHERE username = ${username}
-      AND password = ${password}
-    `;
-
-    // 没找到 → 登录失败
-    if (result.length === 0) {
-      return res.json({ success: false });
+    if (!process.env.DATABASE_URL) {
+      throw new Error("DATABASE_URL is not set in Vercel environment variables");
     }
 
-    // 找到了 → 登录成功
+    const sql = neon(process.env.DATABASE_URL);
+    const { username, password } = await req.json();
+
+    const result = await sql`
+      SELECT * FROM users WHERE username = ${username} AND password = ${password}
+    `;
+
+    if (result.length === 0) {
+      return res.json({ success: false, error: "Invalid username or password" });
+    }
+
     return res.json({
       success: true,
       name: result[0].name,
@@ -37,7 +32,7 @@ export default async function handler(req, res) {
     });
 
   } catch (e) {
-    // 服务器错误 → 返回详细信息让你知道为什么炸
+    console.error("Login error:", e);
     return res.status(500).json({
       success: false,
       error: e.message
