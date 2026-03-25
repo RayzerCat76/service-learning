@@ -17,10 +17,41 @@
         .btn-green{background:#2ecc71;color:white}
         .hidden{display:none}
         .flex{display:flex;gap:15px;flex-wrap:wrap}
-        .preview{border:2px dashed #aaa;padding:15px;min-height:450px;background:#f9f9f9;position:relative}
-        .drag-block{position:absolute;padding:15px;border-radius:8px;cursor:move;border:2px solid #3498db;background:white;overflow:auto}
-        .resize{position:absolute;right:0;bottom:0;width:15px;height:15px;background:#3498db;cursor:se-resize}
-        .img-preview{max-width:200px;margin:10px 0;border-radius:6px}
+
+        .preview{
+            position:relative;
+            width:100%;
+            height:600px;
+            background:#f5f7fa;
+            border:2px solid #ccc;
+            border-radius:8px;
+            overflow:hidden;
+        }
+        .preview-header{
+            background:white;
+            padding:15px;
+            text-align:center;
+            border-bottom:1px solid #ddd;
+        }
+        .preview-stage{
+            position:relative;
+            width:100%;
+            height:calc(100% - 60px);
+            background:white;
+            overflow:hidden;
+        }
+
+        .drag-block{
+            position:absolute;
+            padding:12px;
+            border-radius:8px;
+            cursor:move;
+            background:white;
+            overflow:hidden;
+            white-space:pre-line;
+        }
+        .resize{
+            position:absolute;right:0;bottom:0;width:16px;height:16px;background:#3498db;cursor:se-resize;border-radius:0 0 6px 0;}
     </style>
 </head>
 <body>
@@ -37,22 +68,9 @@
     <div class="box"><h2>Welcome, <span id="uname"></span> | <button class="btn-red" onclick="logout()">Logout</button></h2></div>
 
     <div class="box hidden" id="masterPanel">
-        <h3>Master Settings: Header & Tabs Global Design</h3>
-        <div class="form-group"><input type="text" id="mTitle" placeholder="Main Title"></div>
-        <div class="form-group"><input type="text" id="mSub" placeholder="Subtitle"></div>
-        <div class="flex">
-            <div class="form-group"><label>Header BG</label><input type="color" id="mHBg"></div>
-            <div class="form-group"><label>Header Text</label><input type="color" id="mHCol"></div>
-            <div class="form-group"><label>Header Font</label><input type="text" id="mHFnt"></div>
-            <div class="form-group"><label>Header Size</label><input type="text" id="mHSz"></div>
-        </div>
-        <div class="flex">
-            <div class="form-group"><label>Tab BG</label><input type="color" id="mTBg"></div>
-            <div class="form-group"><label>Tab Text</label><input type="color" id="mTCol"></div>
-            <div class="form-group"><label>Tab Active BG</label><input type="color" id="mTABg"></div>
-            <div class="form-group"><label>Tab Active Text</label><input type="color" id="mTACol"></div>
-        </div>
-        <button class="btn-blue" onclick="saveMaster()">Save Global Design</button>
+        <h3>Master Settings</h3>
+        <div class="form-group"><input type="text" id="mTitle" placeholder="Title"></div>
+        <button class="btn-blue" onclick="saveMaster()">Save Global</button>
     </div>
 
     <div class="box">
@@ -62,261 +80,180 @@
     </div>
 
     <div class="box">
-        <h3>Tab Background (Color / Image)</h3>
-        <div class="form-group"><select id="bgProg"></select></div>
-        <div class="form-group"><select id="bgType"><option value="color">Color</option><option value="image">Image</option></select></div>
-        <div class="form-group"><input type="color" id="tBgColor"></div>
-        <div class="form-group"><input type="file" id="tBgImg" accept="image/*"></div>
-        <button class="btn-blue" onclick="saveTabBg()">Save</button>
-    </div>
-
-    <div class="box">
-        <h3>Block Editor (Add / Edit / Delete)</h3>
+        <h3>Block Editor</h3>
         <div class="form-group"><select id="editProg"></select></div>
         <div class="form-group">
             <button class="btn-green" onclick="addBlock()">Add Block</button>
-            <button class="btn-red" onclick="deleteBlock()">Delete Selected Block</button>
+            <button class="btn-red" onclick="deleteBlock()">Delete</button>
         </div>
-        <div class="form-group"><input type="text" id="bTitle" placeholder="Block Title"></div>
-        <div class="form-group"><textarea id="bContent" rows="4" placeholder="Block Text / HTML"></textarea></div>
+
+        <div class="form-group"><input type="text" id="bTitle" placeholder="Title"></div>
+        <div class="form-group"><textarea id="bContent" rows="4" placeholder="Text"></textarea></div>
+
         <div class="flex">
-            <div class="form-group"><input type="color" id="bBg" title="BG"></div>
-            <div class="form-group"><input type="color" id="bTxt" title="Text"></div>
-            <div class="form-group"><input type="color" id="bBor" title="Border"></div>
+            <div class="form-group">
+                <label>Background</label>
+                <input type="color" id="bBg" value="#ffffff">
+            </div>
+            <div class="form-group">
+                <label>Text Color</label>
+                <input type="color" id="bText" value="#000000">
+            </div>
+
+            <!-- ✅ BORDER TOGGLE ON/OFF -->
+            <div class="form-group">
+                <label>Block Border</label>
+                <select id="bBorder">
+                    <option value="none">NO BORDER</option>
+                    <option value="2px solid #3498db">BORDER ON</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Font Size</label>
+                <select id="bSize">
+                    <option value="14px">14</option>
+                    <option value="16px" selected>16</option>
+                    <option value="18px">18</option>
+                    <option value="20px">20</option>
+                    <option value="24px">24</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Font</label>
+                <select id="bFont">
+                    <option value="Arial">Arial</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Helvetica">Helvetica</option>
+                </select>
+            </div>
         </div>
-        <div class="form-group"><input type="file" id="bImg" accept="image/*"><button onclick="insertImg()">Insert Image</button></div>
-        <img id="imgPreview" class="img-preview hidden">
+
         <button class="btn-blue" onclick="saveBlock()">Save Block</button>
     </div>
 
     <div class="box">
-        <h3>Visual Drag & Drop Layout</h3>
-        <div id="previewArea" class="preview"></div>
-        <button class="btn-blue" onclick="saveLayout()">Save Positions & Sizes</button>
+        <h3>Full Page Preview</h3>
+        <div class="preview">
+            <div class="preview-header"><h4>Service Learning</h4></div>
+            <div id="previewArea" class="preview-stage"></div>
+        </div>
+        <button class="btn-blue" onclick="saveLayout()">Save Position</button>
     </div>
 </div>
 
 <script>
-let currentUser = null;
-let selectedBlock = null;
-let imgSrc = null;
-let drag = null;
-let offsetX = 0, offsetY = 0;
-let area = null;
+let currentUser, selectedBlock, imgSrc, drag, area;
+let offsetX=0, offsetY=0;
 
-async function login() {
-  const u = document.getElementById("user").value;
-  const p = document.getElementById("pass").value;
-  const res = await fetch("/api/login", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username: u, password: p })
-  });
-  const data = await res.json();
-  if (!data.success) return alert("Failed");
-  currentUser = u;
-  document.getElementById("loginBox").classList.add("hidden");
-  document.getElementById("dashboard").classList.remove("hidden");
-  document.getElementById("uname").innerText = u;
-  if (u === "master") document.getElementById("masterPanel").classList.remove("hidden");
+async function login(){
+  const u=document.getElementById("user").value,p=document.getElementById("pass").value;
+  const r=await fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:u,password:p})});
+  const d=await r.json();if(!d.success)return alert("Fail");
+  currentUser=u;document.getElementById("loginBox").classList.add("hidden");document.getElementById("dashboard").classList.remove("hidden");
+  document.getElementById("uname").innerText=u;if(u==="master")document.getElementById("masterPanel").classList.remove("hidden");
   refreshPrograms();
 }
 
-async function register() {
-  const u = document.getElementById("user").value;
-  const p = document.getElementById("pass").value;
-  const res = await fetch("/api/create-account", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username: u, password: p })
-  });
-  const d = await res.json();
-  alert(d.success ? "Created!" : "Failed");
+async function register(){
+  const u=document.getElementById("user").value,p=document.getElementById("pass").value;
+  const r=await fetch("/api/create-account",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:u,password:p})});
+  alert((await r.json()).success?"Created":"Fail");
 }
 
-function logout() { location.reload(); }
+function logout(){location.reload();}
 
-async function refreshPrograms() {
-  const res = await fetch("/api/programs");
-  const progs = await res.json();
-  const list = document.getElementById("progList");
-  const edit = document.getElementById("editProg");
-  const bg = document.getElementById("bgProg");
-  list.innerHTML = ""; edit.innerHTML = ""; bg.innerHTML = "";
-  progs.forEach(p => {
-    list.innerHTML += `<p>${p.name}</p>`;
-    edit.innerHTML += `<option value="${p.id}">${p.name}</option>`;
-    bg.innerHTML += `<option value="${p.id}">${p.name}</option>`;
-  });
+async function refreshPrograms(){
+  const p=await(await fetch("/api/programs")).json();
+  const l=document.getElementById("progList"),e=document.getElementById("editProg");l.innerHTML="";e.innerHTML="";
+  p.forEach(x=>{l.innerHTML+=`<p>${x.name}</p>`;e.innerHTML+=`<option value="${x.id}">${x.name}</option>`;});
   renderPreview();
 }
 
-async function createProg() {
-  const name = document.getElementById("newProg").value;
-  await fetch("/api/add-program", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name })
-  });
+async function createProg(){
+  await fetch("/api/add-program",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:document.getElementById("newProg").value})});
   refreshPrograms();
 }
 
-document.getElementById("bgType").onchange = () => {
-  const t = document.getElementById("bgType").value;
-  document.getElementById("tBgColor").style.display = t === "color" ? "block" : "none";
-  document.getElementById("tBgImg").style.display = t === "image" ? "block" : "none";
-};
-
-document.getElementById("tBgImg").onchange = e => {
-  const f = new FileReader();
-  f.onload = ev => imgSrc = ev.target.result;
-  f.readAsDataURL(e.target.files[0]);
-};
-
-async function saveTabBg() {
-  alert("Saved to database!");
-}
-
-async function renderPreview() {
-  area = document.getElementById("previewArea");
-  const pid = document.getElementById("editProg").value;
-  const res = await fetch("/api/blocks?program_id=" + pid);
-  const blocks = await res.json();
-  area.innerHTML = "";
-
-  blocks.forEach(b => {
-    const d = document.createElement("div");
-    d.className = "drag-block";
-    d.dataset.id = b.id;
-    d.innerHTML = `<strong>${b.title}</strong>`;
-    d.style.left = b.x + "%";
-    d.style.top = b.y + "%";
-    d.style.width = b.w + "%";
-    d.style.height = b.h + "%";
-    d.style.background = b.bg;
-    d.style.color = b.text;
-    d.style.borderColor = b.border;
-    d.innerHTML += `<div class='resize'></div>`;
-
-    d.onclick = (e) => {
-      e.stopPropagation();
-      selectedBlock = b;
-      loadBlock(b);
-    };
-
-    // --------------------------
-    // FIXED DRAG — NO MORE WINDOW SNAP
-    // --------------------------
-    d.onmousedown = (e) => {
-      e.preventDefault();
-      if (e.target.classList.contains("resize")) return;
-      
-      drag = d;
-      const rect = d.getBoundingClientRect();
-      const areaRect = area.getBoundingClientRect();
-      
-      offsetX = e.clientX - rect.left;
-      offsetY = e.clientY - rect.top;
-    };
-
-    area.appendChild(d);
+async function renderPreview(){
+  area=document.getElementById("previewArea");
+  const b=await(await fetch("/api/blocks?program_id="+document.getElementById("editProg").value)).json();
+  area.innerHTML="";
+  b.forEach(bl=>{
+    const el=document.createElement("div");el.className="drag-block";el.dataset.id=bl.id;
+    el.innerHTML=`<strong>${bl.title}</strong><br>${bl.content}`;
+    el.style.left=bl.x+"%";el.style.top=bl.y+"%";el.style.width=bl.w+"%";el.style.height=bl.h+"%";
+    el.style.background=bl.bg;el.style.color=bl.text;el.style.border=bl.border;el.style.fontSize=bl.fontSize;el.style.fontFamily=bl.font;
+    el.onclick=e=>{e.stopPropagation();selectedBlock=bl;loadBlock(bl);};
+    el.onmousedown=e=>{e.preventDefault();drag=el;offsetX=e.clientX-el.getBoundingClientRect().left;offsetY=e.clientY-el.getBoundingClientRect().top;};
+    area.appendChild(el);
   });
 }
 
-// --------------------------
-// GLOBAL MOUSE MOVE — 100% FIXED
-// --------------------------
-document.onmousemove = (e) => {
-  if (!drag) return;
-  const areaRect = area.getBoundingClientRect();
-  
-  let x = e.clientX - areaRect.left - offsetX;
-  let y = e.clientY - areaRect.top - offsetY;
-
-  let maxX = areaRect.width - drag.offsetWidth;
-  let maxY = areaRect.height - drag.offsetHeight;
-
-  x = Math.max(0, Math.min(x, maxX));
-  y = Math.max(0, Math.min(y, maxY));
-
-  drag.style.left = x + "px";
-  drag.style.top = y + "px";
+document.onmousemove=e=>{
+  if(!drag)return;
+  const r=area.getBoundingClientRect();
+  drag.style.left=(e.clientX-r.left-offsetX)+"px";
+  drag.style.top=(e.clientY-r.top-offsetY)+"px";
 };
+document.onmouseup=()=>drag=null;
 
-document.onmouseup = () => {
-  drag = null;
-};
-
-function loadBlock(b) {
-  document.getElementById("bTitle").value = b.title;
-  document.getElementById("bContent").value = b.content;
-  document.getElementById("bBg").value = b.bg;
-  document.getElementById("bTxt").value = b.text;
-  document.getElementById("bBor").value = b.border;
+function loadBlock(b){
+  document.getElementById("bTitle").value=b.title;
+  document.getElementById("bContent").value=b.content;
+  document.getElementById("bBg").value=b.bg||"#fff";
+  document.getElementById("bText").value=b.text||"#000";
+  document.getElementById("bBorder").value=b.border||"none";
+  document.getElementById("bSize").value=b.fontSize||"16px";
+  document.getElementById("bFont").value=b.font||"Arial";
 }
 
-async function saveBlock() {
-  if (!selectedBlock) return;
-  await fetch("/api/update-block", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      id: selectedBlock.id,
-      title: document.getElementById("bTitle").value,
-      content: document.getElementById("bContent").value,
-      bg: document.getElementById("bBg").value,
-      text: document.getElementById("bTxt").value,
-      border: document.getElementById("bBor").value
-    })
-  });
+// ✅ SAVE WITHOUT RESETTING POSITION
+async function saveBlock(){
+  if(!selectedBlock)return;
+  const u={
+    id:selectedBlock.id,
+    title:document.getElementById("bTitle").value,
+    content:document.getElementById("bContent").value,
+    bg:document.getElementById("bBg").value,
+    text:document.getElementById("bText").value,
+    border:document.getElementById("bBorder").value,
+    fontSize:document.getElementById("bSize").value,
+    font:document.getElementById("bFont").value
+  };
+  await fetch("/api/update-block",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(u)});
+  const el=document.querySelector(`[data-id="${selectedBlock.id}"]`);
+  el.innerHTML=`<strong>${u.title}</strong><br>${u.content}`;
+  el.style.background=u.bg;el.style.color=u.text;el.style.border=u.border;el.style.fontSize=u.fontSize;el.style.fontFamily=u.font;
+}
+
+async function addBlock(){
+  await fetch("/api/add-block",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({program_id:document.getElementById("editProg").value})});
   renderPreview();
 }
 
-async function addBlock() {
-  const pid = document.getElementById("editProg").value;
-  await fetch("/api/add-block", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ program_id: pid })
-  });
-  renderPreview();
+async function deleteBlock(){
+  if(!selectedBlock)return;
+  await fetch("/api/delete-block",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:selectedBlock.id})});
+  selectedBlock=null;renderPreview();
 }
 
-async function deleteBlock() {
-  if (!selectedBlock) return;
-  await fetch("/api/delete-block", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id: selectedBlock.id })
-  });
-  selectedBlock = null;
-  renderPreview();
-}
-
-function insertImg() {
-  document.getElementById("bContent").value += `<img src="${imgSrc}" style="width:100%;border-radius:6px;">`;
-}
-
-async function saveLayout() {
-  const pid = document.getElementById("editProg").value;
-  const res = await fetch("/api/blocks?program_id=" + pid);
-  const blocks = await res.json();
-  const areaRect = area.getBoundingClientRect();
-
-  for (const b of blocks) {
-    const el = document.querySelector(`[data-id="${b.id}"]`);
-    const x = (parseFloat(el.style.left) / areaRect.width) * 100;
-    const y = (parseFloat(el.style.top) / areaRect.height) * 100;
-    const w = (parseFloat(el.style.width) / areaRect.width) * 100;
-    const h = (parseFloat(el.style.height) / areaRect.height) * 100;
-
-    await fetch("/api/update-position", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: b.id, x, y, w, h, r: 0 })
+async function saveLayout(){
+  const b=await(await fetch("/api/blocks?program_id="+document.getElementById("editProg").value)).json();
+  const r=area.getBoundingClientRect();
+  for(const x of b){
+    const el=document.querySelector(`[data-id="${x.id}"]`);
+    await fetch("/api/update-position",{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({id:x.id,x:(parseFloat(el.style.left)/r.width)*100,y:(parseFloat(el.style.top)/r.height)*100,w:(parseFloat(el.style.width)/r.width)*100,h:(parseFloat(el.style.height)/r.height)*100})
     });
   }
-  alert("Layout Saved!");
+  alert("Saved!");
 }
 
-async function saveMaster() {
-  alert("Global style saved!");
-}
-
-document.getElementById('editProg').onchange = renderPreview;
+function saveMaster(){alert("Global saved");}
+document.getElementById("editProg").onchange=renderPreview;
 </script>
 </body>
 </html>
