@@ -5,132 +5,73 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Learning</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
-        body {
-            background: #f5f7fa;
-            padding: 30px;
-            max-width: 1200px;
-            margin: auto;
-        }
+        * { margin:0; padding:0; box-sizing:border-box; font-family:Arial, sans-serif; }
+        body { background:#f5f7fa; padding:30px; max-width:1200px; margin:auto; }
         .header {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            text-align: center;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background:white; padding:30px; border-radius:10px;
+            text-align:center; margin-bottom:20px; box-shadow:0 2px 10px rgba(0,0,0,0.1);
         }
-        .tab-bar {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        .tab {
-            padding: 12px 20px;
-            background: #e0e6ed;
-            color: #2c3e50;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-        .tab.active {
-            background: #3498db;
-            color: white;
-        }
+        .tab-bar { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
+        .tab { padding:12px 20px; background:#e0e6ed; color:#2c3e50; border:none; border-radius:6px; cursor:pointer; }
+        .tab.active { background:#3498db; color:white; }
         .stage {
-            background: white;
-            border-radius: 10px;
-            min-height: 500px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            position: relative;
+            position:relative; background:white; border-radius:10px;
+            min-height:500px; padding:20px; box-shadow:0 2px 10px rgba(0,0,0,0.1);
         }
         .block {
-            position: absolute;
-            padding: 15px;
-            border-radius: 8px;
-            background: white;
-            border: 2px solid #ddd;
-            transform-origin: center;
+            position:absolute; padding:15px; border-radius:8px;
+            background:white; overflow:hidden; white-space:pre-line;
         }
     </style>
 </head>
 <body>
-
-    <div class="header">
-        <h1>Service Learning</h1>
-        <p>Explore our programs</p>
-    </div>
-
+    <div class="header"><h1>Service Learning</h1></div>
     <div id="tabContainer" class="tab-bar"></div>
     <div id="stage" class="stage"></div>
 
     <script>
-        let allPrograms = [];
-
-        // LOAD EVERYTHING FROM DATABASE
-        async function loadPage() {
-            const response = await fetch("/api/get-all");
-            const data = await response.json();
-            allPrograms = data.programs;
-
+        let programs = [];
+        async function load() {
+            const res = await fetch("/api/get-all");
+            const data = await res.json();
+            programs = data.programs;
             renderTabs();
-            if (allPrograms.length > 0) {
-                openProgram(allPrograms[0].id);
-            }
+            if (programs.length > 0) open(programs[0].id);
         }
-
-        // SHOW TABS FROM DATABASE
         function renderTabs() {
-            const container = document.getElementById("tabContainer");
-            container.innerHTML = "";
-
-            allPrograms.forEach((program, index) => {
-                const tab = document.createElement("button");
-                tab.className = "tab" + (index === 0 ? " active" : "");
-                tab.innerText = program.name;
-                tab.onclick = () => openProgram(program.id);
-                container.appendChild(tab);
+            const cont = document.getElementById("tabContainer");
+            cont.innerHTML = "";
+            programs.forEach((p, i) => {
+                const t = document.createElement("button");
+                t.className = "tab" + (i === 0 ? " active" : "");
+                t.innerText = p.name;
+                t.onclick = () => open(p.id);
+                cont.appendChild(t);
             });
         }
-
-        // SHOW BLOCKS FOR SELECTED PROGRAM
-        function openProgram(programId) {
-            const program = allPrograms.find(p => p.id == programId);
-            if (!program) return;
-
-            // Update active tab
-            document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-            const tabs = document.querySelectorAll(".tab");
-            tabs[allPrograms.indexOf(program)].classList.add("active");
-
-            // Show blocks
+        function open(id) {
+            const p = programs.find(x => x.id == id);
+            document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
+            document.querySelectorAll(".tab")[programs.indexOf(p)].classList.add("active");
             const stage = document.getElementById("stage");
             stage.innerHTML = "";
-
-            program.blocks.forEach(block => {
-                const el = document.createElement("div");
-                el.className = "block";
-                el.style.left = block.x + "%";
-                el.style.top = block.y + "%";
-                el.style.width = block.w + "%";
-                el.style.height = block.h + "%";
-                el.style.transform = `rotate(${block.r || 0}deg)`;
-                el.style.backgroundColor = block.bg;
-                el.style.color = block.text;
-                el.style.borderColor = block.border;
-                el.innerHTML = `<h3>${block.title}</h3><p>${block.content}</p>`;
-                stage.appendChild(el);
+            p.blocks.forEach(b => {
+                const e = document.createElement("div");
+                e.className = "block";
+                e.style.left = b.x + "%";
+                e.style.top = b.y + "%";
+                e.style.width = b.w + "%";
+                e.style.height = b.h + "%";
+                e.style.background = b.bg;
+                e.style.color = b.text;
+                e.style.border = b.border;
+                e.style.fontSize = b.fontSize;
+                e.style.fontFamily = b.font;
+                e.innerHTML = `<h3>${b.title}</h3><p>${b.content}</p>`;
+                stage.appendChild(e);
             });
         }
-
-        loadPage();
+        load();
     </script>
 </body>
 </html>
