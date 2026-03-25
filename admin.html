@@ -117,7 +117,9 @@
 <script>
 let currentUser, selectedBlock, area;
 let drag = null, resize = null;
-let offsetX = 0, offsetY = 0;
+let startX = 0, startY = 0;
+let startLeft = 0, startTop = 0;
+let startWidth = 0, startHeight = 0;
 
 async function login() {
   const u = document.getElementById("user").value, p = document.getElementById("pass").value;
@@ -189,12 +191,22 @@ async function renderPreview() {
 
     el.onclick = e => { e.stopPropagation(); selectedBlock = b; loadBlock(b); };
 
+    // 拖拽逻辑（基于百分比，不跳）
     el.onmousedown = e => {
         e.preventDefault();
-        if (e.target.classList.contains("resize")) { resize = el; return; }
+        if (e.target.classList.contains("resize")) {
+            resize = el;
+            startX = e.clientX;
+            startY = e.clientY;
+            startWidth = parseFloat(el.style.width);
+            startHeight = parseFloat(el.style.height);
+            return;
+        }
         drag = el;
-        offsetX = e.clientX - el.getBoundingClientRect().left;
-        offsetY = e.clientY - el.getBoundingClientRect().top;
+        startX = e.clientX;
+        startY = e.clientY;
+        startLeft = parseFloat(el.style.left);
+        startTop = parseFloat(el.style.top);
     };
 
     area.appendChild(el);
@@ -205,14 +217,16 @@ document.onmousemove = e => {
   if (!area) return;
   const rect = area.getBoundingClientRect();
   if (drag) {
-    drag.style.left = Math.max(0, e.clientX - rect.left - offsetX) + "px";
-    drag.style.top = Math.max(0, e.clientY - rect.top - offsetY) + "px";
+    const dx = (e.clientX - startX) / rect.width * 100;
+    const dy = (e.clientY - startY) / rect.height * 100;
+    drag.style.left = Math.max(0, Math.min(100, startLeft + dx)) + "%";
+    drag.style.top = Math.max(0, Math.min(100, startTop + dy)) + "%";
   }
   if (resize) {
-    const w = e.clientX - rect.left - parseInt(resize.style.left);
-    const h = e.clientY - rect.top - parseInt(resize.style.top);
-    resize.style.width = Math.max(50, w) + "px";
-    resize.style.height = Math.max(30, h) + "px";
+    const dx = (e.clientX - startX) / rect.width * 100;
+    const dy = (e.clientY - startY) / rect.height * 100;
+    resize.style.width = Math.max(5, Math.min(100, startWidth + dx)) + "%";
+    resize.style.height = Math.max(5, Math.min(100, startHeight + dy)) + "%";
   }
 };
 
@@ -272,17 +286,16 @@ async function deleteBlock() {
 
 async function saveLayout() {
   const blocks = await (await fetch("/api/blocks?program_id=" + document.getElementById("editProg").value)).json();
-  const r = area.getBoundingClientRect();
   for (const b of blocks) {
     const el = document.querySelector(`[data-id="${b.id}"]`);
     await fetch("/api/update-position", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         id: b.id,
-        x: (parseFloat(el.style.left) / r.width) * 100,
-        y: (parseFloat(el.style.top) / r.height) * 100,
-        w: (parseFloat(el.style.width) / r.width) * 100,
-        h: (parseFloat(el.style.height) / r.height) * 100
+        x: parseFloat(el.style.left),
+        y: parseFloat(el.style.top),
+        w: parseFloat(el.style.width),
+        h: parseFloat(el.style.height)
       })
     });
   }
