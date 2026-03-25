@@ -1,47 +1,46 @@
 import { neon } from '@neondatabase/serverless';
 
 export default async function handler(req, res) {
-  // 允许跨域请求
+  // 跨域必须写
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  // 处理 OPTIONS 预检请求
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
-  // 只允许 POST 请求
-  if (req.method !== 'POST') {
-    return res.status(405).json({ success: false, error: 'Method not allowed' });
-  }
-
   try {
-    // 连接数据库
+    // 连接数据库（绝对正确写法）
     const sql = neon(process.env.DATABASE_URL);
-    
-    // 解析请求体
+
+    // 读取前端传过来的账号密码
     const { username, password } = await req.json();
 
-    // 查询用户
-    const users = await sql`
-      SELECT * FROM users WHERE username = ${username} AND password = ${password}
+    // 查询数据库（绝对安全写法）
+    const result = await sql`
+      SELECT * FROM users
+      WHERE username = ${username}
+      AND password = ${password}
     `;
 
-    // 检查是否找到用户
-    if (users.length === 0) {
-      return res.json({ success: false, error: 'Invalid username or password' });
+    // 没找到 → 登录失败
+    if (result.length === 0) {
+      return res.json({ success: false });
     }
 
-    // 返回成功结果
+    // 找到了 → 登录成功
     return res.json({
       success: true,
-      name: users[0].name,
-      role: users[0].role
+      name: result[0].name,
+      role: result[0].role
     });
 
-  } catch (error) {
-    console.error('Login error:', error);
-    return res.status(500).json({ success: false, error: 'Server error: ' + error.message });
+  } catch (e) {
+    // 服务器错误 → 返回详细信息让你知道为什么炸
+    return res.status(500).json({
+      success: false,
+      error: e.message
+    });
   }
 }
