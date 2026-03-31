@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master Admin Panel</title>
+    <title>IB Service Learning Admin Panel</title>
     <style>
         *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
         body{background:#f5f7fa;padding:20px;max-width:1200px;margin:auto}
@@ -18,9 +18,7 @@
         .hidden{display:none}
         .flex{display:flex;gap:15px;flex-wrap:wrap}
 
-        /* -------------------------- */
-        /* COLOR BOX STYLING */
-        /* -------------------------- */
+        /* COLOR BOX STYLING (Adjust size here!) */
         .color-container {
             display: flex;
             align-items: center;
@@ -28,15 +26,15 @@
             margin: 5px 0;
         }
         .color-box {
-            width: 44px;
-            height: 44px;
+            width: 50px; /* Custom size (IB-friendly) */
+            height: 50px;
             border-radius: 6px;
             border: 2px solid #ddd;
             cursor: pointer;
             background: #ffffff;
         }
         .color-picker-input {
-            display: none; /* HIDE DEFAULT NATIVE LINE */
+            display: none; /* Hide default line */
         }
 
         .preview{
@@ -45,7 +43,7 @@
             border-radius:8px;overflow:hidden;
         }
         .preview-header{
-            background:white;padding:15px;text-align:center;
+            background:#2c3e50;color:white;padding:15px;text-align:center;
             border-bottom:1px solid #ddd;
         }
         .preview-stage{
@@ -62,16 +60,22 @@
             outline: 1px dashed #ccc !important;
         }
         .resize{
-            position:absolute;right:0;bottom0;
+            position:absolute;right:0;bottom:0;
             width:18px;height:18px;background:#3498db;
             cursor:se-resize;border-radius:0 0 6px 0;
         }
+
+        /* IB Template Default Styles (Pre-set for consistency) */
+        .ib-header-block { background:#3498db; color:white; }
+        .ib-section-block { background:#ecf0f1; border:1px solid #ddd; }
+        .ib-project-block { background:white; border:1px solid #3498db; }
+        .ib-contact-block { background:#f8f9fa; border:1px solid #ddd; }
     </style>
 </head>
 <body>
 
 <div class="box" id="loginBox">
-    <h2>Login</h2>
+    <h2>IB Service Learning Admin Login</h2>
     <div class="form-group"><input type="text" id="user" placeholder="Username" value="master"></div>
     <div class="form-group"><input type="password" id="pass" placeholder="Password" value="master123"></div>
     <button class="btn-blue" onclick="login()">Login</button>
@@ -82,21 +86,21 @@
     <div class="box"><h2>Welcome, <span id="uname"></span> | <button class="btn-red" onclick="logout()">Logout</button></h2></div>
 
     <div class="box">
-        <h3>My Programs</h3>
-        <div class="form-group"><input type="text" id="newProg" placeholder="New Program"><button class="btn-green" onclick="createProg()">Create</button></div>
+        <h3>My Service Learning Programs</h3>
+        <div class="form-group"><input type="text" id="newProg" placeholder="New Program (e.g., IB Service Learning 2026)"><button class="btn-green" onclick="createProgWithTemplate()">Create (With IB Template)</button></div>
         <div id="progList"></div>
     </div>
 
     <div class="box">
-        <h3>Block Editor</h3>
+        <h3>Block Editor (Edit Template Content)</h3>
         <div class="form-group"><select id="editProg"></select></div>
         <div class="form-group">
-            <button class="btn-green" onclick="addBlock()">Add Block</button>
-            <button class="btn-red" onclick="deleteBlock()">Delete</button>
+            <button class="btn-green" onclick="addBlock()">Add New Block</button>
+            <button class="btn-red" onclick="deleteBlock()">Delete Selected Block</button>
         </div>
 
-        <div class="form-group"><input type="text" id="bTitle" placeholder="Title"></div>
-        <div class="form-group"><textarea id="bContent" rows="4" placeholder="Text"></textarea></div>
+        <div class="form-group"><input type="text" id="bTitle" placeholder="Block Title (e.g., Project 1: Community Clean-Up)"></div>
+        <div class="form-group"><textarea id="bContent" rows="4" placeholder="Block Text (e.g., Description, goals, IB learning outcomes)"/></textarea></div>
 
         <div class="flex">
             <!-- BACKGROUND COLOR -->
@@ -121,7 +125,7 @@
                 <label>Border</label>
                 <select id="bBorder">
                     <option value="none">OFF (Dotted Preview)</option>
-                    <option value="2px solid #3498db">ON (Blue Border)</option>
+                    <option value="1px solid #3498db" selected>ON (IB Blue Border)</option>
                 </select>
             </div>
             <div class="form-group">
@@ -133,7 +137,7 @@
             <div class="form-group">
                 <label>Font</label>
                 <select id="bFont">
-                    <option value="Arial">Arial</option><option value="Georgia">Georgia</option>
+                    <option value="Arial" selected>Arial (IB Recommended)</option><option value="Georgia">Georgia</option>
                 </select>
             </div>
         </div>
@@ -142,9 +146,9 @@
     </div>
 
     <div class="box">
-        <h3>Full Page Preview</h3>
+        <h3>Full Page Preview (IB Template)</h3>
         <div class="preview">
-            <div class="preview-header"><h4>Service Learning</h4></div>
+            <div class="preview-header"><h4>IB Service Learning Projects | Your School Name</h4></div>
             <div id="previewArea" class="preview-stage"></div>
         </div>
         <button class="btn-blue" onclick="saveLayout()">Save Position & Size</button>
@@ -158,9 +162,7 @@ let startX = 0, startY = 0;
 let startLeft = 0, startTop = 0;
 let startWidth = 0, startHeight = 0;
 
-// --------------------------
 // COLOR BOX SYNC LOGIC
-// --------------------------
 const bgBox = document.getElementById('bgColorBox');
 const txtBox = document.getElementById('textColorBox');
 const bgInput = document.getElementById('bBg');
@@ -174,6 +176,105 @@ function syncColorBoxes() {
     txtBox.style.background = txtInput.value;
 }
 
+// --------------------------
+// IB SERVICE LEARNING TEMPLATE (Pre-Designed Blocks)
+// --------------------------
+async function createProgWithTemplate() {
+    const progName = document.getElementById("newProg").value || "IB Service Learning Projects";
+    
+    // 1. Create the program first
+    const progRes = await fetch("/api/add-program", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: progName })
+    });
+    const progData = await progRes.json();
+    const progId = progData.id; // Get the new program ID
+
+    // 2. Add pre-designed IB template blocks (all positions/sizes pre-set)
+    const templateBlocks = [
+        // Block 1: Main Header (Top Center)
+        {
+            title: "IB SERVICE LEARNING PROJECTS",
+            content: "Explore our school’s service learning initiatives aligned with IB Learner Profiles: Caring, Principled, Open-Minded.",
+            bg: "#3498db",
+            text: "#ffffff",
+            border: "none",
+            fontSize: "20px",
+            font: "Arial",
+            x: 25, y: 5, w: 50, h: 15
+        },
+        // Block 2: About IB Service Learning (Left Top)
+        {
+            title: "About IB Service Learning",
+            content: "IB Service Learning combines community service with academic learning, helping students develop empathy, leadership, and global citizenship. All projects align with IB CAS (Creativity, Activity, Service) requirements.",
+            bg: "#ecf0f1",
+            text: "#2c3e50",
+            border: "1px solid #ddd",
+            fontSize: "16px",
+            font: "Arial",
+            x: 5, y: 25, w: 40, h: 30
+        },
+        // Block 3: Active Projects (Right Top)
+        {
+            title: "Active Projects (2026)",
+            content: "1. Community Clean-Up (Local Park)\n2. Elderly Companion Program\n3. Environmental Awareness Campaign\n4. Tutoring for Underprivileged Students",
+            bg: "#ffffff",
+            text: "#2c3e50",
+            border: "1px solid #3498db",
+            fontSize: "16px",
+            font: "Arial",
+            x: 55, y: 25, w: 40, h: 30
+        },
+        // Block 4: Project Guidelines (Left Bottom)
+        {
+            title: "IB CAS Guidelines",
+            content: "- All projects must include service, reflection, and learning outcomes.\n- Students must complete 150 hours of CAS over 2 years.\n- Projects should address real community needs.\n- Reflection logs are required for all participants.",
+            bg: "#ffffff",
+            text: "#2c3e50",
+            border: "1px solid #3498db",
+            fontSize: "16px",
+            font: "Arial",
+            x: 5, y: 60, w: 40, h: 30
+        },
+        // Block 5: Contact & Resources (Right Bottom)
+        {
+            title: "Contact & Resources",
+            content: "Advisor: Ms. Smith (servicelearning@school.edu)\nCAS Coordinator: Mr. Lee\nResources: IB CAS Handbook | Project Proposal Form | Reflection Template",
+            bg: "#f8f9fa",
+            text: "#2c3e50",
+            border: "1px solid #ddd",
+            fontSize: "16px",
+            font: "Arial",
+            x: 55, y: 60, w: 40, h: 30
+        }
+    ];
+
+    // 3. Add each template block to the program
+    for (const block of templateBlocks) {
+        await fetch("/api/add-block", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                program_id: progId,
+                title: block.title,
+                content: block.content,
+                bg: block.bg,
+                text: block.text,
+                border: block.border,
+                fontSize: block.fontSize,
+                font: block.font,
+                x: block.x,
+                y: block.y,
+                w: block.w,
+                h: block.h
+            })
+        });
+    }
+
+    // 4. Refresh programs to show the new template
+    refreshPrograms();
+    alert("IB Service Learning Template created successfully! Select it from the dropdown to edit.");
+}
+
 async function login() {
   const u = document.getElementById("user").value, p = document.getElementById("pass").value;
   const r = await fetch("/api/login", {
@@ -181,7 +282,7 @@ async function login() {
     body: JSON.stringify({ username: u, password: p })
   });
   const d = await r.json();
-  if (!d.success) return alert("Failed");
+  if (!d.success) return alert("Login Failed");
   currentUser = u;
   document.getElementById("loginBox").classList.add("hidden");
   document.getElementById("dashboard").classList.remove("hidden");
@@ -194,7 +295,7 @@ async function register() {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username: u, password: p })
   });
-  alert((await r.json()).success ? "Created" : "Error");
+  alert((await r.json()).success ? "Account Created!" : "Error Creating Account");
 }
 
 function logout() { location.reload(); }
@@ -204,12 +305,13 @@ async function refreshPrograms() {
   const list = document.getElementById("progList"), sel = document.getElementById("editProg");
   list.innerHTML = ""; sel.innerHTML = "";
   progs.forEach(p => {
-    list.innerHTML += `<p>${p.name}</p>`;
-    sel.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+    list.innerHTML += `${p.name}`;
+    sel.innerHTML += ``;
   });
   renderPreview();
 }
 
+// Original create program (without template)
 async function createProg() {
   await fetch("/api/add-program", {
     method: "POST", headers: { "Content-Type": "application/json" },
@@ -227,7 +329,7 @@ async function renderPreview() {
     const el = document.createElement("div");
     el.className = "drag-block";
     el.dataset.id = b.id;
-    el.innerHTML = `<strong>${b.title}</strong><br>${b.content}`;
+    el.innerHTML = `${b.title}${b.content}`;
     el.style.left = b.x + "%";
     el.style.top = b.y + "%";
     el.style.width = b.w + "%";
@@ -293,7 +395,6 @@ function loadBlock(b) {
   document.getElementById("bSize").value = b.fontSize || "16px";
   document.getElementById("bFont").value = b.font || "Arial";
   
-  // Sync color boxes when selecting a block
   syncColorBoxes();
 }
 
@@ -314,7 +415,7 @@ async function saveBlock() {
     body: JSON.stringify(data)
   });
   const el = document.querySelector(`[data-id="${selectedBlock.id}"]`);
-  el.innerHTML = `<strong>${data.title}</strong><br>${data.content}`;
+  el.innerHTML = `${data.title}${data.content}`;
   el.style.background = data.bg;
   el.style.color = data.text;
   el.style.border = data.border;
