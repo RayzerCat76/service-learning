@@ -3,75 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Learning</title>
+    <title>School Service Learning Projects</title>
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; font-family:Arial, sans-serif; }
-        body { background:#f5f7fa; padding:30px; max-width:1200px; margin:auto; }
-        .header {
-            background:white; padding:30px; border-radius:10px;
-            text-align:center; margin-bottom:20px; box-shadow:0 2px 10px rgba(0,0,0,0.1);
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
         }
-        .tab-bar { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
-        .tab { padding:12px 20px; background:#e0e6ed; color:#2c3e50; border:none; border-radius:6px; cursor:pointer; }
-        .tab.active { background:#3498db; color:white; }
-        .stage {
-            position:relative; background:white; border-radius:10px;
-            min-height:500px; padding:20px; box-shadow:0 2px 10px rgba(0,0,0,0.1);
+        body {
+            background: #f5f7fa;
+            padding: 20px;
+            max-width: 1200px;
+            margin: auto;
+        }
+        .page-header {
+            background: #3498db;
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .program-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+        .program-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .program-card h3 {
+            color: #2d3748;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
         }
         .block {
-            position:absolute; padding:15px; border-radius:8px;
-            background:white; overflow:hidden; white-space:pre-line;
+            margin-top: 12px;
+            padding: 10px;
+            border-radius: 6px;
+            line-height: 1.6;
+            white-space: pre-line;
+        }
+        .no-projects {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        @media (max-width: 768px) {
+            .program-container {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="header"><h1>Service Learning</h1></div>
-    <div id="tabContainer" class="tab-bar"></div>
-    <div id="stage" class="stage"></div>
 
-    <script>
-        let programs = [];
-        async function load() {
-            const res = await fetch("/api/get-all");
-            const data = await res.json();
-            programs = data.programs;
-            renderTabs();
-            if (programs.length > 0) open(programs[0].id);
-        }
-        function renderTabs() {
-            const cont = document.getElementById("tabContainer");
-            cont.innerHTML = "";
-            programs.forEach((p, i) => {
-                const t = document.createElement("button");
-                t.className = "tab" + (i === 0 ? " active" : "");
-                t.innerText = p.name;
-                t.onclick = () => open(p.id);
-                cont.appendChild(t);
-            });
-        }
-        function open(id) {
-            const p = programs.find(x => x.id == id);
-            document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
-            document.querySelectorAll(".tab")[programs.indexOf(p)].classList.add("active");
-            const stage = document.getElementById("stage");
-            stage.innerHTML = "";
-            p.blocks.forEach(b => {
-                const e = document.createElement("div");
-                e.className = "block";
-                e.style.left = b.x + "%";
-                e.style.top = b.y + "%";
-                e.style.width = b.w + "%";
-                e.style.height = b.h + "%";
-                e.style.background = b.bg;
-                e.style.color = b.text;
-                e.style.border = b.border;
-                e.style.fontSize = b.fontSize;
-                e.style.fontFamily = b.font;
-                e.innerHTML = `<h3>${b.title}</h3><p>${b.content}</p>`;
-                stage.appendChild(e);
-            });
-        }
-        load();
-    </script>
+    <div class="page-header">
+        <h1>IB Service Learning Projects</h1>
+        <p>Our School Community Initiatives</p>
+    </div>
+
+    <div class="program-container" id="programList">
+        <!-- Projects load here automatically -->
+    </div>
+
+<script>
+// Load all programs from the same storage as admin
+function loadPublicPrograms() {
+    const container = document.getElementById('programList');
+    const programs = JSON.parse(localStorage.getItem('sl_programs') || '[]');
+
+    if (programs.length === 0) {
+        container.innerHTML = '<div class="no-projects">No service learning projects available yet.</div>';
+        return;
+    }
+
+    programs.forEach(prog => {
+        const card = document.createElement('div');
+        card.className = 'program-card';
+
+        let html = `<h3>${prog.name}</h3>`;
+
+        prog.blocks.forEach(b => {
+            html += `
+            <div class="block" style="background:${b.bg}; color:${b.text}; border:${b.border}">
+                <strong>${b.title}</strong><br>
+                ${b.content}
+            </div>`;
+        });
+
+        card.innerHTML = html;
+        container.appendChild(card);
+    });
+}
+
+// Load immediately when page opens
+loadPublicPrograms();
+</script>
+
 </body>
 </html>
