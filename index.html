@@ -11,54 +11,85 @@
             padding: 0;
             font-family: Arial, sans-serif;
         }
-        body {
-            background: #f5f7fa;
-        }
+        body { background: #f5f7fa; }
 
-        /* Header */
-        .page-header {
-            background: #3498db;
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-
-        /* Tabs for Projects */
-        .tab-bar {
+        /* TOP SCROLLABLE NEWS BANNER */
+        .top-banner {
             background: #2d3748;
+            padding: 10px 0;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        .banner-inner {
+            display: inline-flex;
+            gap: 12px;
+            padding: 0 10px;
+        }
+        .banner-news {
+            width: 280px;
+            height: 120px;
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            position: relative;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .banner-news::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            border-radius: 8px;
+            z-index: 0;
+        }
+        .banner-news h4, .banner-news p {
+            position: relative;
+            z-index: 1;
+        }
+        .banner-news h4 {
+            font-size: 16px;
+            margin-bottom: 6px;
+        }
+        .banner-news p {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        /* TABS */
+        .tab-bar {
+            background: #3498db;
             display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
+            gap: 6px;
             padding: 12px;
+            flex-wrap: wrap;
         }
         .tab {
-            padding: 10px 18px;
+            padding: 10px 16px;
             background: rgba(255,255,255,0.2);
             color: white;
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 15px;
         }
         .tab.active {
             background: white;
-            color: #2d3748;
+            color: #3498db;
             font-weight: bold;
         }
 
-        /* Full-page Project Content */
+        /* PROGRAM CONTENT */
         .tab-content {
-            padding: 30px 20px;
-            min-height: calc(100vh - 130px);
-            max-width: 1000px;
-            margin: 0 auto;
             display: none;
+            padding: 30px 20px;
+            max-width: 1000px;
+            margin: auto;
         }
         .tab-content.active {
             display: block;
         }
-
-        /* Project Blocks */
         .content-block {
             background: white;
             padding: 20px;
@@ -68,176 +99,130 @@
             line-height: 1.6;
             white-space: pre-line;
         }
-        .content-block h3 {
+
+        /* PROGRAM-SPECIFIC NEWS */
+        .program-news {
+            margin: 20px 0;
+        }
+        .program-news h3 {
+            margin-bottom: 12px;
+            color: #2d3748;
+        }
+        .news-card {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
             margin-bottom: 10px;
-            color: #2d3748;
-        }
-
-        /* News Section */
-        .news-section {
-            max-width: 1000px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
-        .news-section h2 {
-            color: #2d3748;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        .news-buttons {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 16px;
-        }
-        .news-button {
-            padding: 20px;
-            border: none;
-            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
             cursor: pointer;
-            text-align: left;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            transition: transform 0.2s;
         }
-        .news-button:hover {
-            transform: translateY(-3px);
-        }
-        .news-button h3 {
-            margin-bottom: 8px;
-            color: inherit;
-        }
-        .news-button p {
-            font-size: 14px;
-            color: inherit;
-            opacity: 0.9;
-        }
-
-        /* No Content Messages */
-        .no-content {
-            text-align: center;
-            padding: 60px 20px;
-            color: #666;
-            font-size: 18px;
-        }
-
-        @media (max-width: 768px) {
-            .tab-bar {
-                padding: 8px;
-            }
-            .tab {
-                padding: 8px 12px;
-                font-size: 14px;
-            }
-            .tab-content {
-                padding: 20px 12px;
-            }
-            .news-buttons {
-                grid-template-columns: 1fr;
-            }
+        .news-card h4 {
+            margin-bottom: 6px;
         }
     </style>
 </head>
 <body>
 
-    <div class="page-header">
-        <h1>IB Service Learning Projects</h1>
-        <p>Our School Community Initiatives</p>
-    </div>
+<!-- TOP SCROLLABLE NEWS BANNER -->
+<div class="top-banner">
+    <div class="banner-inner" id="topBanner"></div>
+</div>
 
-    <!-- News Buttons Section -->
-    <div class="news-section">
-        <h2>Latest News</h2>
-        <div class="news-buttons" id="newsButtons">
-            <!-- News buttons load here -->
-        </div>
-    </div>
+<!-- PROGRAM TABS -->
+<div class="tab-bar" id="tabBar"></div>
 
-    <!-- Project Tabs -->
-    <div class="tab-bar" id="tabBar">
-        <!-- Project tabs generated here -->
-    </div>
-
-    <div id="tabContainer">
-        <!-- Full-page project content loads here -->
-    </div>
+<!-- PROGRAM CONTENT -->
+<div id="tabContainer"></div>
 
 <script>
-// Load News Buttons
-function loadNewsButtons() {
-    const container = document.getElementById('newsButtons');
-    const newsItems = JSON.parse(localStorage.getItem('sl_news') || '[]');
+// 🔴 Global function to RELOAD ALL NEWS (call this on load + auto-refresh)
+function reloadAllNews() {
+    loadTopBanner();
+    loadProgramTabs();
+}
 
-    if (newsItems.length === 0) {
-        container.innerHTML = '<div class="no-content">No news available yet.</div>';
-        return;
-    }
+// LOAD 3 LATEST NEWS IN TOP BANNER
+function loadTopBanner() {
+    const all = [];
+    const progs = JSON.parse(localStorage.getItem('sl_programs') || '[]');
+    progs.forEach(p => {
+        if (p.news) p.news.forEach(n => all.push(n));
+    });
+    all.sort((a,b) => new Date(b.date) - new Date(a.date));
+    const latest = all.slice(0,3);
 
-    newsItems.forEach(news => {
-        const btn = document.createElement('button');
-        btn.className = 'news-button';
-        btn.style.background = news.btnBg || '#3498db';
-        btn.style.color = news.btnText || '#ffffff';
-        btn.innerHTML = `
-            <h3>${news.title}</h3>
-            <p>${news.overview}</p>
-        `;
-        // Redirect to news detail page with news ID
-        btn.onclick = () => {
-            window.location.href = `news-detail.html?id=${news.id}`;
-        };
-        container.appendChild(btn);
+    const banner = document.getElementById('topBanner');
+    banner.innerHTML = ''; // Clear old news
+    latest.forEach(n => {
+        const div = document.createElement('div');
+        div.className = 'banner-news';
+        div.style.backgroundImage = `url(${n.bgImage || ''})`;
+        div.innerHTML = `<h4>${n.title}</h4><p>${n.overview}</p>`;
+        div.onclick = () => location.href = `news-detail.html?id=${n.id}`;
+        banner.appendChild(div);
     });
 }
 
-// Load Project Tabs
-function loadProjectTabs() {
+// LOAD PROGRAMS & TABS
+function loadProgramTabs() {
+    const progs = JSON.parse(localStorage.getItem('sl_programs') || '[]');
     const tabBar = document.getElementById('tabBar');
-    const tabContainer = document.getElementById('tabContainer');
-    const programs = JSON.parse(localStorage.getItem('sl_programs') || '[]');
+    const container = document.getElementById('tabContainer');
 
-    if (programs.length === 0) {
-        tabContainer.innerHTML = '<div class="no-content">No service learning projects available.</div>';
-        return;
-    }
+    tabBar.innerHTML = ''; // Clear old tabs
+    container.innerHTML = ''; // Clear old content
 
-    // Create tabs
-    programs.forEach((prog, index) => {
+    progs.forEach((p, idx) => {
         const tab = document.createElement('button');
-        tab.className = 'tab' + (index === 0 ? ' active' : '');
-        tab.innerText = prog.name;
-        tab.onclick = () => switchTab(prog.id);
-        tab.dataset.progId = prog.id;
+        tab.className = 'tab' + (idx===0?' active':'');
+        tab.innerText = p.name;
+        tab.onclick = () => {
+            document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+            tab.classList.add('active');
+            document.getElementById(`c${p.id}`).classList.add('active');
+        };
         tabBar.appendChild(tab);
 
-        // Create full-page content area
         const content = document.createElement('div');
-        content.className = 'tab-content' + (index === 0 ? ' active' : '');
-        content.id = `content_${prog.id}`;
+        content.className = 'tab-content' + (idx===0?' active':'');
+        content.id = `c${p.id}`;
 
-        prog.blocks.forEach(b => {
+        // PROGRAM BLOCKS
+        p.blocks.forEach(b => {
             content.innerHTML += `
-            <div class="content-block"
-                 style="background:${b.bg}; color:${b.text}; border:${b.border}">
-                <h3>${b.title}</h3>
-                ${b.content}
+            <div class="content-block" style="background:${b.bg};color:${b.text};border:${b.border}">
+                <h3>${b.title}</h3>${b.content}
             </div>`;
         });
 
-        tabContainer.appendChild(content);
+        // PROGRAM-SPECIFIC NEWS
+        content.innerHTML += `<div class="program-news"><h3>Latest News</h3>`;
+        if (p.news && p.news.length) {
+            p.news.forEach(n => {
+                content.innerHTML += `
+                <div class="news-card" onclick="location.href='news-detail.html?id=${n.id}'">
+                    <h4>${n.title}</h4><p>${n.overview}</p>
+                </div>`;
+            });
+        } else {
+            content.innerHTML += `<p>No news yet.</p>`;
+        }
+        content.innerHTML += `</div>`;
+        container.appendChild(content);
     });
 }
 
-// Switch Project Tabs
-function switchTab(progId) {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    document.querySelector(`.tab[data-prog-id="${progId}"]`).classList.add('active');
-    document.getElementById(`content_${progId}`).classList.add('active');
-}
+// ✅ 1. Auto-refresh news EVERY 2 SECONDS (check for updates)
+setInterval(reloadAllNews, 2000);
 
-// Load everything on page load
-loadNewsButtons();
-loadProjectTabs();
+// ✅ 2. Cross-tab sync: Refresh if localStorage changes in admin tab
+window.addEventListener('storage', (e) => {
+    if (e.key === 'sl_programs') reloadAllNews();
+});
+
+// ✅ 3. Load news ONCE on initial page load
+reloadAllNews();
 </script>
-
 </body>
 </html>
