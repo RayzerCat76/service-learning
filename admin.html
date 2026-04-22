@@ -57,30 +57,8 @@
             gap: 12px;
             flex-wrap: wrap;
         }
-        .tab-buttons {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 16px;
-        }
-        .tab-button {
-            padding: 8px 16px;
-            background: #eee;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-        .tab-button.active {
-            background: #3498db;
-            color: white;
-        }
-        .tab-content {
-            display: none;
-        }
-        .tab-content.active {
-            display: block;
-        }
 
-        /* Color picker box */
+        /* Color picker */
         .color-box {
             width: 44px;
             height: 44px;
@@ -97,7 +75,7 @@
             display: none;
         }
 
-        /* Preview area */
+        /* Preview */
         .preview {
             position: relative;
             width: 100%;
@@ -107,16 +85,10 @@
             border-radius: 10px;
             overflow: hidden;
         }
-        .preview-header {
-            background: #3498db;
-            color: white;
-            padding: 14px;
-            text-align: center;
-        }
         .preview-stage {
             position: relative;
             width: 100%;
-            height: calc(100% - 60px);
+            height: 100%;
             padding: 10px;
         }
 
@@ -131,9 +103,6 @@
             overflow: hidden;
             line-height: 1.5;
         }
-        .block[style*="border: none"] {
-            outline: 1px dashed #ccc !important;
-        }
         .resize-handle {
             position: absolute;
             right: 0;
@@ -142,42 +111,42 @@
             height: 16px;
             background: #3498db;
             cursor: se-resize;
-            border-radius: 0 0 8px 0;
         }
 
-        /* News-specific styles */
-        .news-preview {
-            padding: 16px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            margin-bottom: 12px;
+        /* News list */
+        .news-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        .news-item {
+            padding: 12px;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            margin-bottom: 8px;
             cursor: pointer;
         }
-        .news-preview:hover {
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        .news-item:hover {
+            background: #f8f9fa;
         }
-        .news-list {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        .image-preview {
+        .bg-preview {
             width: 100%;
-            max-width: 300px;
-            margin: 10px 0;
+            max-height: 150px;
+            object-fit: cover;
             border-radius: 6px;
+            margin: 10px 0;
             display: none;
         }
 
         @media (max-width: 768px) {
-            .preview { height: 350px; }
+            .preview { height: 320px; }
             .flex { gap: 8px; }
-            .tab-buttons { flex-wrap: wrap; }
         }
     </style>
 </head>
 <body>
 
-<!-- Login -->
+<!-- LOGIN -->
 <div class="box" id="loginPanel">
     <h2>Admin Login</h2>
     <div class="form-group">
@@ -189,7 +158,7 @@
     <button class="btn-blue" onclick="login()">Login</button>
 </div>
 
-<!-- Main Dashboard -->
+<!-- DASHBOARD -->
 <div id="dashboard" class="hidden">
     <div class="box">
         <h2>Service Learning Admin
@@ -197,389 +166,311 @@
         </h2>
     </div>
 
-    <!-- Tabs: Projects / News -->
+    <!-- PROGRAM MANAGER -->
     <div class="box">
-        <div class="tab-buttons">
-            <button class="tab-button active" onclick="switchAdminTab('projects')">Service Projects</button>
-            <button class="tab-button" onclick="switchAdminTab('news')">News Management</button>
+        <h3>Select Service Learning Program</h3>
+        <div class="form-group">
+            <input type="text" id="newProgName" placeholder="Program name">
+            <button class="btn-green" onclick="createProgramWithTemplate()">Create with Template</button>
         </div>
-
-        <!-- Projects Tab Content -->
-        <div id="projects-tab" class="tab-content active">
-            <h3>My Service Projects</h3>
-            <div class="form-group">
-                <input type="text" id="newProgName" placeholder="Project name">
-                <button class="btn-green" onclick="createProgramWithTemplate()">
-                    Create with Template
-                </button>
-            </div>
-            <div class="form-group">
-                <label>Select Project to Edit</label>
-                <select id="programSelect"></select>
-            </div>
-            <button class="btn-red" id="deleteProgBtn" onclick="deleteCurrentProgram()">
-                Delete This Project
-            </button>
-
-            <h3 style="margin-top:20px">Edit Project Block</h3>
-            <div class="form-group">
-                <input type="text" id="blockTitle" placeholder="Block Title">
-            </div>
-            <div class="form-group">
-                <textarea id="blockContent" rows="4" placeholder="Block content"></textarea>
-            </div>
-
-            <div class="flex">
-                <div>
-                    <label>Background</label>
-                    <div class="color-row">
-                        <div id="bgBox" class="color-box" onclick="bgColor.click()"></div>
-                        <input type="color" id="bgColor" value="#ffffff">
-                    </div>
-                </div>
-                <div>
-                    <label>Text Color</label>
-                    <div class="color-row">
-                        <div id="textColorBox" class="color-box" onclick="textColor.click()"></div>
-                        <input type="color" id="textColor" value="#000000">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Border</label>
-                    <select id="borderStyle">
-                        <option value="none">No Border</option>
-                        <option value="1px solid #3498db">Blue Border</option>
-                    </select>
-                </div>
-            </div>
-
-            <button class="btn-blue" onclick="saveBlock()">Save Block</button>
-
-            <h3 style="margin-top:20px">Project Preview</h3>
-            <div class="preview">
-                <div class="preview-header">
-                    <h4>IB Service Learning Project</h4>
-                </div>
-                <div id="stage" class="preview-stage"></div>
-            </div>
-            <button class="btn-blue" style="margin-top:10px" onclick="savePositions()">
-                Save Positions & Sizes
-            </button>
+        <div class="form-group">
+            <select id="programSelect" onchange="selectProgram(this.value)"></select>
         </div>
+        <button class="btn-red" onclick="deleteCurrentProgram()">Delete This Program</button>
+    </div>
 
-        <!-- News Tab Content -->
-        <div id="news-tab" class="tab-content">
-            <h3>News Management</h3>
-            <div class="form-group">
-                <input type="text" id="newsTitle" placeholder="News Title">
-            </div>
-            <div class="form-group">
-                <input type="text" id="newsOverview" placeholder="News Overview (for index page button)">
-            </div>
-            <div class="form-group">
-                <label>News Image (optional)</label>
-                <input type="file" id="newsImage" accept="image/*">
-                <img id="newsImagePreview" class="image-preview" alt="News Image Preview">
-            </div>
-            <div class="form-group">
-                <label>News Content (full details)</label>
-                <textarea id="newsContent" rows="6" placeholder="Full news content (supports line breaks)"></textarea>
-            </div>
+    <!-- NEWS FOR THIS PROGRAM -->
+    <div class="box">
+        <h3>News for This Program</h3>
+        <div class="form-group">
+            <input type="text" id="newsTitle" placeholder="News Title">
+        </div>
+        <div class="form-group">
+            <input type="text" id="newsOverview" placeholder="Short Overview (for banner)">
+        </div>
+        <div class="form-group">
+            <label>Background Image (optional)</label>
+            <input type="file" id="newsBgImage" accept="image/*">
+            <img id="bgPreview" class="bg-preview">
+        </div>
+        <div class="form-group">
+            <textarea id="newsContent" rows="4" placeholder="Full news content"></textarea>
+        </div>
+        <button class="btn-purple" onclick="saveProgramNews()">Save News</button>
+        <button class="btn-red" id="delNewsBtn" onclick="deleteSelectedNews()" style="display:none">Delete This News</button>
 
-            <div class="flex">
-                <div>
-                    <label>Button Background (index page)</label>
-                    <div class="color-row">
-                        <div id="newsBtnBgBox" class="color-box" onclick="newsBtnBgColor.click()"></div>
-                        <input type="color" id="newsBtnBgColor" value="#3498db">
-                    </div>
+        <div class="news-list" id="programNewsList"></div>
+    </div>
+
+    <!-- EDIT PROJECT BLOCKS -->
+    <div class="box">
+        <h3>Edit Program Blocks</h3>
+        <div class="form-group">
+            <input type="text" id="blockTitle" placeholder="Block Title">
+        </div>
+        <div class="form-group">
+            <textarea id="blockContent" rows="3" placeholder="Content"></textarea>
+        </div>
+        <div class="flex">
+            <div>
+                <label>Background</label>
+                <div class="color-row">
+                    <div id="bgBox" class="color-box" onclick="bgColor.click()"></div>
+                    <input type="color" id="bgColor" value="#ffffff">
                 </div>
-                <div>
-                    <label>Button Text Color (index page)</label>
-                    <div class="color-row">
-                        <div id="newsBtnTextColorBox" class="color-box" onclick="newsBtnTextColor.click()"></div>
-                        <input type="color" id="newsBtnTextColor" value="#ffffff">
-                    </div>
-                </div>
             </div>
-
-            <button class="btn-purple" onclick="saveNews()">Save News</button>
-            <button class="btn-red" id="deleteNewsBtn" onclick="deleteCurrentNews()" style="display:none">Delete This News</button>
-
-            <h3 style="margin-top:20px">My News</h3>
-            <div class="news-list" id="newsList">
-                <!-- News items load here -->
+            <div>
+                <label>Text Color</label>
+                <div class="color-row">
+                    <div id="textColorBox" class="color-box" onclick="textColor.click()"></div>
+                    <input type="color" id="textColor" value="#000000">
+                </div>
             </div>
         </div>
+        <button class="btn-blue" onclick="saveBlock()">Save Block</button>
+    </div>
+
+    <!-- PREVIEW -->
+    <div class="box">
+        <h3>Program Preview</h3>
+        <div class="preview">
+            <div id="stage" class="preview-stage"></div>
+        </div>
+        <button class="btn-blue" onclick="savePositions()">Save Positions & Sizes</button>
     </div>
 </div>
 
 <script>
-// User & permissions
-let currentUser = null;
-let isAdmin = false;
-let programs = [];
-let selectedProgram = null;
-let blocks = [];
-let selectedBlock = null;
-let newsItems = [];
-let selectedNews = null;
+let currentUser, isAdmin = false;
+let programs = [], selectedProgram;
+let blocks = [], selectedBlock;
+let programNews = [], selectedNews;
 
-// Drag / resize
-let dragging = null, resizing = null;
-let startX, startY, startLeft, startTop, startW, startH;
-
-// Color sync (Projects)
+// COLOR SYNC
 const bgBox = document.getElementById('bgBox');
 const textColorBox = document.getElementById('textColorBox');
 const bgColor = document.getElementById('bgColor');
 const textColor = document.getElementById('textColor');
 
-// Color sync (News Buttons)
-const newsBtnBgBox = document.getElementById('newsBtnBgBox');
-const newsBtnTextColorBox = document.getElementById('newsBtnTextColorBox');
-const newsBtnBgColor = document.getElementById('newsBtnBgColor');
-const newsBtnTextColor = document.getElementById('newsBtnTextColor');
-
-// Image preview for news
-const newsImage = document.getElementById('newsImage');
-const newsImagePreview = document.getElementById('newsImagePreview');
-
-// Sync all color boxes
 bgColor.addEventListener('input', () => bgBox.style.background = bgColor.value);
 textColor.addEventListener('input', () => textColorBox.style.background = textColor.value);
-newsBtnBgColor.addEventListener('input', () => newsBtnBgBox.style.background = newsBtnBgColor.value);
-newsBtnTextColor.addEventListener('input', () => newsBtnTextColorBox.style.background = newsBtnTextColor.value);
 
-// News image preview
-newsImage.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            newsImagePreview.src = event.target.result;
-            newsImagePreview.style.display = 'block';
-        };
-        reader.readAsDataURL(file);
-    } else {
-        newsImagePreview.src = '';
-        newsImagePreview.style.display = 'none';
-    }
+// BACKGROUND IMAGE PREVIEW
+const bgInput = document.getElementById('newsBgImage');
+const bgPreview = document.getElementById('bgPreview');
+bgInput.addEventListener('change', () => {
+    const f = bgInput.files[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = e => {
+        bgPreview.src = e.target.result;
+        bgPreview.style.display = 'block';
+    };
+    r.readAsDataURL(f);
 });
 
-function syncAllColorBoxes() {
+function syncColors() {
     bgBox.style.background = bgColor.value;
     textColorBox.style.background = textColor.value;
-    newsBtnBgBox.style.background = newsBtnBgColor.value;
-    newsBtnTextColorBox.style.background = newsBtnTextColor.value;
 }
 
-// ------------------------------
-// Admin Tabs (Projects / News)
-// ------------------------------
-function switchAdminTab(tabName) {
-    // Deactivate all tabs
-    document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-    
-    // Activate selected tab
-    document.querySelector(`.tab-button[onclick="switchAdminTab('${tabName}')"]`).classList.add('active');
-    document.getElementById(`${tabName}-tab`).classList.add('active');
-
-    // Load relevant data for the tab
-    if (tabName === 'projects') loadPrograms();
-    if (tabName === 'news') loadNews();
-}
-
-// ------------------------------
-// Login & Permissions
-// ------------------------------
+// LOGIN
 function login() {
-    const user = document.getElementById('username').value;
-    const pass = document.getElementById('password').value;
-
-    currentUser = user;
-    isAdmin = (user === 'admin'); // admin can see everything
-
+    currentUser = document.getElementById('username').value;
+    isAdmin = currentUser === 'admin';
     document.getElementById('loginPanel').classList.add('hidden');
     document.getElementById('dashboard').classList.remove('hidden');
-
     loadPrograms();
-    loadNews();
-    syncAllColorBoxes();
 }
 
-function logout() {
-    location.reload();
-}
+function logout() { location.reload(); }
 
-// ------------------------------
-// Service Projects (Existing Logic)
-// ------------------------------
+// PROGRAMS
 function loadPrograms() {
-    const select = document.getElementById('programSelect');
-    select.innerHTML = '';
-
     programs = JSON.parse(localStorage.getItem('sl_programs') || '[]');
+    if (!isAdmin) programs = programs.filter(p => p.createdBy === currentUser);
 
-    // Normal users only see their own; admin sees all
-    if (!isAdmin) {
-        programs = programs.filter(p => p.createdBy === currentUser);
-    }
-
+    const sel = document.getElementById('programSelect');
+    sel.innerHTML = '';
     programs.forEach(p => {
         const opt = document.createElement('option');
         opt.value = p.id;
         opt.innerText = p.name;
-        select.appendChild(opt);
+        sel.appendChild(opt);
     });
-
-    if (programs.length > 0) {
-        selectProgram(programs[0].id);
-    }
+    if (programs.length) selectProgram(programs[0].id);
 }
 
 function selectProgram(id) {
     selectedProgram = programs.find(p => p.id === id);
-    loadBlocks();
+    blocks = [...selectedProgram.blocks];
+    programNews = selectedProgram.news || [];
+    renderStage();
+    loadProgramNewsList();
+    syncColors();
+    resetNewsForm();
 }
 
-document.getElementById('programSelect').addEventListener('change', (e) => {
-    selectProgram(e.target.value);
-});
-
 function createProgramWithTemplate() {
-    const name = document.getElementById('newProgName').value || 'New Service Project';
-    const id = 'prog_' + Date.now();
-
-    const newProg = {
-        id,
-        name,
-        createdBy: currentUser,
+    const name = document.getElementById('newProgName').value || 'New Program';
+    const p = {
+        id: 'p'+Date.now(), name, createdBy: currentUser,
         blocks: [
-            {
-                id: 'b1', title: 'Basic Info',
-                content: 'This project supports IB Service Learning requirements.\nOpen to all MYP and DP students.',
-                x: 5, y: 5, w: 42, h: 25,
-                bg: '#ffffff', text: '#000000', border: '1px solid #3498db'
-            },
-            {
-                id: 'b2', title: 'How to Sign Up',
-                content: '1. Fill the form\n2. Attend the info session\n3. Start your service hours\n4. Submit reflections weekly',
-                x: 51, y: 5, w: 42, h: 25,
-                bg: '#ffffff', text: '#000000', border: '1px solid #3498db'
-            },
-            {
-                id: 'b3', title: 'Latest News',
-                content: 'Next meeting: Friday, 1:30 PM\nNew project launch next week\nReminder: Reflection due Sunday',
-                x: 5, y: 35, w: 88, h: 22,
-                bg: '#f8f9fa', text: '#000000', border: '1px solid #ddd'
-            }
-        ]
+            { id:'b1', title:'Basic Info', content:'Information here', x:5,y:5,w:42,h:25, bg:'#fff', text:'#000', border:'1px solid #3498db' },
+            { id:'b2', title:'How to Sign Up', content:'Steps here', x:51,y:5,w:42,h:25, bg:'#fff', text:'#000', border:'1px solid #3498db' }
+        ],
+        news: []
     };
-
-    programs.push(newProg);
+    programs.push(p);
     localStorage.setItem('sl_programs', JSON.stringify(programs));
     loadPrograms();
 }
 
 function deleteCurrentProgram() {
     if (!selectedProgram) return;
-
-    const isCreator = selectedProgram.createdBy === currentUser;
-    if (!isCreator && !isAdmin) {
-        alert('You can only delete your own projects.');
-        return;
-    }
-
-    if (!confirm('Delete this project permanently?')) return;
-
+    if (selectedProgram.createdBy !== currentUser && !isAdmin) return alert('No permission');
+    if (!confirm('Delete program?')) return;
     programs = programs.filter(p => p.id !== selectedProgram.id);
     localStorage.setItem('sl_programs', JSON.stringify(programs));
     loadPrograms();
 }
 
-function loadBlocks() {
-    if (!selectedProgram) return;
-    blocks = [...selectedProgram.blocks];
-    renderStage();
+// PROGRAM NEWS
+function loadProgramNewsList() {
+    const list = document.getElementById('programNewsList');
+    list.innerHTML = '';
+    programNews.forEach(n => {
+        const div = document.createElement('div');
+        div.className = 'news-item';
+        div.innerText = n.title;
+        div.onclick = () => {
+            selectedNews = n;
+            document.getElementById('newsTitle').value = n.title;
+            document.getElementById('newsOverview').value = n.overview;
+            document.getElementById('newsContent').value = n.content;
+            bgPreview.src = n.bgImage || '';
+            bgPreview.style.display = n.bgImage ? 'block' : 'none';
+            document.getElementById('delNewsBtn').style.display = 'inline-block';
+        };
+        list.appendChild(div);
+    });
 }
 
+function resetNewsForm() {
+    document.getElementById('newsTitle').value = '';
+    document.getElementById('newsOverview').value = '';
+    document.getElementById('newsContent').value = '';
+    bgInput.value = '';
+    bgPreview.src = '';
+    bgPreview.style.display = 'none';
+    selectedNews = null;
+    document.getElementById('delNewsBtn').style.display = 'none';
+}
+
+function saveProgramNews() {
+    const title = document.getElementById('newsTitle').value;
+    const overview = document.getElementById('newsOverview').value;
+    const content = document.getElementById('newsContent').value;
+    const bgImage = bgPreview.src || '';
+
+    if (!title || !overview || !content) return alert('Fill all fields');
+
+    const newsItem = {
+        id: 'n'+Date.now(),
+        title, overview, content, bgImage,
+        programId: selectedProgram.id,
+        date: new Date().toLocaleString()
+    };
+
+    if (selectedNews) {
+        const i = programNews.findIndex(x => x.id === selectedNews.id);
+        programNews[i] = { ...selectedNews, title, overview, content, bgImage };
+    } else {
+        programNews.unshift(newsItem);
+    }
+
+    selectedProgram.news = programNews;
+    localStorage.setItem('sl_programs', JSON.stringify(programs));
+    loadProgramNewsList();
+    resetNewsForm();
+    alert('News saved');
+}
+
+function deleteSelectedNews() {
+    if (!selectedNews) return;
+    programNews = programNews.filter(n => n.id !== selectedNews.id);
+    selectedProgram.news = programNews;
+    localStorage.setItem('sl_programs', JSON.stringify(programs));
+    loadProgramNewsList();
+    resetNewsForm();
+}
+
+// BLOCKS & DRAG
 function renderStage() {
     const stage = document.getElementById('stage');
     stage.innerHTML = '';
-
     blocks.forEach(b => {
         const el = document.createElement('div');
         el.className = 'block';
         el.dataset.id = b.id;
-        el.style.left = b.x + '%';
-        el.style.top = b.y + '%';
-        el.style.width = b.w + '%';
-        el.style.height = b.h + '%';
+        el.style.left = b.x+'%';
+        el.style.top = b.y+'%';
+        el.style.width = b.w+'%';
+        el.style.height = b.h+'%';
         el.style.background = b.bg;
         el.style.color = b.text;
         el.style.border = b.border;
         el.innerHTML = `<strong>${b.title}</strong><br>${b.content}`;
 
-        const resize = document.createElement('div');
-        resize.className = 'resize-handle';
-        el.appendChild(resize);
+        const rh = document.createElement('div');
+        rh.className = 'resize-handle';
+        el.appendChild(rh);
 
-        el.addEventListener('click', (e) => {
-            e.stopPropagation();
-            selectedBlock = b;
+        el.onclick = () => { selectedBlock = b;
             document.getElementById('blockTitle').value = b.title;
             document.getElementById('blockContent').value = b.content;
             bgColor.value = b.bg;
             textColor.value = b.text;
-            document.getElementById('borderStyle').value = b.border;
-            syncAllColorBoxes();
-        });
+            syncColors();
+        };
 
-        el.addEventListener('mousedown', (e) => {
+        let drag = null, resize = null;
+        let sx, sy, l, t, w, h;
+
+        el.onmousedown = e => {
             e.preventDefault();
-            if (e.target.classList.contains('resize-handle')) {
-                resizing = el;
-                startX = e.clientX;
-                startY = e.clientY;
-                startW = parseFloat(el.style.width);
-                startH = parseFloat(el.style.height);
+            if (e.target === rh) {
+                resize = el;
+                sx = e.x; sy = e.y;
+                w = parseFloat(el.style.width);
+                h = parseFloat(el.style.height);
                 return;
             }
-            dragging = el;
-            startX = e.clientX;
-            startY = e.clientY;
-            startLeft = parseFloat(el.style.left);
-            startTop = parseFloat(el.style.top);
-        });
+            drag = el;
+            sx = e.x; sy = e.y;
+            l = parseFloat(el.style.left);
+            t = parseFloat(el.style.top);
+        };
 
+        document.onmousemove = e => {
+            const r = stage.getBoundingClientRect();
+            if (drag) {
+                const dx = (e.x-sx)/r.width*100;
+                const dy = (e.y-sy)/r.height*100;
+                el.style.left = Math.max(0, Math.min(100, l+dx))+'%';
+                el.style.top = Math.max(0, Math.min(100, t+dy))+'%';
+            }
+            if (resize) {
+                const dx = (e.x-sx)/r.width*100;
+                const dy = (e.y-sy)/r.height*100;
+                el.style.width = Math.max(5, Math.min(100, w+dx))+'%';
+                el.style.height = Math.max(5, Math.min(100, h+dy))+'%';
+            }
+        };
+        document.onmouseup = () => { drag=resize=null; };
         stage.appendChild(el);
     });
 }
-
-document.addEventListener('mousemove', (e) => {
-    const stage = document.getElementById('stage');
-    const rect = stage.getBoundingClientRect();
-
-    if (dragging) {
-        const dx = (e.clientX - startX) / rect.width * 100;
-        const dy = (e.clientY - startY) / rect.height * 100;
-        dragging.style.left = Math.max(0, Math.min(100, startLeft + dx)) + '%';
-        dragging.style.top = Math.max(0, Math.min(100, startTop + dy)) + '%';
-    }
-    if (resizing) {
-        const dx = (e.clientX - startX) / rect.width * 100;
-        const dy = (e.clientY - startY) / rect.height * 100;
-        resizing.style.width = Math.max(5, Math.min(100, startW + dx)) + '%';
-        resizing.style.height = Math.max(5, Math.min(100, startH + dy)) + '%';
-    }
-});
-
-document.addEventListener('mouseup', () => {
-    dragging = null;
-    resizing = null;
-});
 
 function saveBlock() {
     if (!selectedBlock) return;
@@ -587,10 +478,8 @@ function saveBlock() {
     selectedBlock.content = document.getElementById('blockContent').value;
     selectedBlock.bg = bgColor.value;
     selectedBlock.text = textColor.value;
-    selectedBlock.border = document.getElementById('borderStyle').value;
-
-    saveToStorage();
     renderStage();
+    localStorage.setItem('sl_programs', JSON.stringify(programs));
 }
 
 function savePositions() {
@@ -601,155 +490,9 @@ function savePositions() {
         b.w = parseFloat(el.style.width);
         b.h = parseFloat(el.style.height);
     });
-    saveToStorage();
-    alert('Saved positions and sizes.');
-}
-
-function saveToStorage() {
-    const all = JSON.parse(localStorage.getItem('sl_programs') || '[]');
-    const index = all.findIndex(p => p.id === selectedProgram.id);
-    if (index !== -1) {
-        all[index].blocks = blocks;
-        localStorage.setItem('sl_programs', JSON.stringify(all));
-        programs = all;
-        if (!isAdmin) programs = programs.filter(p => p.createdBy === currentUser);
-    }
-}
-
-// ------------------------------
-// News Management (NEW FEATURE)
-// ------------------------------
-function loadNews() {
-    const newsList = document.getElementById('newsList');
-    newsList.innerHTML = '';
-
-    newsItems = JSON.parse(localStorage.getItem('sl_news') || '[]');
-
-    // Normal users only see their own; admin sees all
-    const userNews = isAdmin ? newsItems : newsItems.filter(n => n.createdBy === currentUser);
-
-    if (userNews.length === 0) {
-        newsList.innerHTML = '<p>No news items yet. Create one above!</p>';
-        return;
-    }
-
-    userNews.forEach(news => {
-        const newsEl = document.createElement('div');
-        newsEl.className = 'news-preview';
-        newsEl.innerHTML = `
-            <strong>${news.title}</strong>
-            <p style="margin-top:4px; color:#666">${news.overview}</p>
-        `;
-        newsEl.onclick = () => selectNews(news.id);
-        newsList.appendChild(newsEl);
-    });
-
-    // Reset form if no news is selected
-    selectedNews = null;
-    document.getElementById('deleteNewsBtn').style.display = 'none';
-    resetNewsForm();
-}
-
-function selectNews(newsId) {
-    selectedNews = newsItems.find(n => n.id === newsId);
-    if (!selectedNews) return;
-
-    // Populate form with selected news
-    document.getElementById('newsTitle').value = selectedNews.title;
-    document.getElementById('newsOverview').value = selectedNews.overview;
-    document.getElementById('newsContent').value = selectedNews.content;
-    newsBtnBgColor.value = selectedNews.btnBg || '#3498db';
-    newsBtnTextColor.value = selectedNews.btnText || '#ffffff';
-
-    // Image preview
-    if (selectedNews.image) {
-        newsImagePreview.src = selectedNews.image;
-        newsImagePreview.style.display = 'block';
-    } else {
-        newsImagePreview.src = '';
-        newsImagePreview.style.display = 'none';
-    }
-
-    // Show delete button
-    document.getElementById('deleteNewsBtn').style.display = 'inline-block';
-    syncAllColorBoxes();
-}
-
-function resetNewsForm() {
-    document.getElementById('newsTitle').value = '';
-    document.getElementById('newsOverview').value = '';
-    document.getElementById('newsContent').value = '';
-    document.getElementById('newsImage').value = '';
-    newsImagePreview.src = '';
-    newsImagePreview.style.display = 'none';
-    newsBtnBgColor.value = '#3498db';
-    newsBtnTextColor.value = '#ffffff';
-    syncAllColorBoxes();
-}
-
-function saveNews() {
-    const title = document.getElementById('newsTitle').value.trim();
-    const overview = document.getElementById('newsOverview').value.trim();
-    const content = document.getElementById('newsContent').value.trim();
-    const btnBg = newsBtnBgColor.value;
-    const btnText = newsBtnTextColor.value;
-    const image = newsImagePreview.src || '';
-
-    if (!title || !overview || !content) {
-        alert('Please fill in title, overview, and content.');
-        return;
-    }
-
-    if (selectedNews) {
-        // Edit existing news
-        const index = newsItems.findIndex(n => n.id === selectedNews.id);
-        newsItems[index] = {
-            ...selectedNews,
-            title,
-            overview,
-            content,
-            btnBg,
-            btnText,
-            image // Keep existing image if no new one is uploaded
-        };
-    } else {
-        // Create new news
-        const newNews = {
-            id: 'news_' + Date.now(),
-            title,
-            overview,
-            content,
-            btnBg,
-            btnText,
-            image,
-            createdBy: currentUser,
-            date: new Date().toLocaleDateString()
-        };
-        newsItems.push(newNews);
-    }
-
-    // Save to localStorage
-    localStorage.setItem('sl_news', JSON.stringify(newsItems));
-    loadNews();
-    alert('News saved successfully!');
-}
-
-function deleteCurrentNews() {
-    if (!selectedNews) return;
-
-    const isCreator = selectedNews.createdBy === currentUser;
-    if (!isCreator && !isAdmin) {
-        alert('You can only delete your own news.');
-        return;
-    }
-
-    if (!confirm('Delete this news permanently?')) return;
-
-    newsItems = newsItems.filter(n => n.id !== selectedNews.id);
-    localStorage.setItem('sl_news', JSON.stringify(newsItems));
-    loadNews();
+    localStorage.setItem('sl_programs', JSON.stringify(programs));
+    alert('Saved');
 }
 </script>
-
 </body>
 </html>
