@@ -15,9 +15,17 @@
             background: #f5f7fa;
         }
 
-        /* Tab bar */
-        .tab-bar {
+        /* Header */
+        .page-header {
             background: #3498db;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        /* Tabs for Projects */
+        .tab-bar {
+            background: #2d3748;
             display: flex;
             flex-wrap: wrap;
             gap: 4px;
@@ -34,14 +42,14 @@
         }
         .tab.active {
             background: white;
-            color: #3498db;
+            color: #2d3748;
             font-weight: bold;
         }
 
-        /* Full page content area */
+        /* Full-page Project Content */
         .tab-content {
             padding: 30px 20px;
-            min-height: calc(100vh - 70px);
+            min-height: calc(100vh - 130px);
             max-width: 1000px;
             margin: 0 auto;
             display: none;
@@ -50,7 +58,7 @@
             display: block;
         }
 
-        /* Block styling matching admin */
+        /* Project Blocks */
         .content-block {
             background: white;
             padding: 20px;
@@ -65,7 +73,46 @@
             color: #2d3748;
         }
 
-        .no-projects {
+        /* News Section */
+        .news-section {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .news-section h2 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .news-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+        .news-button {
+            padding: 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: left;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: transform 0.2s;
+        }
+        .news-button:hover {
+            transform: translateY(-3px);
+        }
+        .news-button h3 {
+            margin-bottom: 8px;
+            color: inherit;
+        }
+        .news-button p {
+            font-size: 14px;
+            color: inherit;
+            opacity: 0.9;
+        }
+
+        /* No Content Messages */
+        .no-content {
             text-align: center;
             padding: 60px 20px;
             color: #666;
@@ -83,27 +130,72 @@
             .tab-content {
                 padding: 20px 12px;
             }
+            .news-buttons {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
 
+    <div class="page-header">
+        <h1>IB Service Learning Projects</h1>
+        <p>Our School Community Initiatives</p>
+    </div>
+
+    <!-- News Buttons Section -->
+    <div class="news-section">
+        <h2>Latest News</h2>
+        <div class="news-buttons" id="newsButtons">
+            <!-- News buttons load here -->
+        </div>
+    </div>
+
+    <!-- Project Tabs -->
     <div class="tab-bar" id="tabBar">
-        <!-- Tabs generated here -->
+        <!-- Project tabs generated here -->
     </div>
 
     <div id="tabContainer">
-        <!-- Full-page tab content loads here -->
+        <!-- Full-page project content loads here -->
     </div>
 
 <script>
-function loadTabbedPrograms() {
+// Load News Buttons
+function loadNewsButtons() {
+    const container = document.getElementById('newsButtons');
+    const newsItems = JSON.parse(localStorage.getItem('sl_news') || '[]');
+
+    if (newsItems.length === 0) {
+        container.innerHTML = '<div class="no-content">No news available yet.</div>';
+        return;
+    }
+
+    newsItems.forEach(news => {
+        const btn = document.createElement('button');
+        btn.className = 'news-button';
+        btn.style.background = news.btnBg || '#3498db';
+        btn.style.color = news.btnText || '#ffffff';
+        btn.innerHTML = `
+            <h3>${news.title}</h3>
+            <p>${news.overview}</p>
+        `;
+        // Redirect to news detail page with news ID
+        btn.onclick = () => {
+            window.location.href = `news-detail.html?id=${news.id}`;
+        };
+        container.appendChild(btn);
+    });
+}
+
+// Load Project Tabs
+function loadProjectTabs() {
     const tabBar = document.getElementById('tabBar');
     const tabContainer = document.getElementById('tabContainer');
     const programs = JSON.parse(localStorage.getItem('sl_programs') || '[]');
 
     if (programs.length === 0) {
-        tabContainer.innerHTML = '<div class="no-projects">No service learning projects available.</div>';
+        tabContainer.innerHTML = '<div class="no-content">No service learning projects available.</div>';
         return;
     }
 
@@ -134,19 +226,17 @@ function loadTabbedPrograms() {
     });
 }
 
-// Switch between full‑page tabs
+// Switch Project Tabs
 function switchTab(progId) {
-    // Deactivate all
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-
-    // Activate selected
     document.querySelector(`.tab[data-prog-id="${progId}"]`).classList.add('active');
     document.getElementById(`content_${progId}`).classList.add('active');
 }
 
-// Load everything
-loadTabbedPrograms();
+// Load everything on page load
+loadNewsButtons();
+loadProjectTabs();
 </script>
 
 </body>
