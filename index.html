@@ -135,7 +135,10 @@
 <div id="tabContainer"></div>
 
 <script>
-// 🔴 Global function to RELOAD ALL NEWS
+// Remember which tab the user is viewing
+let activeProgramId = null;
+
+// 🔴 Global reload function
 function reloadAllNews() {
     loadTopBanner();
     loadProgramTabs();
@@ -146,7 +149,6 @@ function loadTopBanner() {
     const all = [];
     const progs = JSON.parse(localStorage.getItem('sl_programs') || '[]');
     progs.forEach(p => {
-        // Check if the program has news before adding to the list
         if (p.news && p.news.length > 0) {
             p.news.forEach(n => all.push(n));
         }
@@ -166,7 +168,7 @@ function loadTopBanner() {
     });
 }
 
-// LOAD PROGRAMS & TABS
+// LOAD PROGRAMS & TABS — KEEP SELECTED TAB
 function loadProgramTabs() {
     const progs = JSON.parse(localStorage.getItem('sl_programs') || '[]');
     const tabBar = document.getElementById('tabBar');
@@ -175,11 +177,23 @@ function loadProgramTabs() {
     tabBar.innerHTML = '';
     container.innerHTML = '';
 
+    if (progs.length === 0) return;
+
+    // If no tab selected yet, use first program
+    if (!activeProgramId) {
+        activeProgramId = progs[0].id;
+    }
+
     progs.forEach((p, idx) => {
         const tab = document.createElement('button');
-        tab.className = 'tab' + (idx===0?' active':'');
+        tab.className = 'tab';
+        // Reactivate the user's current tab
+        if (p.id === activeProgramId) tab.classList.add('active');
+
         tab.innerText = p.name;
         tab.onclick = () => {
+            // Save selection when user clicks manually
+            activeProgramId = p.id;
             document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
             tab.classList.add('active');
@@ -188,10 +202,12 @@ function loadProgramTabs() {
         tabBar.appendChild(tab);
 
         const content = document.createElement('div');
-        content.className = 'tab-content' + (idx===0?' active':'');
+        content.className = 'tab-content';
+        if (p.id === activeProgramId) content.classList.add('active');
+
         content.id = `c${p.id}`;
 
-        // PROGRAM BLOCKS
+        // Program blocks
         p.blocks.forEach(b => {
             content.innerHTML += `
             <div class="content-block" style="background:${b.bg};color:${b.text};border:${b.border}">
@@ -199,7 +215,7 @@ function loadProgramTabs() {
             </div>`;
         });
 
-        // PROGRAM-SPECIFIC NEWS (fixed to check for news existence)
+        // Program news
         content.innerHTML += `<div class="program-news"><h3>Latest News</h3>`;
         if (p.news && p.news.length > 0) {
             p.news.forEach(n => {
@@ -216,15 +232,15 @@ function loadProgramTabs() {
     });
 }
 
-// ✅ Auto-refresh news every 2 seconds
+// Auto-refresh every 2 seconds
 setInterval(reloadAllNews, 2000);
 
-// ✅ Cross-tab sync
+// Cross-tab sync
 window.addEventListener('storage', (e) => {
     if (e.key === 'sl_programs') reloadAllNews();
 });
 
-// ✅ Initial load
+// First load
 reloadAllNews();
 </script>
 </body>
