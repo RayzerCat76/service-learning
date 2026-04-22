@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Detail</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            background: #f5f7fa;
+            padding: 20px;
+        }
+        .detail-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        .news-title {
+            color: #2d3748;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .news-date {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .news-image {
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .news-content {
+            line-height: 1.8;
+            white-space: pre-line;
+            color: #333;
+        }
+        .back-button {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 16px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .not-found {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="detail-container" id="newsDetail">
+        <!-- News detail loads here -->
+    </div>
+
+<script>
+// Get news ID from URL (e.g., news-detail.html?id=news_123456)
+function getNewsIdFromUrl() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('id');
+}
+
+// Load news detail
+function loadNewsDetail() {
+    const newsId = getNewsIdFromUrl();
+    const container = document.getElementById('newsDetail');
+    const newsItems = JSON.parse(localStorage.getItem('sl_news') || '[]');
+    const news = newsItems.find(n => n.id === newsId);
+
+    if (!news) {
+        container.innerHTML = `
+            <div class="not-found">
+                <h2>News Not Found</h2>
+                <p>This news item no longer exists.</p>
+                <a href="index.html" class="back-button">Back to Home</a>
+            </div>
+        `;
+        return;
+    }
+
+    // Build news detail HTML
+    let html = `
+        <h1 class="news-title">${news.title}</h1>
+        <div class="news-date">Posted on ${news.date}</div>
+    `;
+
+    // Add image if available
+    if (news.image) {
+        html += `<img src="${news.image}" class="news-image" alt="${news.title}">`;
+    }
+
+    // Add full content
+    html += `
+        <div class="news-content">${news.content}</div>
+        <a href="index.html" class="back-button">Back to Home</a>
+    `;
+
+    container.innerHTML = html;
+}
+
+// Load detail on page open
+loadNewsDetail();
+</script>
+
+</body>
+</html>
