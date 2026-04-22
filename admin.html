@@ -3,141 +3,201 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IB Service Learning Admin Panel</title>
+    <title>IB Service Learning Admin</title>
     <style>
-        *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
-        body{background:#f5f7fa;padding:20px;max-width:1200px;margin:auto}
-        .box{background:white;padding:25px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.1);margin-bottom:20px}
-        h2,h3{margin-bottom:15px;color:#2c3e50;border-bottom:1px solid #eee;padding-bottom:10px}
-        .form-group{margin-bottom:12px}
-        input,textarea,select{width:100%;padding:10px;border:1px solid #ddd;border-radius:6px}
-        button{padding:10px 15px;border:none;border-radius:6px;cursor:pointer;margin:5px}
-        .btn-blue{background:#3498db;color:white}
-        .btn-red{background:#e74c3c;color:white}
-        .btn-green{background:#2ecc71;color:white}
-        .hidden{display:none}
-        .flex{display:flex;gap:15px;flex-wrap:wrap}
-
-        /* COLOR BOX STYLING (Adjust size here!) */
-        .color-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin: 5px 0;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
         }
+        body {
+            background: #f5f7fa;
+            padding: 20px;
+            max-width: 1200px;
+            margin: auto;
+        }
+        .box {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+        h2, h3 {
+            margin-bottom: 16px;
+            color: #2d3748;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+        }
+        .form-group {
+            margin-bottom: 14px;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        button {
+            padding: 10px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            margin-right: 6px;
+        }
+        .btn-blue { background: #3498db; color: white; }
+        .btn-red  { background: #e74c3c; color: white; }
+        .btn-green{ background: #2ecc71; color: white; }
+        .hidden { display: none; }
+        .flex {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        /* Color picker box */
         .color-box {
-            width: 50px; /* Custom size (IB-friendly) */
-            height: 50px;
+            width: 44px;
+            height: 44px;
             border-radius: 6px;
             border: 2px solid #ddd;
             cursor: pointer;
-            background: #ffffff;
         }
-        .color-picker-input {
-            display: none; /* Hide default line */
+        .color-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-
-        .preview{
-            position:relative;width:100%;height:600px;
-            background:#f5f7fa;border:2px solid #ccc;
-            border-radius:8px;overflow:hidden;
-        }
-        .preview-header{
-            background:#2c3e50;color:white;padding:15px;text-align:center;
-            border-bottom:1px solid #ddd;
-        }
-        .preview-stage{
-            position:relative;width:100%;height:calc(100% - 60px);
-            background:white;overflow:hidden;
+        input[type="color"] {
+            display: none;
         }
 
-        .drag-block{
-            position:absolute;padding:12px;border-radius:8px;
-            cursor:move;background:white;overflow:hidden;
-            white-space:pre-line;
+        /* Preview area */
+        .preview {
+            position: relative;
+            width: 100%;
+            height: 600px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            overflow: hidden;
         }
-        .drag-block[style*="border: none"] {
+        .preview-header {
+            background: #3498db;
+            color: white;
+            padding: 14px;
+            text-align: center;
+        }
+        .preview-stage {
+            position: relative;
+            width: 100%;
+            height: calc(100% - 60px);
+            padding: 10px;
+        }
+
+        /* Draggable blocks */
+        .block {
+            position: absolute;
+            padding: 14px;
+            border-radius: 8px;
+            background: white;
+            border: 1px solid #ddd;
+            cursor: move;
+            overflow: hidden;
+            line-height: 1.5;
+        }
+        .block[style*="border: none"] {
             outline: 1px dashed #ccc !important;
         }
-        .resize{
-            position:absolute;right:0;bottom:0;
-            width:18px;height:18px;background:#3498db;
-            cursor:se-resize;border-radius:0 0 6px 0;
+        .resize-handle {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            width: 16px;
+            height: 16px;
+            background: #3498db;
+            cursor: se-resize;
+            border-radius: 0 0 8px 0;
         }
 
-        /* IB Template Default Styles (Pre-set for consistency) */
-        .ib-header-block { background:#3498db; color:white; }
-        .ib-section-block { background:#ecf0f1; border:1px solid #ddd; }
-        .ib-project-block { background:white; border:1px solid #3498db; }
-        .ib-contact-block { background:#f8f9fa; border:1px solid #ddd; }
+        @media (max-width: 768px) {
+            .preview { height: 500px; }
+            .flex { gap: 8px; }
+        }
     </style>
 </head>
 <body>
 
-<div class="box" id="loginBox">
-    <h2>IB Service Learning Admin Login</h2>
-    <div class="form-group"><input type="text" id="user" placeholder="Username" value="master"></div>
-    <div class="form-group"><input type="password" id="pass" placeholder="Password" value="master123"></div>
+<!-- Login -->
+<div class="box" id="loginPanel">
+    <h2>Admin Login</h2>
+    <div class="form-group">
+        <input type="text" id="username" placeholder="Username" value="admin">
+    </div>
+    <div class="form-group">
+        <input type="password" id="password" placeholder="Password" value="admin123">
+    </div>
     <button class="btn-blue" onclick="login()">Login</button>
-    <button class="btn-green" onclick="register()">Create Account</button>
 </div>
 
+<!-- Main Dashboard -->
 <div id="dashboard" class="hidden">
-    <div class="box"><h2>Welcome, <span id="uname"></span> | <button class="btn-red" onclick="logout()">Logout</button></h2></div>
-
     <div class="box">
-        <h3>My Service Learning Programs</h3>
-        <div class="form-group"><input type="text" id="newProg" placeholder="New Program (e.g., IB Service Learning 2026)"><button class="btn-green" onclick="createProgWithTemplate()">Create (With IB Template)</button></div>
-        <div id="progList"></div>
+        <h2>Service Learning Admin
+            <button class="btn-red" style="float:right" onclick="logout()">Logout</button>
+        </h2>
     </div>
 
+    <!-- Programs List -->
     <div class="box">
-        <h3>Block Editor (Edit Template Content)</h3>
-        <div class="form-group"><select id="editProg"></select></div>
+        <h3>My Programs</h3>
         <div class="form-group">
-            <button class="btn-green" onclick="addBlock()">Add New Block</button>
-            <button class="btn-red" onclick="deleteBlock()">Delete Selected Block</button>
+            <input type="text" id="newProgName" placeholder="Program name">
+            <button class="btn-green" onclick="createProgramWithTemplate()">
+                Create with Template
+            </button>
+        </div>
+        <div class="form-group">
+            <label>Select Program to Edit</label>
+            <select id="programSelect"></select>
+        </div>
+        <button class="btn-red" id="deleteProgBtn" onclick="deleteCurrentProgram()">
+            Delete This Program
+        </button>
+    </div>
+
+    <!-- Block Editor -->
+    <div class="box">
+        <h3>Edit Block</h3>
+        <div class="form-group">
+            <input type="text" id="blockTitle" placeholder="Block Title">
+        </div>
+        <div class="form-group">
+            <textarea id="blockContent" rows="4" placeholder="Block content"></textarea>
         </div>
 
-        <div class="form-group"><input type="text" id="bTitle" placeholder="Block Title (e.g., Project 1: Community Clean-Up)"></div>
-        <div class="form-group"><textarea id="bContent" rows="4" placeholder="Block Text (e.g., Description, goals, IB learning outcomes)"/></textarea></div>
-
         <div class="flex">
-            <!-- BACKGROUND COLOR -->
-            <div class="form-group">
-                <label>Background Color</label>
-                <div class="color-container">
-                    <div id="bgColorBox" class="color-box" onclick="document.getElementById('bBg').click()"></div>
-                    <input type="color" id="bBg" class="color-picker-input" value="#ffffff">
+            <div>
+                <label>Background</label>
+                <div class="color-row">
+                    <div id="bgBox" class="color-box" onclick="bgColor.click()"></div>
+                    <input type="color" id="bgColor" value="#ffffff">
                 </div>
             </div>
-
-            <!-- TEXT COLOR -->
-            <div class="form-group">
+            <div>
                 <label>Text Color</label>
-                <div class="color-container">
-                    <div id="textColorBox" class="color-box" onclick="document.getElementById('bText').click()"></div>
-                    <input type="color" class="color-picker-input" id="bText" value="#000000">
+                <div class="color-row">
+                    <div id="textColorBox" class="color-box" onclick="textColor.click()"></div>
+                    <input type="color" id="textColor" value="#000000">
                 </div>
             </div>
-
             <div class="form-group">
                 <label>Border</label>
-                <select id="bBorder">
-                    <option value="none">OFF (Dotted Preview)</option>
-                    <option value="1px solid #3498db" selected>ON (IB Blue Border)</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Font Size</label>
-                <select id="bSize">
-                    <option value="14px">14</option><option value="16px" selected>16</option><option value="18px">18</option><option value="20px">20</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Font</label>
-                <select id="bFont">
-                    <option value="Arial" selected>Arial (IB Recommended)</option><option value="Georgia">Georgia</option>
+                <select id="borderStyle">
+                    <option value="none">No Border</option>
+                    <option value="1px solid #3498db">Blue Border</option>
                 </select>
             </div>
         </div>
@@ -145,321 +205,287 @@
         <button class="btn-blue" onclick="saveBlock()">Save Block</button>
     </div>
 
+    <!-- Preview -->
     <div class="box">
-        <h3>Full Page Preview (IB Template)</h3>
+        <h3>Page Preview</h3>
         <div class="preview">
-            <div class="preview-header"><h4>IB Service Learning Projects | Your School Name</h4></div>
-            <div id="previewArea" class="preview-stage"></div>
+            <div class="preview-header">
+                <h4>IB Service Learning Projects</h4>
+            </div>
+            <div id="stage" class="preview-stage"></div>
         </div>
-        <button class="btn-blue" onclick="saveLayout()">Save Position & Size</button>
+        <button class="btn-blue" style="margin-top:10px" onclick="savePositions()">
+            Save Positions & Sizes
+        </button>
     </div>
 </div>
 
 <script>
-let currentUser, selectedBlock, area;
-let drag = null, resize = null;
-let startX = 0, startY = 0;
-let startLeft = 0, startTop = 0;
-let startWidth = 0, startHeight = 0;
+// User & permissions
+let currentUser = null;
+let isAdmin = false;
+let programs = [];
+let selectedProgram = null;
+let blocks = [];
+let selectedBlock = null;
 
-// COLOR BOX SYNC LOGIC
-const bgBox = document.getElementById('bgColorBox');
-const txtBox = document.getElementById('textColorBox');
-const bgInput = document.getElementById('bBg');
-const txtInput = document.getElementById('bText');
+// Drag / resize
+let dragging = null, resizing = null;
+let startX, startY, startLeft, startTop, startW, startH;
 
-bgInput.addEventListener('input', () => { bgBox.style.background = bgInput.value; });
-txtInput.addEventListener('input', () => { txtBox.style.background = txtInput.value; });
+// Color sync
+const bgBox = document.getElementById('bgBox');
+const textColorBox = document.getElementById('textColorBox');
+const bgColor = document.getElementById('bgColor');
+const textColor = document.getElementById('textColor');
+
+bgColor.addEventListener('input', () => bgBox.style.background = bgColor.value);
+textColor.addEventListener('input', () => textColorBox.style.background = textColor.value);
 
 function syncColorBoxes() {
-    bgBox.style.background = bgInput.value;
-    txtBox.style.background = txtInput.value;
+    bgBox.style.background = bgColor.value;
+    textColorBox.style.background = textColor.value;
 }
 
-// --------------------------
-// IB SERVICE LEARNING TEMPLATE (Pre-Designed Blocks)
-// --------------------------
-async function createProgWithTemplate() {
-    const progName = document.getElementById("newProg").value || "IB Service Learning Projects";
-    
-    // 1. Create the program first
-    const progRes = await fetch("/api/add-program", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: progName })
-    });
-    const progData = await progRes.json();
-    const progId = progData.id; // Get the new program ID
+// ------------------------------
+// Login & Permissions
+// ------------------------------
+function login() {
+    const user = document.getElementById('username').value;
+    const pass = document.getElementById('password').value;
 
-    // 2. Add pre-designed IB template blocks (all positions/sizes pre-set)
-    const templateBlocks = [
-        // Block 1: Main Header (Top Center)
-        {
-            title: "IB SERVICE LEARNING PROJECTS",
-            content: "Explore our school’s service learning initiatives aligned with IB Learner Profiles: Caring, Principled, Open-Minded.",
-            bg: "#3498db",
-            text: "#ffffff",
-            border: "none",
-            fontSize: "20px",
-            font: "Arial",
-            x: 25, y: 5, w: 50, h: 15
-        },
-        // Block 2: About IB Service Learning (Left Top)
-        {
-            title: "About IB Service Learning",
-            content: "IB Service Learning combines community service with academic learning, helping students develop empathy, leadership, and global citizenship. All projects align with IB CAS (Creativity, Activity, Service) requirements.",
-            bg: "#ecf0f1",
-            text: "#2c3e50",
-            border: "1px solid #ddd",
-            fontSize: "16px",
-            font: "Arial",
-            x: 5, y: 25, w: 40, h: 30
-        },
-        // Block 3: Active Projects (Right Top)
-        {
-            title: "Active Projects (2026)",
-            content: "1. Community Clean-Up (Local Park)\n2. Elderly Companion Program\n3. Environmental Awareness Campaign\n4. Tutoring for Underprivileged Students",
-            bg: "#ffffff",
-            text: "#2c3e50",
-            border: "1px solid #3498db",
-            fontSize: "16px",
-            font: "Arial",
-            x: 55, y: 25, w: 40, h: 30
-        },
-        // Block 4: Project Guidelines (Left Bottom)
-        {
-            title: "IB CAS Guidelines",
-            content: "- All projects must include service, reflection, and learning outcomes.\n- Students must complete 150 hours of CAS over 2 years.\n- Projects should address real community needs.\n- Reflection logs are required for all participants.",
-            bg: "#ffffff",
-            text: "#2c3e50",
-            border: "1px solid #3498db",
-            fontSize: "16px",
-            font: "Arial",
-            x: 5, y: 60, w: 40, h: 30
-        },
-        // Block 5: Contact & Resources (Right Bottom)
-        {
-            title: "Contact & Resources",
-            content: "Advisor: Ms. Smith (servicelearning@school.edu)\nCAS Coordinator: Mr. Lee\nResources: IB CAS Handbook | Project Proposal Form | Reflection Template",
-            bg: "#f8f9fa",
-            text: "#2c3e50",
-            border: "1px solid #ddd",
-            fontSize: "16px",
-            font: "Arial",
-            x: 55, y: 60, w: 40, h: 30
-        }
-    ];
+    currentUser = user;
+    isAdmin = (user === 'admin'); // admin can see everything
 
-    // 3. Add each template block to the program
-    for (const block of templateBlocks) {
-        await fetch("/api/add-block", {
-            method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                program_id: progId,
-                title: block.title,
-                content: block.content,
-                bg: block.bg,
-                text: block.text,
-                border: block.border,
-                fontSize: block.fontSize,
-                font: block.font,
-                x: block.x,
-                y: block.y,
-                w: block.w,
-                h: block.h
-            })
-        });
+    document.getElementById('loginPanel').classList.add('hidden');
+    document.getElementById('dashboard').classList.remove('hidden');
+
+    loadPrograms();
+}
+
+function logout() {
+    location.reload();
+}
+
+// ------------------------------
+// Load programs (admin sees all)
+// ------------------------------
+function loadPrograms() {
+    const select = document.getElementById('programSelect');
+    select.innerHTML = '';
+
+    // Mock program list
+    programs = JSON.parse(localStorage.getItem('sl_programs') || '[]');
+
+    // Normal users only see their own; admin sees all
+    if (!isAdmin) {
+        programs = programs.filter(p => p.createdBy === currentUser);
     }
 
-    // 4. Refresh programs to show the new template
-    refreshPrograms();
-    alert("IB Service Learning Template created successfully! Select it from the dropdown to edit.");
+    programs.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.innerText = p.name;
+        select.appendChild(opt);
+    });
+
+    if (programs.length > 0) {
+        selectProgram(programs[0].id);
+    }
+
+    syncColorBoxes();
 }
 
-async function login() {
-  const u = document.getElementById("user").value, p = document.getElementById("pass").value;
-  const r = await fetch("/api/login", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username: u, password: p })
-  });
-  const d = await r.json();
-  if (!d.success) return alert("Login Failed");
-  currentUser = u;
-  document.getElementById("loginBox").classList.add("hidden");
-  document.getElementById("dashboard").classList.remove("hidden");
-  refreshPrograms();
+function selectProgram(id) {
+    selectedProgram = programs.find(p => p.id === id);
+    loadBlocks();
 }
 
-async function register() {
-  const u = document.getElementById("user").value, p = document.getElementById("pass").value;
-  const r = await fetch("/api/create-account", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username: u, password: p })
-  });
-  alert((await r.json()).success ? "Account Created!" : "Error Creating Account");
-}
+document.getElementById('programSelect').addEventListener('change', (e) => {
+    selectProgram(e.target.value);
+});
 
-function logout() { location.reload(); }
+// ------------------------------
+// Create program with default template
+// ------------------------------
+function createProgramWithTemplate() {
+    const name = document.getElementById('newProgName').value || 'New Service Project';
+    const id = 'prog_' + Date.now();
 
-async function refreshPrograms() {
-  const progs = await (await fetch("/api/programs")).json();
-  const list = document.getElementById("progList"), sel = document.getElementById("editProg");
-  list.innerHTML = ""; sel.innerHTML = "";
-  progs.forEach(p => {
-    list.innerHTML += `${p.name}`;
-    sel.innerHTML += ``;
-  });
-  renderPreview();
-}
-
-// Original create program (without template)
-async function createProg() {
-  await fetch("/api/add-program", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: document.getElementById("newProg").value })
-  });
-  refreshPrograms();
-}
-
-async function renderPreview() {
-  area = document.getElementById("previewArea");
-  const blocks = await (await fetch("/api/blocks?program_id=" + document.getElementById("editProg").value)).json();
-  area.innerHTML = "";
-
-  blocks.forEach(b => {
-    const el = document.createElement("div");
-    el.className = "drag-block";
-    el.dataset.id = b.id;
-    el.innerHTML = `${b.title}${b.content}`;
-    el.style.left = b.x + "%";
-    el.style.top = b.y + "%";
-    el.style.width = b.w + "%";
-    el.style.height = b.h + "%";
-    el.style.background = b.bg;
-    el.style.color = b.text;
-    el.style.border = b.border;
-    el.style.fontSize = b.fontSize;
-    el.style.fontFamily = b.font;
-
-    const resizeNode = document.createElement("div");
-    resizeNode.className = "resize";
-    el.appendChild(resizeNode);
-
-    el.onclick = e => { e.stopPropagation(); selectedBlock = b; loadBlock(b); };
-
-    el.onmousedown = e => {
-        e.preventDefault();
-        if (e.target.classList.contains("resize")) {
-            resize = el;
-            startX = e.clientX;
-            startY = e.clientY;
-            startWidth = parseFloat(el.style.width);
-            startHeight = parseFloat(el.style.height);
-            return;
-        }
-        drag = el;
-        startX = e.clientX;
-        startY = e.clientY;
-        startLeft = parseFloat(el.style.left);
-        startTop = parseFloat(el.style.top);
+    const newProg = {
+        id,
+        name,
+        createdBy: currentUser,
+        blocks: [
+            {
+                id: 'b1', title: 'Basic Info',
+                content: 'This project supports IB Service Learning requirements.\nOpen to all MYP and DP students.',
+                x: 5, y: 5, w: 42, h: 25,
+                bg: '#ffffff', text: '#000000', border: '1px solid #3498db'
+            },
+            {
+                id: 'b2', title: 'How to Sign Up',
+                content: '1. Fill the form\n2. Attend the info session\n3. Start your service hours\n4. Submit reflections weekly',
+                x: 51, y: 5, w: 42, h: 25,
+                bg: '#ffffff', text: '#000000', border: '1px solid #3498db'
+            },
+            {
+                id: 'b3', title: 'Latest News',
+                content: 'Next meeting: Friday, 1:30 PM\nNew project launch next week\nReminder: Reflection due Sunday',
+                x: 5, y: 35, w: 88, h: 22,
+                bg: '#f8f9fa', text: '#000000', border: '1px solid #ddd'
+            }
+        ]
     };
 
-    area.appendChild(el);
-  });
+    programs.push(newProg);
+    localStorage.setItem('sl_programs', JSON.stringify(programs));
+    loadPrograms();
 }
 
-document.onmousemove = e => {
-  if (!area) return;
-  const rect = area.getBoundingClientRect();
-  if (drag) {
-    const dx = (e.clientX - startX) / rect.width * 100;
-    const dy = (e.clientY - startY) / rect.height * 100;
-    drag.style.left = Math.max(0, Math.min(100, startLeft + dx)) + "%";
-    drag.style.top = Math.max(0, Math.min(100, startTop + dy)) + "%";
-  }
-  if (resize) {
-    const dx = (e.clientX - startX) / rect.width * 100;
-    const dy = (e.clientY - startY) / rect.height * 100;
-    resize.style.width = Math.max(5, Math.min(100, startWidth + dx)) + "%";
-    resize.style.height = Math.max(5, Math.min(100, startHeight + dy)) + "%";
-  }
-};
+// ------------------------------
+// Delete program (ONLY creator or admin)
+// ------------------------------
+function deleteCurrentProgram() {
+    if (!selectedProgram) return;
 
-document.onmouseup = () => { drag = null; resize = null; };
+    const isCreator = selectedProgram.createdBy === currentUser;
+    if (!isCreator && !isAdmin) {
+        alert('You can only delete your own projects.');
+        return;
+    }
 
-function loadBlock(b) {
-  document.getElementById("bTitle").value = b.title;
-  document.getElementById("bContent").value = b.content;
-  document.getElementById("bBg").value = b.bg || "#fff";
-  document.getElementById("bText").value = b.text || "#000";
-  document.getElementById("bBorder").value = b.border || "none";
-  document.getElementById("bSize").value = b.fontSize || "16px";
-  document.getElementById("bFont").value = b.font || "Arial";
-  
-  syncColorBoxes();
+    if (!confirm('Delete this program permanently?')) return;
+
+    programs = programs.filter(p => p.id !== selectedProgram.id);
+    localStorage.setItem('sl_programs', JSON.stringify(programs));
+    loadPrograms();
 }
 
-async function saveBlock() {
-  if (!selectedBlock) return;
-  const data = {
-    id: selectedBlock.id,
-    title: document.getElementById("bTitle").value,
-    content: document.getElementById("bContent").value,
-    bg: document.getElementById("bBg").value,
-    text: document.getElementById("bText").value,
-    border: document.getElementById("bBorder").value,
-    fontSize: document.getElementById("bSize").value,
-    font: document.getElementById("bFont").value
-  };
-  await fetch("/api/update-block", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
-  });
-  const el = document.querySelector(`[data-id="${selectedBlock.id}"]`);
-  el.innerHTML = `${data.title}${data.content}`;
-  el.style.background = data.bg;
-  el.style.color = data.text;
-  el.style.border = data.border;
-  el.style.fontSize = data.fontSize;
-  el.style.fontFamily = data.font;
+// ------------------------------
+// Blocks
+// ------------------------------
+function loadBlocks() {
+    if (!selectedProgram) return;
+    blocks = [...selectedProgram.blocks];
+    renderStage();
 }
 
-async function addBlock() {
-  await fetch("/api/add-block", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ program_id: document.getElementById("editProg").value })
-  });
-  renderPreview();
-}
+function renderStage() {
+    const stage = document.getElementById('stage');
+    stage.innerHTML = '';
 
-async function deleteBlock() {
-  if (!selectedBlock) return;
-  await fetch("/api/delete-block", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id: selectedBlock.id })
-  });
-  selectedBlock = null; renderPreview();
-}
+    blocks.forEach(b => {
+        const el = document.createElement('div');
+        el.className = 'block';
+        el.dataset.id = b.id;
+        el.style.left = b.x + '%';
+        el.style.top = b.y + '%';
+        el.style.width = b.w + '%';
+        el.style.height = b.h + '%';
+        el.style.background = b.bg;
+        el.style.color = b.text;
+        el.style.border = b.border;
+        el.innerHTML = `<strong>${b.title}</strong><br>${b.content}`;
 
-async function saveLayout() {
-  const blocks = await (await fetch("/api/blocks?program_id=" + document.getElementById("editProg").value)).json();
-  for (const b of blocks) {
-    const el = document.querySelector(`[data-id="${b.id}"]`);
-    await fetch("/api/update-position", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id: b.id,
-        x: parseFloat(el.style.left),
-        y: parseFloat(el.style.top),
-        w: parseFloat(el.style.width),
-        h: parseFloat(el.style.height)
-      })
+        const resize = document.createElement('div');
+        resize.className = 'resize-handle';
+        el.appendChild(resize);
+
+        // Click to edit
+        el.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectedBlock = b;
+            document.getElementById('blockTitle').value = b.title;
+            document.getElementById('blockContent').value = b.content;
+            bgColor.value = b.bg;
+            textColor.value = b.text;
+            document.getElementById('borderStyle').value = b.border;
+            syncColorBoxes();
+        });
+
+        // Drag start
+        el.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            if (e.target.classList.contains('resize-handle')) {
+                resizing = el;
+                startX = e.clientX;
+                startY = e.clientY;
+                startW = parseFloat(el.style.width);
+                startH = parseFloat(el.style.height);
+                return;
+            }
+            dragging = el;
+            startX = e.clientX;
+            startY = e.clientY;
+            startLeft = parseFloat(el.style.left);
+            startTop = parseFloat(el.style.top);
+        });
+
+        stage.appendChild(el);
     });
-  }
-  alert("Position & Size Saved!");
 }
 
-document.getElementById("editProg").onchange = renderPreview;
-syncColorBoxes();
+// Drag & resize logic
+document.addEventListener('mousemove', (e) => {
+    const stage = document.getElementById('stage');
+    const rect = stage.getBoundingClientRect();
+
+    if (dragging) {
+        const dx = (e.clientX - startX) / rect.width * 100;
+        const dy = (e.clientY - startY) / rect.height * 100;
+        dragging.style.left = Math.max(0, Math.min(100, startLeft + dx)) + '%';
+        dragging.style.top = Math.max(0, Math.min(100, startTop + dy)) + '%';
+    }
+    if (resizing) {
+        const dx = (e.clientX - startX) / rect.width * 100;
+        const dy = (e.clientY - startY) / rect.height * 100;
+        resizing.style.width = Math.max(5, Math.min(100, startW + dx)) + '%';
+        resizing.style.height = Math.max(5, Math.min(100, startH + dy)) + '%';
+    }
+});
+
+document.addEventListener('mouseup', () => {
+    dragging = null;
+    resizing = null;
+});
+
+// Save block
+function saveBlock() {
+    if (!selectedBlock) return;
+    selectedBlock.title = document.getElementById('blockTitle').value;
+    selectedBlock.content = document.getElementById('blockContent').value;
+    selectedBlock.bg = bgColor.value;
+    selectedBlock.text = textColor.value;
+    selectedBlock.border = document.getElementById('borderStyle').value;
+
+    saveToStorage();
+    renderStage();
+}
+
+// Save positions
+function savePositions() {
+    blocks.forEach(b => {
+        const el = document.querySelector(`[data-id="${b.id}"]`);
+        b.x = parseFloat(el.style.left);
+        b.y = parseFloat(el.style.top);
+        b.w = parseFloat(el.style.width);
+        b.h = parseFloat(el.style.height);
+    });
+    saveToStorage();
+    alert('Saved positions and sizes.');
+}
+
+function saveToStorage() {
+    const all = JSON.parse(localStorage.getItem('sl_programs') || '[]');
+    const index = all.findIndex(p => p.id === selectedProgram.id);
+    if (index !== -1) {
+        all[index].blocks = blocks;
+        localStorage.setItem('sl_programs', JSON.stringify(all));
+        programs = all;
+        if (!isAdmin) programs = programs.filter(p => p.createdBy === currentUser);
+    }
+}
 </script>
 </body>
 </html>
