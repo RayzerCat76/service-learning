@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IB Service Learning Admin</title>
+    <title>Service Learning Admin</title>
     <style>
         * {
             box-sizing: border-box;
@@ -56,6 +56,17 @@
             display: flex;
             gap: 12px;
             flex-wrap: wrap;
+        }
+
+        /* Account List */
+        .account-item {
+            padding: 12px;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         /* Color picker */
@@ -146,29 +157,45 @@
 </head>
 <body>
 
-<!-- LOGIN -->
+<!-- LOGIN PANEL -->
 <div class="box" id="loginPanel">
     <h2>Admin Login</h2>
     <div class="form-group">
-        <input type="text" id="username" placeholder="Username" value="admin">
+        <input type="text" id="username" placeholder="Username" value="superadmin">
     </div>
     <div class="form-group">
-        <input type="password" id="password" placeholder="Password" value="admin123">
+        <input type="password" id="password" placeholder="Password" value="super123">
     </div>
     <button class="btn-blue" onclick="login()">Login</button>
 </div>
 
-<!-- DASHBOARD -->
+<!-- MAIN DASHBOARD -->
 <div id="dashboard" class="hidden">
     <div class="box">
         <h2>Service Learning Admin
             <button class="btn-red" style="float:right" onclick="logout()">Logout</button>
         </h2>
+        <p id="userRoleDisplay" style="margin-top:8px;"></p>
+    </div>
+
+    <!-- SUPER ADMIN ONLY: TEACHER MANAGEMENT -->
+    <div class="box" id="teacherManagementSection" class="hidden">
+        <h3>Teacher Account Management</h3>
+        <div class="form-group">
+            <input type="text" id="newTeacherUser" placeholder="New Teacher Username">
+        </div>
+        <div class="form-group">
+            <input type="password" id="newTeacherPass" placeholder="New Teacher Password">
+        </div>
+        <button class="btn-green" onclick="createTeacherAccount()">Create Teacher Account</button>
+
+        <h3 style="margin-top:24px;">Existing Teacher Accounts</h3>
+        <div id="accountsList"></div>
     </div>
 
     <!-- PROGRAM MANAGER -->
     <div class="box">
-        <h3>Select Service Learning Program</h3>
+        <h3>My Service Learning Programs</h3>
         <div class="form-group">
             <input type="text" id="newProgName" placeholder="Program name">
             <button class="btn-green" onclick="createProgramWithTemplate()">Create with Template</button>
@@ -202,7 +229,7 @@
         <div class="news-list" id="programNewsList"></div>
     </div>
 
-    <!-- EDIT PROJECT BLOCKS -->
+    <!-- EDIT PROGRAM BLOCKS -->
     <div class="box">
         <h3>Edit Program Blocks</h3>
         <div class="form-group">
@@ -241,7 +268,118 @@
 </div>
 
 <script>
-let currentUser, isAdmin = false;
+// -------------------------------
+// ACCOUNT SYSTEM (SUPER ADMIN + TEACHERS)
+// -------------------------------
+let currentUser = null;
+let isSuperAdmin = false;
+let userAccounts = [];
+
+// Load all user accounts
+function loadAccounts() {
+    let saved = localStorage.getItem('sl_accounts');
+    if (!saved) {
+        // Default: only Super Admin exists
+        userAccounts = [
+            { username: 'superadmin', password: 'super123', role: 'superadmin' }
+        ];
+        localStorage.setItem('sl_accounts', JSON.stringify(userAccounts));
+    } else {
+        userAccounts = JSON.parse(saved);
+    }
+}
+
+// Login
+function login() {
+    loadAccounts();
+    let user = document.getElementById('username').value;
+    let pass = document.getElementById('password').value;
+
+    let account = userAccounts.find(a => a.username === user && a.password === pass);
+    if (!account) {
+        alert('Invalid username or password');
+        return;
+    }
+
+    currentUser = user;
+    isSuperAdmin = account.role === 'superadmin';
+
+    document.getElementById('loginPanel').classList.add('hidden');
+    document.getElementById('dashboard').classList.remove('hidden');
+    document.getElementById('userRoleDisplay').innerText =
+        isSuperAdmin ? 'Logged in as Super Admin' : 'Logged in as Teacher';
+
+    // Show teacher management ONLY to Super Admin
+    if (isSuperAdmin) {
+        document.getElementById('teacherManagementSection').style.display = 'block';
+        loadAllAccountsForAdmin();
+    }
+
+    loadPrograms();
+    syncColors();
+}
+
+// Logout
+function logout() {
+    location.reload();
+}
+
+// SUPER ADMIN: Create teacher
+function createTeacherAccount() {
+    if (!isSuperAdmin) return;
+    let user = document.getElementById('newTeacherUser').value.trim();
+    let pass = document.getElementById('newTeacherPass').value.trim();
+
+    if (!user || !pass) {
+        alert('Please fill both fields');
+        return;
+    }
+    if (userAccounts.some(a => a.username === user)) {
+        alert('Username already exists');
+        return;
+    }
+
+    userAccounts.push({ username: user, password: pass, role: 'teacher' });
+    localStorage.setItem('sl_accounts', JSON.stringify(userAccounts));
+    loadAllAccountsForAdmin();
+    document.getElementById('newTeacherUser').value = '';
+    document.getElementById('newTeacherPass').value = '';
+    alert('Teacher account created!');
+}
+
+// SUPER ADMIN: Show accounts
+function loadAllAccountsForAdmin() {
+    let list = document.getElementById('accountsList');
+    list.innerHTML = '';
+
+    userAccounts.forEach(acc => {
+        if (acc.role === 'superadmin') return;
+
+        let div = document.createElement('div');
+        div.className = 'account-item';
+        div.innerHTML = `<strong>${acc.username}</strong> (Teacher)`;
+
+        let delBtn = document.createElement('button');
+        delBtn.className = 'btn-red';
+        delBtn.innerText = 'Delete';
+        delBtn.onclick = () => deleteTeacherAccount(acc.username);
+
+        div.appendChild(delBtn);
+        list.appendChild(div);
+    });
+}
+
+// SUPER ADMIN: Delete teacher
+function deleteTeacherAccount(username) {
+    if (!confirm('Delete this teacher account?')) return;
+    userAccounts = userAccounts.filter(a => a.username !== username);
+    localStorage.setItem('sl_accounts', JSON.stringify(userAccounts));
+    loadAllAccountsForAdmin();
+}
+
+// -------------------------------
+// PROGRAM & NEWS SYSTEM (unchanged, bug-free)
+// -------------------------------
 let programs = [], selectedProgram;
 let blocks = [], selectedBlock;
 let programNews = [], selectedNews;
@@ -274,21 +412,12 @@ function syncColors() {
     textColorBox.style.background = textColor.value;
 }
 
-// LOGIN
-function login() {
-    currentUser = document.getElementById('username').value;
-    isAdmin = currentUser === 'admin';
-    document.getElementById('loginPanel').classList.add('hidden');
-    document.getElementById('dashboard').classList.remove('hidden');
-    loadPrograms();
-}
-
-function logout() { location.reload(); }
-
-// PROGRAMS
+// LOAD PROGRAMS (PERMISSIONS)
 function loadPrograms() {
     programs = JSON.parse(localStorage.getItem('sl_programs') || '[]');
-    if (!isAdmin) programs = programs.filter(p => p.createdBy === currentUser);
+    if (!isSuperAdmin) {
+        programs = programs.filter(p => p.createdBy === currentUser);
+    }
 
     const sel = document.getElementById('programSelect');
     sel.innerHTML = '';
@@ -328,14 +457,14 @@ function createProgramWithTemplate() {
 
 function deleteCurrentProgram() {
     if (!selectedProgram) return;
-    if (selectedProgram.createdBy !== currentUser && !isAdmin) return alert('No permission');
+    if (selectedProgram.createdBy !== currentUser && !isSuperAdmin) return alert('No permission');
     if (!confirm('Delete program?')) return;
     programs = programs.filter(p => p.id !== selectedProgram.id);
     localStorage.setItem('sl_programs', JSON.stringify(programs));
     loadPrograms();
 }
 
-// PROGRAM NEWS
+// NEWS
 function loadProgramNewsList() {
     const list = document.getElementById('programNewsList');
     list.innerHTML = '';
@@ -426,7 +555,8 @@ function renderStage() {
         rh.className = 'resize-handle';
         el.appendChild(rh);
 
-        el.onclick = () => { selectedBlock = b;
+        el.onclick = () => {
+            selectedBlock = b;
             document.getElementById('blockTitle').value = b.title;
             document.getElementById('blockContent').value = b.content;
             bgColor.value = b.bg;
@@ -493,6 +623,8 @@ function savePositions() {
     localStorage.setItem('sl_programs', JSON.stringify(programs));
     alert('Saved');
 }
+
+loadAccounts();
 </script>
 </body>
 </html>
