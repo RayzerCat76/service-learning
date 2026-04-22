@@ -64,26 +64,31 @@
     </style>
 </head>
 <body>
-
-    <div class="detail-container" id="newsDetail">
-        <!-- News detail loads here -->
-    </div>
+    <div class="detail-container" id="newsDetail"></div>
 
 <script>
-// Get news ID from URL (e.g., news-detail.html?id=news_123456)
+// Get news ID from URL
 function getNewsIdFromUrl() {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get('id');
 }
 
-// Load news detail
+// Load news detail by searching inside all programs
 function loadNewsDetail() {
     const newsId = getNewsIdFromUrl();
     const container = document.getElementById('newsDetail');
-    const newsItems = JSON.parse(localStorage.getItem('sl_news') || '[]');
-    const news = newsItems.find(n => n.id === newsId);
+    const programs = JSON.parse(localStorage.getItem('sl_programs') || '[]');
+    let foundNews = null;
 
-    if (!news) {
+    // Loop through all programs to find the news item
+    for (const program of programs) {
+        if (program.news && program.news.length > 0) {
+            foundNews = program.news.find(n => n.id === newsId);
+            if (foundNews) break;
+        }
+    }
+
+    if (!foundNews) {
         container.innerHTML = `
             <div class="not-found">
                 <h2>News Not Found</h2>
@@ -94,29 +99,25 @@ function loadNewsDetail() {
         return;
     }
 
-    // Build news detail HTML
+    // Build the news page
     let html = `
-        <h1 class="news-title">${news.title}</h1>
-        <div class="news-date">Posted on ${news.date}</div>
+        <h1 class="news-title">${foundNews.title}</h1>
+        <div class="news-date">Posted on ${foundNews.date}</div>
     `;
 
-    // Add image if available
-    if (news.image) {
-        html += `<img src="${news.image}" class="news-image" alt="${news.title}">`;
+    if (foundNews.bgImage) {
+        html += `<img src="${foundNews.bgImage}" class="news-image" alt="${foundNews.title}">`;
     }
 
-    // Add full content
     html += `
-        <div class="news-content">${news.content}</div>
+        <div class="news-content">${foundNews.content}</div>
         <a href="index.html" class="back-button">Back to Home</a>
     `;
 
     container.innerHTML = html;
 }
 
-// Load detail on page open
 loadNewsDetail();
 </script>
-
 </body>
 </html>
