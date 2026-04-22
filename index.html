@@ -135,7 +135,7 @@
 <div id="tabContainer"></div>
 
 <script>
-// 🔴 Global function to RELOAD ALL NEWS (call this on load + auto-refresh)
+// 🔴 Global function to RELOAD ALL NEWS
 function reloadAllNews() {
     loadTopBanner();
     loadProgramTabs();
@@ -146,13 +146,16 @@ function loadTopBanner() {
     const all = [];
     const progs = JSON.parse(localStorage.getItem('sl_programs') || '[]');
     progs.forEach(p => {
-        if (p.news) p.news.forEach(n => all.push(n));
+        // Check if the program has news before adding to the list
+        if (p.news && p.news.length > 0) {
+            p.news.forEach(n => all.push(n));
+        }
     });
     all.sort((a,b) => new Date(b.date) - new Date(a.date));
     const latest = all.slice(0,3);
 
     const banner = document.getElementById('topBanner');
-    banner.innerHTML = ''; // Clear old news
+    banner.innerHTML = '';
     latest.forEach(n => {
         const div = document.createElement('div');
         div.className = 'banner-news';
@@ -169,8 +172,8 @@ function loadProgramTabs() {
     const tabBar = document.getElementById('tabBar');
     const container = document.getElementById('tabContainer');
 
-    tabBar.innerHTML = ''; // Clear old tabs
-    container.innerHTML = ''; // Clear old content
+    tabBar.innerHTML = '';
+    container.innerHTML = '';
 
     progs.forEach((p, idx) => {
         const tab = document.createElement('button');
@@ -196,9 +199,9 @@ function loadProgramTabs() {
             </div>`;
         });
 
-        // PROGRAM-SPECIFIC NEWS
+        // PROGRAM-SPECIFIC NEWS (fixed to check for news existence)
         content.innerHTML += `<div class="program-news"><h3>Latest News</h3>`;
-        if (p.news && p.news.length) {
+        if (p.news && p.news.length > 0) {
             p.news.forEach(n => {
                 content.innerHTML += `
                 <div class="news-card" onclick="location.href='news-detail.html?id=${n.id}'">
@@ -206,22 +209,22 @@ function loadProgramTabs() {
                 </div>`;
             });
         } else {
-            content.innerHTML += `<p>No news yet.</p>`;
+            content.innerHTML += `<p>No news yet for this program.</p>`;
         }
         content.innerHTML += `</div>`;
         container.appendChild(content);
     });
 }
 
-// ✅ 1. Auto-refresh news EVERY 2 SECONDS (check for updates)
+// ✅ Auto-refresh news every 2 seconds
 setInterval(reloadAllNews, 2000);
 
-// ✅ 2. Cross-tab sync: Refresh if localStorage changes in admin tab
+// ✅ Cross-tab sync
 window.addEventListener('storage', (e) => {
     if (e.key === 'sl_programs') reloadAllNews();
 });
 
-// ✅ 3. Load news ONCE on initial page load
+// ✅ Initial load
 reloadAllNews();
 </script>
 </body>
