@@ -83,7 +83,7 @@
             position: relative;
             width: 100%;
             height: 400px;
-            background: white;
+            background: #fafafa;
             border: 1px solid #ddd;
             border-radius: 10px;
             overflow: hidden;
@@ -92,17 +92,17 @@
             position: relative;
             width: 100%;
             height: 100%;
-            padding: 10px;
         }
         .block {
             position: absolute;
             padding: 14px;
             border-radius: 8px;
             background: white;
-            border: 1px solid #ddd;
+            border: 1px solid #3498db;
             cursor: move;
             overflow: hidden;
             line-height: 1.5;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .resize-handle {
             position: absolute;
@@ -112,6 +112,7 @@
             height: 16px;
             background: #3498db;
             cursor: se-resize;
+            border-radius: 0 0 8px 0;
         }
         .news-list {
             max-height: 300px;
@@ -142,6 +143,7 @@
 </head>
 <body>
 
+<!-- LOGIN -->
 <div class="box" id="loginPanel">
     <h2>Admin Login</h2>
     <div class="form-group">
@@ -153,6 +155,7 @@
     <button class="btn-blue" onclick="login()">Login</button>
 </div>
 
+<!-- DASHBOARD -->
 <div id="dashboard" class="hidden">
     <div class="box">
         <h2>Service Learning Admin
@@ -208,9 +211,9 @@
     </div>
 
     <div class="box">
-        <h3>Content Blocks</h3>
+        <h3>Edit Block</h3>
         <div class="form-group">
-            <input type="text" id="blockTitle" placeholder="Title">
+            <input type="text" id="blockTitle" placeholder="Block Title">
         </div>
         <div class="form-group">
             <textarea id="blockContent" rows="3" placeholder="Content"></textarea>
@@ -224,7 +227,7 @@
                 </div>
             </div>
             <div>
-                <label>Text</label>
+                <label>Text Color</label>
                 <div class="color-row">
                     <div id="textColorBox" class="color-box" onclick="textColor.click()"></div>
                     <input type="color" id="textColor" value="#000000">
@@ -235,7 +238,7 @@
     </div>
 
     <div class="box">
-        <h3>Preview</h3>
+        <h3>Layout Preview (Drag & Resize Blocks)</h3>
         <div class="preview">
             <div id="stage" class="preview-stage"></div>
         </div>
@@ -254,6 +257,9 @@ let selectedBlock = null;
 let news = [];
 let selectedNews = null;
 
+// ------------------------------
+// LOGIN
+// ------------------------------
 async function login() {
     const username = document.getElementById("username").value.trim();
     const password = document.getElementById("password").value.trim();
@@ -285,6 +291,9 @@ async function login() {
 
 function logout() { location.reload(); }
 
+// ------------------------------
+// TEACHERS
+// ------------------------------
 async function loadTeachers() {
     const res = await fetch(`${API_URL}/teachers`);
     const teachers = await res.json();
@@ -322,6 +331,9 @@ async function createTeacher() {
     alert("Created!");
 }
 
+// ------------------------------
+// PROGRAMS
+// ------------------------------
 async function loadPrograms() {
     const res = await fetch(`${API_URL}/programs?user=${currentUser}&admin=${isSuperAdmin}`);
     programs = await res.json();
@@ -347,14 +359,14 @@ async function selectProgram(id) {
 
 async function createProgram() {
     const name = document.getElementById("newProgName").value.trim() || "New Program";
-    const blocks = JSON.stringify([
-        { id: "b1", title: "Info", content: "Content", x:5,y:5,w:40,h:25, bg:"#fff", text:"#000", border:"1px solid #3498db" },
-        { id: "b2", title: "Details", content: "Content", x:50,y:5,w:40,h:25, bg:"#fff", text:"#000", border:"1px solid #3498db" }
+    const defaultBlocks = JSON.stringify([
+        { id: "b1", title: "Title", content: "Content here", x:5,y:5,w:40,h:25, bg:"#ffffff", text:"#000000", border:"1px solid #3498db" },
+        { id: "b2", title: "Info", content: "Details here", x:50,y:5,w:40,h:25, bg:"#ffffff", text:"#000000", border:"1px solid #3498db" }
     ]);
     await fetch(`${API_URL}/programs`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, createdBy: currentUser, blocks, news: "[]" })
+        body: JSON.stringify({ name, createdBy: currentUser, blocks: defaultBlocks, news: "[]" })
     });
     loadPrograms();
 }
@@ -366,6 +378,9 @@ async function deleteProgram() {
     loadPrograms();
 }
 
+// ------------------------------
+// NEWS
+// ------------------------------
 function renderNewsList() {
     const list = document.getElementById("newsList");
     list.innerHTML = "";
@@ -440,6 +455,9 @@ document.getElementById("newsImage").addEventListener("change", e => {
     r.readAsDataURL(f);
 });
 
+// ------------------------------
+// LAYOUT / DRAG / RESIZE BLOCKS (FULLY RESTORED)
+// ------------------------------
 const bgBox = document.getElementById("bgBox");
 const textColorBox = document.getElementById("textColorBox");
 const bgColor = document.getElementById("bgColor");
@@ -456,64 +474,87 @@ function syncColorBoxes() {
 function renderStage() {
     const stage = document.getElementById("stage");
     stage.innerHTML = "";
-    blocks.forEach(b => {
+
+    blocks.forEach(block => {
         const el = document.createElement("div");
         el.className = "block";
-        el.dataset.id = b.id;
-        el.style.left = b.x + "%";
-        el.style.top = b.y + "%";
-        el.style.width = b.w + "%";
-        el.style.height = b.h + "%";
-        el.style.background = b.bg;
-        el.style.color = b.text;
-        el.style.border = b.border;
-        el.innerHTML = `<strong>${b.title}</strong><br>${b.content}`;
+        el.dataset.id = block.id;
+        el.style.left = block.x + "%";
+        el.style.top = block.y + "%";
+        el.style.width = block.w + "%";
+        el.style.height = block.h + "%";
+        el.style.backgroundColor = block.bg;
+        el.style.color = block.text;
+        el.style.border = block.border || "1px solid #3498db";
+        el.innerHTML = `<strong>${block.title}</strong><br>${block.content}`;
 
-        const rh = document.createElement("div");
-        rh.className = "resize-handle";
-        el.appendChild(rh);
+        const resize = document.createElement("div");
+        resize.className = "resize-handle";
+        el.appendChild(resize);
 
         el.onclick = () => {
-            selectedBlock = b;
-            document.getElementById("blockTitle").value = b.title;
-            document.getElementById("blockContent").value = b.content;
-            bgColor.value = b.bg;
-            textColor.value = b.text;
+            selectedBlock = block;
+            document.getElementById("blockTitle").value = block.title;
+            document.getElementById("blockContent").value = block.content;
+            bgColor.value = block.bg;
+            textColor.value = block.text;
             syncColorBoxes();
         };
 
-        let drag, resize, sx, sy, l, t, w, h;
-        el.onmousedown = e => {
+        // DRAG FUNCTION
+        let drag = false;
+        let startX, startY, origX, origY;
+
+        el.onmousedown = (e) => {
+            if (e.target === resize) return;
             e.preventDefault();
-            if (e.target === rh) {
-                resize = el;
-                sx = e.x; sy = e.y;
-                w = parseFloat(el.style.width);
-                h = parseFloat(el.style.height);
-                return;
-            }
-            drag = el;
-            sx = e.x; sy = e.y;
-            l = parseFloat(el.style.left);
-            t = parseFloat(el.style.top);
+            drag = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            origX = parseFloat(el.style.left);
+            origY = parseFloat(el.style.top);
         };
 
-        document.onmousemove = e => {
-            const r = stage.getBoundingClientRect();
-            if (drag) {
-                const dx = (e.x - sx) / r.width * 100;
-                const dy = (e.y - sy) / r.height * 100;
-                el.style.left = Math.max(0, Math.min(100, l + dx)) + "%";
-                el.style.top = Math.max(0, Math.min(100, t + dy)) + "%";
-            }
-            if (resize) {
-                const dx = (e.x - sx) / r.width * 100;
-                const dy = (e.y - sy) / r.height * 100;
-                el.style.width = Math.max(5, Math.min(100, w + dx)) + "%";
-                el.style.height = Math.max(5, Math.min(100, h + dy)) + "%";
+        document.onmousemove = (e) => {
+            if (!drag) return;
+            const rect = stage.getBoundingClientRect();
+            const dx = (e.clientX - startX) / rect.width * 100;
+            const dy = (e.clientY - startY) / rect.height * 100;
+            el.style.left = Math.max(0, Math.min(100, origX + dx)) + "%";
+            el.style.top = Math.max(0, Math.min(100, origY + dy)) + "%";
+        };
+
+        document.onmouseup = () => {
+            drag = false;
+        };
+
+        // RESIZE FUNCTION
+        let resizing = false;
+        let startW, startH;
+
+        resize.onmousedown = (e) => {
+            e.preventDefault();
+            resizing = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            startW = parseFloat(el.style.width);
+            startH = parseFloat(el.style.height);
+        };
+
+        document.onmousemove = (e) => {
+            if (resizing) {
+                const rect = stage.getBoundingClientRect();
+                const dx = (e.clientX - startX) / rect.width * 100;
+                const dy = (e.clientY - startY) / rect.height * 100;
+                el.style.width = Math.max(5, Math.min(100, startW + dx)) + "%";
+                el.style.height = Math.max(5, Math.min(100, startH + dy)) + "%";
             }
         };
-        document.onmouseup = () => drag = resize = null;
+
+        document.onmouseup = () => {
+            resizing = false;
+        };
+
         stage.appendChild(el);
     });
 }
@@ -525,6 +566,7 @@ async function updateBlock() {
     selectedBlock.bg = bgColor.value;
     selectedBlock.text = textColor.value;
     renderStage();
+
     await fetch(`${API_URL}/programs/${selectedProgram.id}/blocks`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -540,12 +582,14 @@ async function saveLayout() {
         b.w = parseFloat(el.style.width);
         b.h = parseFloat(el.style.height);
     });
+
     await fetch(`${API_URL}/programs/${selectedProgram.id}/blocks`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ blocks: JSON.stringify(blocks) })
     });
-    alert("Layout saved!");
+
+    alert("Layout saved successfully!");
 }
 </script>
 </body>
