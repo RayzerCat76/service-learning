@@ -1,11 +1,15 @@
 {
   "version": 2,
   "builds": [
-    { "src": "server.js", "use": "@vercel/node" },
+    { "src": "api/**/*.js", "use": "@vercel/node" },
     { "src": "*.html", "use": "@vercel/static" }
   ],
   "routes": [
-    { "src": "/api/(.*)", "dest": "/server.js" },
+    { "src": "/api/login", "dest": "/api/login.js" },
+    { "src": "/api/teachers", "dest": "/api/teachers.js" },
+    { "src": "/api/programs", "dest": "/api/programs.js" },
+    { "src": "/api/programs/(.*)/blocks", "dest": "/api/programs/[id]/blocks.js" },
+    { "src": "/api/programs/(.*)/news", "dest": "/api/programs/[id]/news.js" },
     { "src": "/(.*)", "dest": "/$1" }
   ]
 }
