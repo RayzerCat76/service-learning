@@ -1,28 +1,58 @@
-import { sql } from './db.js';
+// api/login.js (Vercel Serverless Function)
+const { Pool } = require('pg');
 
-export default async function handler(req, res) {
+// Initialize Neon DB Connection
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false } // Critical for Neon DB
+});
+
+// Login API Endpoint
+module.exports = async (req, res) => {
+  // Enable CORS for all requests
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  if (req.method === 'OPTIONS') return res.status(200).end();
+  // Handle preflight OPTIONS request
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  // Only allow POST requests
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
 
   try {
-    let body = '';
-    req.on('data', chunk => { body += chunk.toString(); });
-    await new Promise(resolve => req.on('end', resolve));
-    const { username, password } = JSON.parse(body);
+    const { username, password } = req.body;
 
-    const result = await sql`
-      SELECT * FROM users WHERE username = ${username} AND password = ${password}
-    `;
-
-    if (result.length === 0) {
-      return res.json({ success: false, reason: "No user found" });
+    // Validate input
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Missing credentials' });
     }
 
-    return res.json({ success: true, name: result[0].name });
+    // Query Neon DB for user
+    const result = await pool.query(
+      'SELECT * FROM users WHERE username = $1 AND password = $2',
+      [username, password]
+    );
+
+    // Check if user exists
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: 'Invalid login' });
+    }
+
+    // Return user data (hide password in production)
+    const user = result.rows[0];
+    res.status(200).json({
+      username: user.username,
+      role: user.role,
+      id: user.id
+    });
+
   } catch (err) {
-    return res.status(500).json({ success: false, reason: err.message });
+    console.error('Login error:', err);
+    res.status(500).json({ error: 'Server error', details: err.message });
   }
-}
+};
