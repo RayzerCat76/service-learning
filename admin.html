@@ -300,11 +300,15 @@ async function loadPrograms() {
     }
 }
 
+// 🔥 Critical fix: Always force a valid blocks array
 function selectProgram(id) {
     selectedProgram = programs.find(p => p.id == id);
     try {
-        blocks = JSON.parse(selectedProgram.blocks || "[]");
+        const rawBlocks = selectedProgram.blocks || "[]";
+        blocks = JSON.parse(rawBlocks);
+        if (!Array.isArray(blocks)) throw new Error("Not an array");
     } catch (e) {
+        // If invalid, reset to empty array
         blocks = [];
     }
     renderBlocks();
@@ -332,10 +336,11 @@ async function deleteProgram() {
     loadPrograms();
 }
 
+// 🔥 Simplified, guaranteed render function
 function renderBlocks() {
     const stage = document.getElementById("stage");
     stage.innerHTML = "";
-    if (blocks.length === 0) return;
+    if (!Array.isArray(blocks) || blocks.length === 0) return;
 
     blocks.forEach(block => {
         const el = document.createElement("div");
@@ -417,6 +422,7 @@ async function updateBlock() {
     selectedBlock.text = textColor.value;
     renderBlocks();
 
+    // 🔥 Ensure we send valid JSON
     const blocksJSON = JSON.stringify(blocks);
     await fetch(`${API_URL}/programs/${selectedProgram.id}/blocks`, {
         method: "PATCH",
@@ -434,6 +440,7 @@ async function saveLayout() {
         b.h = parseFloat(el.style.height);
     });
 
+    // 🔥 Ensure we send valid JSON
     const blocksJSON = JSON.stringify(blocks);
     await fetch(`${API_URL}/programs/${selectedProgram.id}/blocks`, {
         method: "PATCH",
@@ -442,9 +449,10 @@ async function saveLayout() {
     });
 
     renderBlocks();
-    alert("✅ Layout saved successfully!");
+    alert("✅ Layout saved!");
 }
 
+// 🔥 This is the key: when you click this, it resets and renders immediately
 function generateTemplate() {
     blocks = [
         {
