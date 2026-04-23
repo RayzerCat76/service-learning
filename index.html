@@ -68,49 +68,68 @@
             padding: 8px 0;
             border-bottom: 1px solid #eee;
         }
+        .loading {
+            color: #666;
+            text-align: center;
+            padding: 20px;
+        }
     </style>
 </head>
 <body>
 
 <div class="header-bar">
     <h1>Service Learning Projects</h1>
-    <div class="tab-buttons" id="tabs"></div>
+    <div class="tab-buttons" id="tabs">
+        <div class="loading">Loading tabs...</div>
+    </div>
 </div>
 
-<div class="two-column" id="content"></div>
+<div class="two-column" id="content">
+    <div class="loading">Loading content...</div>
+</div>
 
 <div class="news-section">
     <h3>Latest News</h3>
-    <div id="news-container"></div>
+    <div id="news-container">
+        <div class="loading">Loading news...</div>
+    </div>
 </div>
 
 <script>
+// Run immediately when the script loads (no window.onload issues)
 const API = "/api";
 let programs = [];
 let currentProgram;
 
-// 1. Load data on page open
-window.onload = async () => {
-    try {
-        const res = await fetch(`${API}/programs`);
-        programs = await res.json();
+// Load data first
+fetch(`${API}/programs`)
+    .then(res => res.json())
+    .then(data => {
+        programs = data;
         if (programs.length > 0) {
             currentProgram = programs[0];
             renderAll();
+        } else {
+            document.getElementById("tabs").innerHTML = "<p>No programs found.</p>";
+            document.getElementById("content").innerHTML = "<p>No content to display.</p>";
+            document.getElementById("news-container").innerHTML = "<p>No news yet.</p>";
         }
-    } catch (err) {
-        console.error("Failed to load programs:", err);
-    }
-};
+    })
+    .catch(err => {
+        console.error("API Error:", err);
+        document.getElementById("tabs").innerHTML = "<p>Failed to load tabs.</p>";
+        document.getElementById("content").innerHTML = "<p>Failed to load content.</p>";
+        document.getElementById("news-container").innerHTML = "<p>Failed to load news.</p>";
+    });
 
-// 2. Render everything
+// Render everything
 function renderAll() {
     renderTabs();
     renderInfoCards();
     renderNews();
 }
 
-// Render the program tabs
+// Render tabs
 function renderTabs() {
     const tabsDiv = document.getElementById("tabs");
     tabsDiv.innerHTML = "";
@@ -127,14 +146,14 @@ function renderTabs() {
     });
 }
 
-// Render the Info and Contact boxes (your original layout)
+// Render Info/Contact boxes
 function renderInfoCards() {
     const contentDiv = document.getElementById("content");
     contentDiv.innerHTML = "";
 
-    // Handle both parsed JSONB and string JSON
     let blocks = [];
     try {
+        // Handle both parsed JSONB and string JSON
         if (Array.isArray(currentProgram.blocks)) {
             blocks = currentProgram.blocks;
         } else if (typeof currentProgram.blocks === "string") {
@@ -159,7 +178,7 @@ function renderInfoCards() {
     `;
 }
 
-// Render the news section
+// Render news
 function renderNews() {
     const newsDiv = document.getElementById("news-container");
     newsDiv.innerHTML = "";
