@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin</title>
+    <title>Service Learning Admin</title>
     <style>
         * {
             box-sizing: border-box;
@@ -30,6 +30,16 @@
             border-bottom: 1px solid #eee;
             padding-bottom: 8px;
         }
+        .form-group {
+            margin-bottom: 14px;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
         button {
             padding: 10px 16px;
             border-radius: 6px;
@@ -38,64 +48,403 @@
             margin-right: 8px;
         }
         .btn-blue { background: #3498db; color: white; }
-        .btn-orange { background: #f39c12; color: white; }
+        .btn-red  { background: #e74c3c; color: white; }
+        .btn-green{ background: #2ecc71; color: white; }
+        .btn-orange{ background: #f39c12; color: white; }
+        .hidden { display: none; }
+        .flex {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .account-item {
+            padding: 12px;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .color-box {
+            width: 44px;
+            height: 44px;
+            border-radius: 6px;
+            border: 2px solid #ddd;
+            cursor: pointer;
+        }
+        .color-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        input[type="color"] {
+            display: none;
+        }
         .preview {
             position: relative;
             width: 100%;
             height: 420px;
-            background: #fafafa;
+            background: #ffffff;
             border: 1px solid #ddd;
             border-radius: 10px;
             overflow: hidden;
             margin-top: 16px;
+        }
+        #stage {
+            position: relative;
+            width: 100%;
+            height: 100%;
         }
         .block {
             position: absolute;
             padding: 12px;
             background: white;
             border: 2px solid #3498db;
+            cursor: move;
             font-size: 14px;
             line-height: 1.5;
+        }
+        .resize-handle {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            width: 16px;
+            height: 16px;
+            background: #3498db;
         }
     </style>
 </head>
 <body>
 
-<div class="box">
-    <h3>Layout Preview</h3>
-    <button class="btn-orange" onclick="generateTemplate()">Generate Two-Box Template</button>
-    <button class="btn-blue" onclick="saveLayout()">Save Layout</button>
-    <div class="preview">
-        <div id="stage"></div>
+<div class="box" id="loginPanel">
+    <h2>Admin Login</h2>
+    <div class="form-group">
+        <input type="text" id="username" placeholder="Username" value="master">
+    </div>
+    <div class="form-group">
+        <input type="password" id="password" placeholder="Password" value="master123">
+    </div>
+    <button class="btn-blue" onclick="login()">Login</button>
+</div>
+
+<div id="dashboard" class="hidden">
+    <div class="box">
+        <h2>Admin Panel
+            <button class="btn-red" style="float:right" onclick="logout()">Logout</button>
+        </h2>
+    </div>
+
+    <div class="box" id="teacherManagementSection">
+        <h3>Teacher Management</h3>
+        <div class="form-group">
+            <input type="text" id="newTeacherUser" placeholder="Username">
+        </div>
+        <div class="form-group">
+            <input type="password" id="newTeacherPass" placeholder="Password">
+        </div>
+        <button class="btn-green" onclick="createTeacher()">Create Teacher</button>
+        <div id="teacherList"></div>
+    </div>
+
+    <div class="box">
+        <h3>Programs</h3>
+        <div class="form-group">
+            <input type="text" id="newProgName" placeholder="Program Name">
+            <button class="btn-green" onclick="createProgram()">Create Program</button>
+        </div>
+        <select id="programSelect" onchange="selectProgram(this.value)"></select>
+        <button class="btn-red" onclick="deleteProgram()">Delete Program</button>
+    </div>
+
+    <div class="box">
+        <h3>Edit Block</h3>
+        <div class="form-group">
+            <input type="text" id="blockTitle" placeholder="Title">
+        </div>
+        <div class="form-group">
+            <textarea id="blockContent" rows="3" placeholder="Content"></textarea>
+        </div>
+        <div class="flex">
+            <div>
+                <label>Background</label>
+                <div class="color-row">
+                    <div id="bgBox" class="color-box"></div>
+                    <input type="color" id="bgColor" value="#ffffff">
+                </div>
+            </div>
+            <div>
+                <label>Text Color</label>
+                <div class="color-row">
+                    <div id="textColorBox" class="color-box"></div>
+                    <input type="color" id="textColor" value="#000000">
+                </div>
+            </div>
+        </div>
+        <button class="btn-blue" onclick="updateBlock()">Save Block</button>
+    </div>
+
+    <div class="box">
+        <h3>Layout Preview</h3>
+        <button class="btn-orange" onclick="generateTemplate()">Generate Two-Box Template</button>
+        <button class="btn-blue" onclick="saveLayout()">Save Layout</button>
+        <div class="preview">
+            <div id="stage"></div>
+        </div>
     </div>
 </div>
 
 <script>
 const API_URL = "/api";
-let blocks = [];
-let selectedProgram;
+let currentUser, isSuperAdmin;
+let programs = [], selectedProgram;
+let blocks = [], selectedBlock;
 
-// 🔥 GUARANTEED RENDER FUNCTION
+const bgColor = document.getElementById("bgColor");
+const textColor = document.getElementById("textColor");
+const bgBox = document.getElementById("bgBox");
+const textColorBox = document.getElementById("textColorBox");
+
+bgColor.addEventListener("input", syncColors);
+textColor.addEventListener("input", syncColors);
+
+function syncColors() {
+    bgBox.style.backgroundColor = bgColor.value;
+    textColorBox.style.backgroundColor = textColor.value;
+}
+
+async function login() {
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+    try {
+        const res = await fetch(`${API_URL}/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        currentUser = data.user.username;
+        isSuperAdmin = data.user.role === "master";
+
+        document.getElementById("loginPanel").classList.add("hidden");
+        document.getElementById("dashboard").classList.remove("hidden");
+
+        if (!isSuperAdmin) {
+            document.getElementById("teacherManagementSection").style.display = "none";
+        } else {
+            loadTeachers();
+        }
+
+        await loadPrograms();
+        syncColors();
+    } catch (err) {
+        alert(err.message);
+    }
+}
+
+function logout() {
+    location.reload();
+}
+
+async function loadTeachers() {
+    const teachers = await (await fetch(`${API_URL}/teachers`)).json();
+    const list = document.getElementById("teacherList");
+    list.innerHTML = "";
+    teachers.forEach(t => {
+        const div = document.createElement("div");
+        div.className = "account-item";
+        div.innerHTML = `<span>${t.username}</span>`;
+        const btn = document.createElement("button");
+        btn.className = "btn-red";
+        btn.innerText = "Delete";
+        btn.onclick = async () => {
+            await fetch(`${API_URL}/teachers/${t.id}`, { method: "DELETE" });
+            loadTeachers();
+        };
+        div.appendChild(btn);
+        list.appendChild(div);
+    });
+}
+
+async function createTeacher() {
+    const u = document.getElementById("newTeacherUser").value.trim();
+    const p = document.getElementById("newTeacherPass").value.trim();
+    if (!u || !p) return alert("Fill all fields");
+    await fetch(`${API_URL}/teachers`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: u, password: p })
+    });
+    document.getElementById("newTeacherUser").value = "";
+    document.getElementById("newTeacherPass").value = "";
+    loadTeachers();
+}
+
+async function loadPrograms() {
+    try {
+        const res = await fetch(`${API_URL}/programs?user=${currentUser}&admin=${isSuperAdmin}`);
+        programs = await res.json();
+        const sel = document.getElementById("programSelect");
+        sel.innerHTML = "";
+        programs.forEach(p => {
+            const opt = document.createElement("option");
+            opt.value = p.id;
+            opt.innerText = p.name;
+            sel.appendChild(opt);
+        });
+        if (programs.length) {
+            selectProgram(programs[0].id);
+        }
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+function selectProgram(id) {
+    selectedProgram = programs.find(p => p.id == id);
+    try {
+        blocks = JSON.parse(selectedProgram.blocks || "[]");
+    } catch (e) {
+        blocks = [];
+    }
+    renderBlocks();
+}
+
+async function createProgram() {
+    const name = document.getElementById("newProgName").value.trim() || "New Program";
+    await fetch(`${API_URL}/programs`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            name,
+            createdBy: currentUser,
+            blocks: "[]",
+            news: "[]"
+        })
+    });
+    loadPrograms();
+}
+
+async function deleteProgram() {
+    if (!selectedProgram) return;
+    if (!confirm("Delete this program?")) return;
+    await fetch(`${API_URL}/programs/${selectedProgram.id}`, { method: "DELETE" });
+    loadPrograms();
+}
+
 function renderBlocks() {
     const stage = document.getElementById("stage");
     stage.innerHTML = "";
+    if (blocks.length === 0) return;
 
-    blocks.forEach(b => {
+    blocks.forEach(block => {
         const el = document.createElement("div");
         el.className = "block";
-        el.style.left = b.x + "%";
-        el.style.top = b.y + "%";
-        el.style.width = b.w + "%";
-        el.style.height = b.h + "%";
-        el.style.backgroundColor = b.bg;
-        el.style.color = b.text;
-        el.style.border = b.border;
-        el.innerHTML = `<strong>${b.title}</strong><br>${b.content}`;
+        el.dataset.id = block.id;
+        el.style.left = block.x + "%";
+        el.style.top = block.y + "%";
+        el.style.width = block.w + "%";
+        el.style.height = block.h + "%";
+        el.style.backgroundColor = block.bg;
+        el.style.color = block.text;
+        el.style.border = block.border;
+        el.innerHTML = `<strong>${block.title}</strong><br>${block.content}`;
+
+        const rh = document.createElement("div");
+        rh.className = "resize-handle";
+        el.appendChild(rh);
+
+        el.onclick = () => {
+            selectedBlock = block;
+            document.getElementById("blockTitle").value = block.title;
+            document.getElementById("blockContent").value = block.content;
+            bgColor.value = block.bg;
+            textColor.value = block.text;
+            syncColors();
+        };
+
+        let drag = false, startX, startY, origX, origY;
+        el.addEventListener("mousedown", e => {
+            if (e.target === rh) return;
+            e.preventDefault();
+            drag = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            origX = parseFloat(el.style.left);
+            origY = parseFloat(el.style.top);
+        });
+
+        let resize = false;
+        rh.addEventListener("mousedown", e => {
+            e.preventDefault();
+            resize = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            origX = parseFloat(el.style.width);
+            origY = parseFloat(el.style.height);
+        });
+
+        document.addEventListener("mousemove", e => {
+            const rect = stage.getBoundingClientRect();
+            if (drag) {
+                const dx = (e.clientX - startX) / rect.width * 100;
+                const dy = (e.clientY - startY) / rect.height * 100;
+                el.style.left = Math.max(0, Math.min(100, origX + dx)) + "%";
+                el.style.top = Math.max(0, Math.min(100, origY + dy)) + "%";
+            }
+            if (resize) {
+                const dx = (e.clientX - startX) / rect.width * 100;
+                const dy = (e.clientY - startY) / rect.height * 100;
+                el.style.width = Math.max(5, Math.min(100, origX + dx)) + "%";
+                el.style.height = Math.max(5, Math.min(100, origY + dy)) + "%";
+            }
+        });
+
+        document.addEventListener("mouseup", () => {
+            drag = false;
+            resize = false;
+        });
+
         stage.appendChild(el);
     });
 }
 
-// 🔥 TEMPLATE GENERATOR
+async function updateBlock() {
+    if (!selectedBlock) return;
+    selectedBlock.title = document.getElementById("blockTitle").value;
+    selectedBlock.content = document.getElementById("blockContent").value;
+    selectedBlock.bg = bgColor.value;
+    selectedBlock.text = textColor.value;
+    renderBlocks();
+
+    const blocksJSON = JSON.stringify(blocks);
+    await fetch(`${API_URL}/programs/${selectedProgram.id}/blocks`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ blocks: blocksJSON })
+    });
+}
+
+async function saveLayout() {
+    blocks.forEach(b => {
+        const el = document.querySelector(`[data-id="${b.id}"]`);
+        b.x = parseFloat(el.style.left);
+        b.y = parseFloat(el.style.top);
+        b.w = parseFloat(el.style.width);
+        b.h = parseFloat(el.style.height);
+    });
+
+    const blocksJSON = JSON.stringify(blocks);
+    await fetch(`${API_URL}/programs/${selectedProgram.id}/blocks`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ blocks: blocksJSON })
+    });
+
+    renderBlocks();
+    alert("✅ Layout saved successfully!");
+}
+
 function generateTemplate() {
     blocks = [
         {
@@ -119,24 +468,6 @@ function generateTemplate() {
     ];
     renderBlocks();
 }
-
-// 🔥 SAVE TO DATABASE
-async function saveLayout() {
-    if (!selectedProgram) {
-        alert("Select a program first");
-        return;
-    }
-    const blocksJSON = JSON.stringify(blocks);
-    await fetch(`${API_URL}/programs/${selectedProgram.id}/blocks`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ blocks: blocksJSON })
-    });
-    alert("✅ Saved!");
-}
-
-// --- Add your login/program code here if needed ---
 </script>
-
 </body>
 </html>
