@@ -45,8 +45,7 @@
             border-radius: 6px;
             border: none;
             cursor: pointer;
-            margin-right: 8px;
-            font-size: 14px;
+            margin-right: 6px;
         }
         .btn-blue { background: #3498db; color: white; }
         .btn-red  { background: #e74c3c; color: white; }
@@ -59,6 +58,7 @@
             gap: 12px;
             flex-wrap: wrap;
         }
+
         .account-item {
             padding: 12px;
             border: 1px solid #eee;
@@ -68,6 +68,7 @@
             justify-content: space-between;
             align-items: center;
         }
+
         .color-box {
             width: 44px;
             height: 44px;
@@ -83,32 +84,33 @@
         input[type="color"] {
             display: none;
         }
+
         .preview {
             position: relative;
             width: 100%;
-            height: 420px;
-            background: #fafafa;
+            height: 400px;
+            background: white;
             border: 1px solid #ddd;
             border-radius: 10px;
             overflow: hidden;
-            margin-top: 16px;
+            margin-top: 10px;
         }
         .preview-stage {
             position: relative;
             width: 100%;
             height: 100%;
+            padding: 10px;
         }
+
         .block {
             position: absolute;
-            padding: 12px;
+            padding: 14px;
             border-radius: 8px;
             background: white;
-            border: 1px solid #3498db;
+            border: 1px solid #ddd;
             cursor: move;
             overflow: hidden;
-            font-size: 13px;
-            line-height: 1.4;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            line-height: 1.5;
         }
         .resize-handle {
             position: absolute;
@@ -118,12 +120,12 @@
             height: 16px;
             background: #3498db;
             cursor: se-resize;
-            border-radius: 0 0 8px 0;
         }
+
         .news-list {
             max-height: 300px;
             overflow-y: auto;
-            margin-top: 12px;
+            margin-top: 10px;
         }
         .news-item {
             padding: 12px;
@@ -137,7 +139,7 @@
         }
         .bg-preview {
             width: 100%;
-            max-height: 160px;
+            max-height: 150px;
             object-fit: cover;
             border-radius: 6px;
             margin: 10px 0;
@@ -147,89 +149,89 @@
 </head>
 <body>
 
-<!-- Login Panel -->
+<!-- LOGIN PANEL -->
 <div class="box" id="loginPanel">
     <h2>Admin Login</h2>
     <div class="form-group">
-        <input type="text" id="username" placeholder="Username" value="master">
+        <input type="text" id="username" placeholder="Username" value="superadmin">
     </div>
     <div class="form-group">
-        <input type="password" id="password" placeholder="Password" value="master123">
+        <input type="password" id="password" placeholder="Password" value="super123">
     </div>
     <button class="btn-blue" onclick="login()">Login</button>
 </div>
 
-<!-- Main Dashboard -->
+<!-- MAIN DASHBOARD -->
 <div id="dashboard" class="hidden">
     <div class="box">
-        <h2>
-            Service Learning Admin
+        <h2>Service Learning Admin
             <button class="btn-red" style="float:right" onclick="logout()">Logout</button>
         </h2>
-        <p id="userRoleDisplay"></p>
+        <p id="userRoleDisplay" style="margin-top:8px;"></p>
     </div>
 
-    <!-- Teacher Management -->
-    <div class="box" id="teacherManagementSection">
-        <h3>Teacher Management</h3>
+    <!-- TEACHER MANAGEMENT -->
+    <div class="box" id="teacherManagementSection" class="hidden">
+        <h3>Teacher Account Management</h3>
         <div class="form-group">
-            <input type="text" id="newTeacherUser" placeholder="Username">
+            <input type="text" id="newTeacherUser" placeholder="New Teacher Username">
         </div>
         <div class="form-group">
-            <input type="password" id="newTeacherPass" placeholder="Password">
+            <input type="password" id="newTeacherPass" placeholder="New Teacher Password">
         </div>
-        <button class="btn-green" onclick="createTeacher()">Create Teacher</button>
-        <h4 style="margin-top:20px;">Teacher List</h4>
-        <div id="teacherList"></div>
+        <button class="btn-green" onclick="createTeacherAccount()">Create Teacher Account</button>
+
+        <h3 style="margin-top:24px;">Existing Teacher Accounts</h3>
+        <div id="accountsList"></div>
     </div>
 
-    <!-- Programs -->
+    <!-- PROGRAM MANAGER -->
     <div class="box">
-        <h3>Programs</h3>
+        <h3>My Service Learning Programs</h3>
         <div class="form-group">
-            <input type="text" id="newProgName" placeholder="Program Name">
-            <button class="btn-green" onclick="createProgram()">Create Program</button>
+            <input type="text" id="newProgName" placeholder="Program name">
+            <button class="btn-green" onclick="createProgramWithTemplate()">Create with Template</button>
         </div>
         <div class="form-group">
             <select id="programSelect" onchange="selectProgram(this.value)"></select>
         </div>
-        <button class="btn-red" onclick="deleteProgram()">Delete Program</button>
+        <button class="btn-red" onclick="deleteCurrentProgram()">Delete This Program</button>
     </div>
 
-    <!-- News -->
+    <!-- NEWS -->
     <div class="box">
-        <h3>News Management</h3>
+        <h3>News for This Program</h3>
         <div class="form-group">
-            <input type="text" id="newsTitle" placeholder="Title">
+            <input type="text" id="newsTitle" placeholder="News Title">
         </div>
         <div class="form-group">
-            <input type="text" id="newsOverview" placeholder="Overview">
+            <input type="text" id="newsOverview" placeholder="Short Overview">
         </div>
         <div class="form-group">
-            <label>Image</label>
-            <input type="file" id="newsImage" accept="image/*">
-            <img id="previewImg" class="bg-preview">
+            <label>Background Image</label>
+            <input type="file" id="newsBgImage" accept="image/*">
+            <img id="bgPreview" class="bg-preview">
         </div>
         <div class="form-group">
-            <textarea id="newsContent" rows="4" placeholder="Full content"></textarea>
+            <textarea id="newsContent" rows="4" placeholder="Full news content"></textarea>
         </div>
-        <button class="btn-purple" onclick="saveNews()">Save News</button>
-        <button class="btn-red" id="deleteNewsBtn" style="display:none;" onclick="removeSelectedNews()">Delete News</button>
-        <div class="news-list" id="newsList"></div>
+        <button class="btn-purple" onclick="saveProgramNews()">Save News</button>
+        <button class="btn-red" id="delNewsBtn" onclick="deleteSelectedNews()" style="display:none">Delete This News</button>
+        <div class="news-list" id="programNewsList"></div>
     </div>
 
-    <!-- Block Editor -->
+    <!-- BLOCK EDITOR -->
     <div class="box">
-        <h3>Edit Selected Block</h3>
+        <h3>Edit Program Blocks</h3>
         <div class="form-group">
             <input type="text" id="blockTitle" placeholder="Block Title">
         </div>
         <div class="form-group">
-            <textarea id="blockContent" rows="3" placeholder="Block Content"></textarea>
+            <textarea id="blockContent" rows="3" placeholder="Content"></textarea>
         </div>
         <div class="flex">
             <div>
-                <label>Background Color</label>
+                <label>Background</label>
                 <div class="color-row">
                     <div id="bgBox" class="color-box" onclick="bgColor.click()"></div>
                     <input type="color" id="bgColor" value="#ffffff">
@@ -243,16 +245,14 @@
                 </div>
             </div>
         </div>
-        <button class="btn-blue" onclick="updateBlock()">Save Block Changes</button>
+        <button class="btn-blue" onclick="saveBlock()">Save Block</button>
     </div>
 
-    <!-- Layout Preview WITH TAB BUTTON -->
+    <!-- PREVIEW + TAB BUTTON -->
     <div class="box">
-        <h3>Layout Preview (Drag & Resize)</h3>
-
-        <!-- YOUR BUTTON IS HERE -->
+        <h3>Program Preview</h3>
         <button class="btn-orange" onclick="generateTabTemplate()">Generate Tab Template</button>
-        <button class="btn-blue" onclick="saveLayout()">Save Layout</button>
+        <button class="btn-blue" onclick="savePositions()">Save Positions & Sizes</button>
 
         <div class="preview">
             <div id="stage" class="preview-stage"></div>
@@ -261,335 +261,289 @@
 </div>
 
 <script>
-const API_URL = "/api";
-let currentUser, isSuperAdmin;
-let programs, selectedProgram;
-let blocks = [], selectedBlock = null;
-let news = [], selectedNews = null;
+// ACCOUNT SYSTEM
+let currentUser = null;
+let isSuperAdmin = false;
+let userAccounts = [];
 
-// Color elements
-const bgColor = document.getElementById("bgColor");
-const textColor = document.getElementById("textColor");
-const bgBox = document.getElementById("bgBox");
-const textColorBox = document.getElementById("textColorBox");
-
-bgColor.addEventListener("input", syncColors);
-textColor.addEventListener("input", syncColors);
-
-function syncColors() {
-    bgBox.style.backgroundColor = bgColor.value;
-    textColorBox.style.backgroundColor = textColor.value;
-}
-
-// ------------------------------
-// Login / Logout
-// ------------------------------
-async function login() {
-    const username = document.getElementById("username").value.trim();
-    const password = document.getElementById("password").value.trim();
-    try {
-        const res = await fetch(`${API_URL}/login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, password })
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
-
-        currentUser = data.user.username;
-        isSuperAdmin = data.user.role === "master";
-
-        document.getElementById("loginPanel").classList.add("hidden");
-        document.getElementById("dashboard").classList.remove("hidden");
-        document.getElementById("userRoleDisplay").innerText = isSuperAdmin ? "Master Admin" : "Teacher";
-
-        if (!isSuperAdmin) {
-            document.getElementById("teacherManagementSection").style.display = "none";
-        } else {
-            loadTeachers();
-        }
-
-        loadPrograms();
-        syncColors();
-    } catch (err) {
-        alert(err.message);
+function loadAccounts() {
+    let saved = localStorage.getItem('sl_accounts');
+    if (!saved) {
+        userAccounts = [
+            { username: 'superadmin', password: 'super123', role: 'superadmin' }
+        ];
+        localStorage.setItem('sl_accounts', JSON.stringify(userAccounts));
+    } else {
+        userAccounts = JSON.parse(saved);
     }
 }
 
-function logout() {
-    location.reload();
+function login() {
+    loadAccounts();
+    let user = document.getElementById('username').value;
+    let pass = document.getElementById('password').value;
+    let account = userAccounts.find(a => a.username === user && a.password === pass);
+    if (!account) { alert('Invalid login'); return; }
+
+    currentUser = user;
+    isSuperAdmin = account.role === 'superadmin';
+    document.getElementById('loginPanel').classList.add('hidden');
+    document.getElementById('dashboard').classList.remove('hidden');
+    document.getElementById('userRoleDisplay').innerText = isSuperAdmin ? 'Super Admin' : 'Teacher';
+
+    if (isSuperAdmin) {
+        document.getElementById('teacherManagementSection').style.display = 'block';
+        loadAllAccountsForAdmin();
+    }
+    loadPrograms();
+    syncColors();
 }
 
-// ------------------------------
-// Teacher Management
-// ------------------------------
-async function loadTeachers() {
-    const res = await fetch(`${API_URL}/teachers`);
-    const teachers = await res.json();
-    const list = document.getElementById("teacherList");
-    list.innerHTML = "";
-    teachers.forEach(t => {
-        const div = document.createElement("div");
-        div.className = "account-item";
-        div.innerHTML = `<span>${t.username}</span>`;
-        const btn = document.createElement("button");
-        btn.className = "btn-red";
-        btn.innerText = "Delete";
-        btn.onclick = async () => {
-            if (!confirm("Delete this teacher?")) return;
-            await fetch(`${API_URL}/teachers/${t.id}`, { method: "DELETE" });
-            loadTeachers();
-        };
-        div.appendChild(btn);
+function logout() { location.reload(); }
+
+function createTeacherAccount() {
+    if (!isSuperAdmin) return;
+    let user = document.getElementById('newTeacherUser').value.trim();
+    let pass = document.getElementById('newTeacherPass').value.trim();
+    if (!user || !pass) { alert('Fill fields'); return; }
+    if (userAccounts.some(a => a.username === user)) { alert('Exists'); return; }
+    userAccounts.push({ username: user, password: pass, role: 'teacher' });
+    localStorage.setItem('sl_accounts', JSON.stringify(userAccounts));
+    loadAllAccountsForAdmin();
+    document.getElementById('newTeacherUser').value = '';
+    document.getElementById('newTeacherPass').value = '';
+}
+
+function loadAllAccountsForAdmin() {
+    let list = document.getElementById('accountsList');
+    list.innerHTML = '';
+    userAccounts.forEach(acc => {
+        if (acc.role === 'superadmin') return;
+        let div = document.createElement('div');
+        div.className = 'account-item';
+        div.innerHTML = `<strong>${acc.username}</strong> (Teacher)`;
+        let delBtn = document.createElement('button');
+        delBtn.className = 'btn-red';
+        delBtn.innerText = 'Delete';
+        delBtn.onclick = () => deleteTeacherAccount(acc.username);
+        div.appendChild(delBtn);
         list.appendChild(div);
     });
 }
 
-async function createTeacher() {
-    const u = document.getElementById("newTeacherUser").value.trim();
-    const p = document.getElementById("newTeacherPass").value.trim();
-    if (!u || !p) return alert("Please fill username and password");
-    await fetch(`${API_URL}/teachers`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: u, password: p })
-    });
-    document.getElementById("newTeacherUser").value = "";
-    document.getElementById("newTeacherPass").value = "";
-    loadTeachers();
-    alert("Teacher created");
+function deleteTeacherAccount(username) {
+    if (!confirm('Delete?')) return;
+    userAccounts = userAccounts.filter(a => a.username !== username);
+    localStorage.setItem('sl_accounts', JSON.stringify(userAccounts));
+    loadAllAccountsForAdmin();
 }
 
-// ------------------------------
-// Programs
-// ------------------------------
-async function loadPrograms() {
-    const res = await fetch(`${API_URL}/programs?user=${currentUser}&admin=${isSuperAdmin}`);
-    programs = await res.json();
-    const sel = document.getElementById("programSelect");
-    sel.innerHTML = "";
+// COLOR SYNC
+const bgBox = document.getElementById('bgBox');
+const textColorBox = document.getElementById('textColorBox');
+const bgColor = document.getElementById('bgColor');
+const textColor = document.getElementById('textColor');
+
+bgColor.addEventListener('input', () => bgBox.style.background = bgColor.value);
+textColor.addEventListener('input', () => textColorBox.style.background = textColor.value);
+function syncColors() { bgBox.style.background = bgColor.value; textColorBox.style.background = textColor.value; }
+
+// BACKGROUND IMAGE
+const bgInput = document.getElementById('newsBgImage');
+const bgPreview = document.getElementById('bgPreview');
+bgInput.addEventListener('change', () => {
+    const f = bgInput.files[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = e => { bgPreview.src = e.target.result; bgPreview.style.display = 'block'; };
+    r.readAsDataURL(f);
+});
+
+// PROGRAM SYSTEM
+let programs = [], selectedProgram;
+let blocks = [], selectedBlock;
+let programNews = [], selectedNews;
+
+function loadPrograms() {
+    programs = JSON.parse(localStorage.getItem('sl_programs') || '[]');
+    if (!isSuperAdmin) programs = programs.filter(p => p.createdBy === currentUser);
+    const sel = document.getElementById('programSelect');
+    sel.innerHTML = '';
     programs.forEach(p => {
-        const opt = document.createElement("option");
-        opt.value = p.id;
-        opt.innerText = p.name;
+        const opt = document.createElement('option');
+        opt.value = p.id; opt.innerText = p.name;
         sel.appendChild(opt);
     });
-    if (programs.length > 0) {
-        selectProgram(programs[0].id);
-    }
+    if (programs.length) selectProgram(programs[0].id);
 }
 
-async function selectProgram(id) {
-    selectedProgram = programs.find(p => p.id == id);
-    blocks = JSON.parse(selectedProgram.blocks || "[]");
-    news = JSON.parse(selectedProgram.news || "[]");
-    renderBlocks();
-    renderNewsList();
+function selectProgram(id) {
+    selectedProgram = programs.find(p => p.id === id);
+    blocks = [...selectedProgram.blocks];
+    programNews = selectedProgram.news || [];
+    renderStage();
+    loadProgramNewsList();
+    syncColors();
     resetNewsForm();
 }
 
-async function createProgram() {
-    const name = document.getElementById("newProgName").value.trim() || "New Program";
-    const defaultBlocks = JSON.stringify([
-        { id: "b1", title: "Block", content: "Content", x: 5, y: 5, w: 40, h: 30, bg: "#fff", text: "#000", border: "1px solid #3498db" }
-    ]);
-    await fetch(`${API_URL}/programs`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            name,
-            createdBy: currentUser,
-            blocks: defaultBlocks,
-            news: "[]"
-        })
-    });
+function createProgramWithTemplate() {
+    const name = document.getElementById('newProgName').value || 'New Program';
+    const p = {
+        id: 'p'+Date.now(), name, createdBy: currentUser,
+        blocks: [
+            { id:'b1', title:'Info', content:'Content', x:5,y:5,w:42,h:25, bg:'#fff', text:'#000', border:'1px solid #3498db' }
+        ],
+        news: []
+    };
+    programs.push(p);
+    localStorage.setItem('sl_programs', JSON.stringify(programs));
     loadPrograms();
 }
 
-async function deleteProgram() {
+function deleteCurrentProgram() {
     if (!selectedProgram) return;
-    if (!confirm("Delete this program permanently?")) return;
-    await fetch(`${API_URL}/programs/${selectedProgram.id}`, { method: "DELETE" });
+    if (selectedProgram.createdBy !== currentUser && !isSuperAdmin) return alert('No permission');
+    if (!confirm('Delete?')) return;
+    programs = programs.filter(p => p.id !== selectedProgram.id);
+    localStorage.setItem('sl_programs', JSON.stringify(programs));
     loadPrograms();
 }
 
-// ------------------------------
-// News
-// ------------------------------
-function renderNewsList() {
-    const list = document.getElementById("newsList");
-    list.innerHTML = "";
-    news.forEach(n => {
-        const div = document.createElement("div");
-        div.className = "news-item";
+// NEWS
+function loadProgramNewsList() {
+    const list = document.getElementById('programNewsList');
+    list.innerHTML = '';
+    programNews.forEach(n => {
+        const div = document.createElement('div');
+        div.className = 'news-item';
         div.innerText = n.title;
         div.onclick = () => {
             selectedNews = n;
-            document.getElementById("newsTitle").value = n.title;
-            document.getElementById("newsOverview").value = n.overview;
-            document.getElementById("newsContent").value = n.content;
-            document.getElementById("previewImg").src = n.image || "";
-            document.getElementById("previewImg").style.display = n.image ? "block" : "none";
-            document.getElementById("deleteNewsBtn").style.display = "inline-block";
+            document.getElementById('newsTitle').value = n.title;
+            document.getElementById('newsOverview').value = n.overview;
+            document.getElementById('newsContent').value = n.content;
+            bgPreview.src = n.bgImage || '';
+            bgPreview.style.display = n.bgImage ? 'block' : 'none';
+            document.getElementById('delNewsBtn').style.display = 'inline-block';
         };
         list.appendChild(div);
     });
 }
 
 function resetNewsForm() {
-    document.getElementById("newsTitle").value = "";
-    document.getElementById("newsOverview").value = "";
-    document.getElementById("newsContent").value = "";
-    document.getElementById("newsImage").value = "";
-    document.getElementById("previewImg").style.display = "none";
+    document.getElementById('newsTitle').value = '';
+    document.getElementById('newsOverview').value = '';
+    document.getElementById('newsContent').value = '';
+    bgInput.value = '';
+    bgPreview.style.display = 'none';
     selectedNews = null;
-    document.getElementById("deleteNewsBtn").style.display = "none";
+    document.getElementById('delNewsBtn').style.display = 'none';
 }
 
-async function saveNews() {
-    const title = document.getElementById("newsTitle").value.trim();
-    const overview = document.getElementById("newsOverview").value.trim();
-    const content = document.getElementById("newsContent").value.trim();
-    const image = document.getElementById("previewImg").src || "";
-    if (!title || !overview || !content) return alert("Fill title, overview, content");
-
-    const item = { id: Date.now(), title, overview, content, image };
+function saveProgramNews() {
+    const title = document.getElementById('newsTitle').value;
+    const overview = document.getElementById('newsOverview').value;
+    const content = document.getElementById('newsContent').value;
+    const bgImage = bgPreview.src || '';
+    if (!title || !overview || !content) return alert('Fill all');
+    const item = { id:'n'+Date.now(), title, overview, content, bgImage };
     if (selectedNews) {
-        news = news.map(n => n.id === selectedNews.id ? item : n);
+        const i = programNews.findIndex(x => x.id === selectedNews.id);
+        programNews[i] = { ...selectedNews, ...item };
     } else {
-        news.unshift(item);
+        programNews.unshift(item);
     }
-
-    await fetch(`${API_URL}/programs/${selectedProgram.id}/news`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ news: JSON.stringify(news) })
-    });
-    renderNewsList();
+    selectedProgram.news = programNews;
+    localStorage.setItem('sl_programs', JSON.stringify(programs));
+    loadProgramNewsList();
     resetNewsForm();
 }
 
-async function removeSelectedNews() {
+function deleteSelectedNews() {
     if (!selectedNews) return;
-    news = news.filter(n => n.id !== selectedNews.id);
-    await fetch(`${API_URL}/programs/${selectedProgram.id}/news`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ news: JSON.stringify(news) })
-    });
-    renderNewsList();
+    programNews = programNews.filter(n => n.id !== selectedNews.id);
+    selectedProgram.news = programNews;
+    localStorage.setItem('sl_programs', JSON.stringify(programs));
+    loadProgramNewsList();
     resetNewsForm();
 }
 
-document.getElementById("newsImage").addEventListener("change", e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => {
-        document.getElementById("previewImg").src = ev.target.result;
-        document.getElementById("previewImg").style.display = "block";
-    };
-    reader.readAsDataURL(file);
-});
+// DRAG & RESIZE BLOCKS
+function renderStage() {
+    const stage = document.getElementById('stage');
+    stage.innerHTML = '';
+    blocks.forEach(b => {
+        const el = document.createElement('div');
+        el.className = 'block';
+        el.dataset.id = b.id;
+        el.style.left = b.x+'%';
+        el.style.top = b.y+'%';
+        el.style.width = b.w+'%';
+        el.style.height = b.h+'%';
+        el.style.background = b.bg;
+        el.style.color = b.text;
+        el.style.border = b.border;
+        el.innerHTML = `<strong>${b.title}</strong><br>${b.content}`;
 
-// ------------------------------
-// Drag & Resize Blocks
-// ------------------------------
-function renderBlocks() {
-    const stage = document.getElementById("stage");
-    stage.innerHTML = "";
+        const rh = document.createElement('div');
+        rh.className = 'resize-handle';
+        el.appendChild(rh);
 
-    blocks.forEach(block => {
-        const el = document.createElement("div");
-        el.className = "block";
-        el.dataset.id = block.id;
-        el.style.left = block.x + "%";
-        el.style.top = block.y + "%";
-        el.style.width = block.w + "%";
-        el.style.height = block.h + "%";
-        el.style.backgroundColor = block.bg;
-        el.style.color = block.text;
-        el.style.border = block.border;
-        el.innerHTML = `<strong>${block.title}</strong><br>${block.content}`;
-
-        const resize = document.createElement("div");
-        resize.className = "resize-handle";
-        el.appendChild(resize);
-
-        el.onclick = (e) => {
-            if (e.target === resize) return;
-            selectedBlock = block;
-            document.getElementById("blockTitle").value = block.title;
-            document.getElementById("blockContent").value = block.content;
-            bgColor.value = block.bg;
-            textColor.value = block.text;
+        el.onclick = () => {
+            selectedBlock = b;
+            document.getElementById('blockTitle').value = b.title;
+            document.getElementById('blockContent').value = b.content;
+            bgColor.value = b.bg;
+            textColor.value = b.text;
             syncColors();
         };
 
-        // Drag
-        let drag = false, startX, startY, origX, origY;
-        el.addEventListener("mousedown", e => {
-            if (e.target === resize) return;
-            e.preventDefault();
-            drag = true;
-            startX = e.clientX;
-            startY = e.clientY;
-            origX = parseFloat(el.style.left);
-            origY = parseFloat(el.style.top);
-        });
+        let drag = null, resize = null;
+        let sx, sy, l, t, w, h;
 
-        // Resize
-        let resizing = false, startW, startH;
-        resize.addEventListener("mousedown", e => {
+        el.onmousedown = e => {
             e.preventDefault();
-            resizing = true;
-            startX = e.clientX;
-            startY = e.clientY;
-            startW = parseFloat(el.style.width);
-            startH = parseFloat(el.style.height);
-        });
+            if (e.target === rh) {
+                resize = el; sx = e.x; sy = e.y;
+                w = parseFloat(el.style.width); h = parseFloat(el.style.height);
+                return;
+            }
+            drag = el; sx = e.x; sy = e.y;
+            l = parseFloat(el.style.left); t = parseFloat(el.style.top);
+        };
 
-        document.addEventListener("mousemove", e => {
-            const rect = stage.getBoundingClientRect();
+        document.onmousemove = e => {
+            const r = stage.getBoundingClientRect();
             if (drag) {
-                const dx = (e.clientX - startX) / rect.width * 100;
-                const dy = (e.clientY - startY) / rect.height * 100;
-                el.style.left = Math.max(0, Math.min(100, origX + dx)) + "%";
-                el.style.top = Math.max(0, Math.min(100, origY + dy)) + "%";
+                const dx = (e.x-sx)/r.width*100;
+                const dy = (e.y-sy)/r.height*100;
+                el.style.left = Math.max(0, Math.min(100, l+dx))+'%';
+                el.style.top = Math.max(0, Math.min(100, t+dy))+'%';
             }
-            if (resizing) {
-                const dx = (e.clientX - startX) / rect.width * 100;
-                const dy = (e.clientY - startY) / rect.height * 100;
-                el.style.width = Math.max(5, Math.min(100, startW + dx)) + "%";
-                el.style.height = Math.max(5, Math.min(100, startH + dy)) + "%";
+            if (resize) {
+                const dx = (e.x-sx)/r.width*100;
+                const dy = (e.y-sy)/r.height*100;
+                el.style.width = Math.max(5, Math.min(100, w+dx))+'%';
+                el.style.height = Math.max(5, Math.min(100, h+dy))+'%';
             }
-        });
-
-        document.addEventListener("mouseup", () => {
-            drag = false;
-            resizing = false;
-        });
-
+        };
+        document.onmouseup = () => { drag=resize=null; };
         stage.appendChild(el);
     });
 }
 
-async function updateBlock() {
+function saveBlock() {
     if (!selectedBlock) return;
-    selectedBlock.title = document.getElementById("blockTitle").value;
-    selectedBlock.content = document.getElementById("blockContent").value;
+    selectedBlock.title = document.getElementById('blockTitle').value;
+    selectedBlock.content = document.getElementById('blockContent').value;
     selectedBlock.bg = bgColor.value;
     selectedBlock.text = textColor.value;
-    renderBlocks();
-
-    await fetch(`${API_URL}/programs/${selectedProgram.id}/blocks`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ blocks: JSON.stringify(blocks) })
-    });
+    renderStage();
+    localStorage.setItem('sl_programs', JSON.stringify(programs));
 }
 
-async function saveLayout() {
+function savePositions() {
     blocks.forEach(b => {
         const el = document.querySelector(`[data-id="${b.id}"]`);
         b.x = parseFloat(el.style.left);
@@ -597,71 +551,24 @@ async function saveLayout() {
         b.w = parseFloat(el.style.width);
         b.h = parseFloat(el.style.height);
     });
-
-    await fetch(`${API_URL}/programs/${selectedProgram.id}/blocks`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ blocks: JSON.stringify(blocks) })
-    });
-
-    alert("Layout saved successfully!");
+    localStorage.setItem('sl_programs', JSON.stringify(programs));
+    alert('Saved!');
 }
 
-// ------------------------------
-// TAB TEMPLATE GENERATOR BUTTON FUNCTION
-// ------------------------------
+// ✨ NEW TAB TEMPLATE GENERATOR
 function generateTabTemplate() {
     blocks = [
-        {
-            id: "tab1",
-            title: "Tab 1",
-            content: "Home",
-            x: 2, y: 2, w: 23, h: 10,
-            bg: "#eef5ff",
-            text: "#2d3748",
-            border: "1px solid #3498db"
-        },
-        {
-            id: "tab2",
-            title: "Tab 2",
-            content: "Programs",
-            x: 26, y: 2, w: 23, h: 10,
-            bg: "#eef5ff",
-            text: "#2d3748",
-            border: "1px solid #3498db"
-        },
-        {
-            id: "tab3",
-            title: "Tab 3",
-            content: "News",
-            x: 50, y: 2, w: 23, h: 10,
-            bg: "#eef5ff",
-            text: "#2d3748",
-            border: "1px solid #3498db"
-        },
-        {
-            id: "tab4",
-            title: "Tab 4",
-            content: "Settings",
-            x: 74, y: 2, w: 24, h: 10,
-            bg: "#eef5ff",
-            text: "#2d3748",
-            border: "1px solid #3498db"
-        },
-        {
-            id: "contentArea",
-            title: "Content Area",
-            content: "Main content displays here",
-            x: 2, y: 14, w: 96, h: 82,
-            bg: "#ffffff",
-            text: "#000000",
-            border: "1px solid #cccccc"
-        }
+        { id: "tab1", title: "Tab 1", content: "Home", x:2,y:2,w:23,h:10, bg:"#eef5ff", text:"#000", border:"1px solid #3498db" },
+        { id: "tab2", title: "Tab 2", content: "Programs", x:26,y:2,w:23,h:10, bg:"#eef5ff", text:"#000", border:"1px solid #3498db" },
+        { id: "tab3", title: "Tab 3", content: "News", x:50,y:2,w:23,h:10, bg:"#eef5ff", text:"#000", border:"1px solid #3498db" },
+        { id: "tab4", title: "Tab 4", content: "Info", x:74,y:2,w:24,h:10, bg:"#eef5ff", text:"#000", border:"1px solid #3498db" },
+        { id: "contentArea", title: "Content", content: "Main content here", x:2,y:14,w:96,h:82, bg:"#fff", text:"#000", border:"1px solid #ccc" }
     ];
-
-    renderBlocks();
-    alert("Tab template generated! You can drag, resize, edit, and save.");
+    renderStage();
+    alert("Tab template generated!");
 }
+
+loadAccounts();
 </script>
 </body>
 </html>
