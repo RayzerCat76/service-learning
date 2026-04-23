@@ -2,239 +2,86 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Learning Admin</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Admin</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-        }
-        body {
-            background: #f5f7fa;
-            padding: 20px;
-            max-width: 1200px;
-            margin: auto;
-        }
-        .box {
-            background: white;
-            padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-            margin-bottom: 20px;
-        }
-        h2, h3 {
-            margin-bottom: 16px;
-            color: #2d3748;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 8px;
-        }
-        .form-group {
-            margin-bottom: 14px;
-        }
-        input, textarea, select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-        button {
-            padding: 10px 16px;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            margin-right: 8px;
-        }
-        .btn-blue { background: #3498db; color: white; }
-        .btn-red  { background: #e74c3c; color: white; }
-        .btn-green{ background: #2ecc71; color: white; }
-        .btn-purple{ background: #9b59b6; color: white; }
-        .btn-orange{ background: #f39c12; color: white; }
-        .hidden { display: none; }
-        .flex {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        .account-item {
-            padding: 12px;
-            border: 1px solid #eee;
-            border-radius: 6px;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .color-box {
-            width: 44px;
-            height: 44px;
-            border-radius: 6px;
-            border: 2px solid #ddd;
-            cursor: pointer;
-        }
-        .color-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        input[type="color"] {
-            display: none;
-        }
-        .preview {
-            position: relative;
-            width: 100%;
-            height: 420px;
-            background: #fafafa;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            overflow: hidden;
-            margin-top: 16px;
-        }
-        .preview-stage {
-            position: relative;
-            width: 100%;
-            height: 100%;
-        }
-        .block {
-            position: absolute;
-            padding: 12px;
-            background: white;
-            border: 1px solid #3498db;
-            cursor: move;
-            overflow: hidden;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-        .resize-handle {
-            position: absolute;
-            right: 0;
-            bottom: 0;
-            width: 16px;
-            height: 16px;
-            background: #3498db;
-            cursor: se-resize;
-        }
-        .news-list {
-            max-height: 300px;
-            overflow-y: auto;
-            margin-top: 12px;
-        }
-        .news-item {
-            padding: 12px;
-            border: 1px solid #eee;
-            border-radius: 6px;
-            margin-bottom: 8px;
-            cursor: pointer;
-        }
-        .news-item:hover {
-            background: #f8f9fa;
-        }
-        .bg-preview {
-            width: 100%;
-            max-height: 160px;
-            object-fit: cover;
-            border-radius: 6px;
-            margin: 10px 0;
-            display: none;
-        }
+        *{box-sizing:border-box;margin:0;padding:0;font-family:Arial}
+        body{background:#f5f7fa;padding:20px;max-width:1200px;margin:auto}
+        .box{background:white;padding:24px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.08);margin-bottom:20px}
+        h2,h3{margin-bottom:16px;color:#2d3748;border-bottom:1px solid #eee;padding-bottom:8px}
+        .form-group{margin-bottom:14px}
+        input,textarea,select{width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:14px}
+        button{padding:10px 16px;border-radius:6px;border:none;cursor:pointer;margin-right:8px}
+        .btn-blue{background:#3498db;color:white}
+        .btn-red{background:#e74c3c;color:white}
+        .btn-green{background:#2ecc71;color:white}
+        .btn-orange{background:#f39c12;color:white}
+        .hidden{display:none}
+        .preview{position:relative;width:100%;height:420px;background:#fafafa;border:1px solid #ddd;border-radius:10px;overflow:hidden;margin-top:16px}
+        .block{position:absolute;padding:12px;background:white;border:1px solid #3498db;cursor:move;overflow:hidden;font-size:14px;line-height:1.5}
+        .resize-handle{position:absolute;right:0;bottom:0;width:16px;height:16px;background:#3498db;cursor:se-resize}
+        .color-box{width:44px;height:44px;border-radius:6px;border:2px solid #ddd}
+        .color-row{display:flex;align-items:center;gap:10px}
+        input[type="color"]{display:none}
     </style>
 </head>
 <body>
 
 <div class="box" id="loginPanel">
-    <h2>Admin Login</h2>
-    <div class="form-group">
-        <input type="text" id="username" placeholder="Username" value="master">
-    </div>
-    <div class="form-group">
-        <input type="password" id="password" placeholder="Password" value="master123">
-    </div>
+    <h2>Login</h2>
+    <input type="text" id="username" placeholder="User" value="master"><br><br>
+    <input type="password" id="password" placeholder="Pass" value="master123"><br><br>
     <button class="btn-blue" onclick="login()">Login</button>
 </div>
 
 <div id="dashboard" class="hidden">
     <div class="box">
-        <h2>Service Learning Admin
-            <button class="btn-red" style="float:right" onclick="logout()">Logout</button>
-        </h2>
-        <p id="userRoleDisplay"></p>
-    </div>
-
-    <div class="box" id="teacherManagementSection">
-        <h3>Teacher Management</h3>
-        <div class="form-group"><input type="text" id="newTeacherUser" placeholder="Username"></div>
-        <div class="form-group"><input type="password" id="newTeacherPass" placeholder="Password"></div>
-        <button class="btn-green" onclick="createTeacher()">Create Teacher</button>
-        <div id="teacherList"></div>
+        <h2>Admin Panel <button class="btn-red" onclick="logout()">Logout</button></h2>
     </div>
 
     <div class="box">
         <h3>Programs</h3>
-        <div class="form-group">
-            <input type="text" id="newProgName" placeholder="Program Name">
-            <button class="btn-green" onclick="createProgram()">Create Program</button>
-        </div>
-        <div class="form-group">
-            <select id="programSelect" onchange="selectProgram(this.value)"></select>
-        </div>
-        <button class="btn-red" onclick="deleteProgram()">Delete Program</button>
-    </div>
-
-    <div class="box">
-        <h3>News</h3>
-        <div class="form-group"><input type="text" id="newsTitle" placeholder="Title"></div>
-        <div class="form-group"><input type="text" id="newsOverview" placeholder="Overview"></div>
-        <div class="form-group">
-            <input type="file" id="newsImage" accept="image/*">
-            <img id="previewImg" class="bg-preview">
-        </div>
-        <div class="form-group"><textarea id="newsContent" rows="4" placeholder="Content"></textarea></div>
-        <button class="btn-purple" onclick="saveNews()">Save News</button>
-        <button class="btn-red" id="deleteNewsBtn" style="display:none;" onclick="removeSelectedNews()">Delete News</button>
-        <div class="news-list" id="newsList"></div>
+        <input type="text" id="newProgName" placeholder="Program Name">
+        <button class="btn-green" onclick="createProgram()">Create</button>
+        <br><br>
+        <select id="programSelect" onchange="selectProgram(this.value)"></select>
+        <button class="btn-red" onclick="deleteProgram()">Delete</button>
     </div>
 
     <div class="box">
         <h3>Edit Block</h3>
-        <div class="form-group"><input type="text" id="blockTitle" placeholder="Title"></div>
-        <div class="form-group"><textarea id="blockContent" rows="3" placeholder="Content"></textarea></div>
-        <div class="flex">
-            <div>
-                <label>Background</label>
-                <div class="color-row">
-                    <div id="bgBox" class="color-box"></div>
-                    <input type="color" id="bgColor" value="#ffffff">
-                </div>
-            </div>
-            <div>
-                <label>Text Color</label>
-                <div class="color-row">
-                    <div id="textColorBox" class="color-box"></div>
-                    <input type="color" id="textColor" value="#000000">
-                </div>
+        <input type="text" id="blockTitle" placeholder="Title"><br><br>
+        <textarea id="blockContent" rows="3" placeholder="Content"></textarea><br>
+        <div>
+            <div>BG Color</div>
+            <div class="color-row">
+                <div id="bgBox" class="color-box"></div>
+                <input type="color" id="bgColor" value="#ffffff">
             </div>
         </div>
-        <button class="btn-blue" onclick="updateBlock()">Save Block</button>
+        <div>
+            <div>Text Color</div>
+            <div class="color-row">
+                <div id="textColorBox" class="color-box"></div>
+                <input type="color" id="textColor" value="#000000">
+            </div>
+        </div>
+        <button class="btn-blue" onclick="updateBlock()">SAVE BLOCK</button>
     </div>
 
     <div class="box">
-        <h3>Layout Preview</h3>
+        <h3>Layout</h3>
         <button class="btn-orange" onclick="generateTabTemplate()">Generate Template</button>
-        <button class="btn-blue" onclick="saveLayout()">Save Layout</button>
-        <div class="preview">
-            <div id="stage" class="preview-stage"></div>
-        </div>
+        <button class="btn-blue" onclick="saveLayout()">SAVE LAYOUT</button>
+        <div class="preview"><div id="stage"></div></div>
     </div>
 </div>
 
 <script>
 const API_URL = "/api";
 let currentUser, isSuperAdmin;
-let programs, selectedProgram;
-let blocks = [], selectedBlock = null;
-let news = [], selectedNews = null;
+let programs = [], selectedProgram;
+let blocks = [], selectedBlock;
 
 const bgColor = document.getElementById("bgColor");
 const textColor = document.getElementById("textColor");
@@ -243,346 +90,108 @@ const textColorBox = document.getElementById("textColorBox");
 
 bgColor.addEventListener("input", syncColors);
 textColor.addEventListener("input", syncColors);
+function syncColors(){bgBox.style.backgroundColor=bgColor.value;textColorBox.style.backgroundColor=textColor.value}
 
-function syncColors() {
-    bgBox.style.backgroundColor = bgColor.value;
-    textColorBox.style.backgroundColor = textColor.value;
+async function login(){
+    const user=document.getElementById("username").value;
+    const pass=document.getElementById("password").value;
+    const r=await fetch(API_URL+"/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:user,password:pass})});
+    const d=await r.json();
+    currentUser=d.user.username;
+    isSuperAdmin=d.user.role==="master";
+    document.getElementById("loginPanel").classList.add("hidden");
+    document.getElementById("dashboard").classList.remove("hidden");
+    loadPrograms();
+    syncColors();
 }
 
-async function login() {
-    const username = document.getElementById("username").value.trim();
-    const password = document.getElementById("password").value.trim();
-    try {
-        const res = await fetch(`${API_URL}/login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, password })
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
+function logout(){location.reload()}
 
-        currentUser = data.user.username;
-        isSuperAdmin = data.user.role === "master";
-
-        document.getElementById("loginPanel").classList.add("hidden");
-        document.getElementById("dashboard").classList.remove("hidden");
-        document.getElementById("userRoleDisplay").innerText = isSuperAdmin ? "Master Admin" : "Teacher";
-
-        if (!isSuperAdmin) document.getElementById("teacherManagementSection").style.display = "none";
-        else loadTeachers();
-
-        loadPrograms();
-        syncColors();
-    } catch (err) {
-        alert(err.message);
-    }
+async function loadPrograms(){
+    const res=await fetch(`${API_URL}/programs?user=${currentUser}&admin=${isSuperAdmin}`);
+    programs=await res.json();
+    const sel=document.getElementById("programSelect");
+    sel.innerHTML="";
+    programs.forEach(p=>{const o=document.createElement("option");o.value=p.id;o.innerText=p.name;sel.appendChild(o)});
+    if(programs.length)selectProgram(programs[0].id);
 }
 
-function logout() { location.reload(); }
-
-async function loadTeachers() {
-    const teachers = await (await fetch(`${API_URL}/teachers`)).json();
-    const list = document.getElementById("teacherList");
-    list.innerHTML = "";
-    teachers.forEach(t => {
-        const div = document.createElement("div");
-        div.className = "account-item";
-        div.innerHTML = `<span>${t.username}</span>`;
-        const btn = document.createElement("button");
-        btn.className = "btn-red";
-        btn.innerText = "Delete";
-        btn.onclick = async () => {
-            await fetch(`${API_URL}/teachers/${t.id}`, { method: "DELETE" });
-            loadTeachers();
-        };
-        div.appendChild(btn);
-        list.appendChild(div);
-    });
-}
-
-async function createTeacher() {
-    const u = document.getElementById("newTeacherUser").value.trim();
-    const p = document.getElementById("newTeacherPass").value.trim();
-    if (!u || !p) return alert("Fill all fields");
-    await fetch(`${API_URL}/teachers`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: u, password: p })
-    });
-    document.getElementById("newTeacherUser").value = "";
-    document.getElementById("newTeacherPass").value = "";
-    loadTeachers();
-}
-
-async function loadPrograms() {
-    programs = await (await fetch(`${API_URL}/programs?user=${currentUser}&admin=${isSuperAdmin}`)).json();
-    const sel = document.getElementById("programSelect");
-    sel.innerHTML = "";
-    programs.forEach(p => {
-        const opt = document.createElement("option");
-        opt.value = p.id;
-        opt.innerText = p.name;
-        sel.appendChild(opt);
-    });
-    if (programs.length) selectProgram(programs[0].id);
-}
-
-async function selectProgram(id) {
-    selectedProgram = programs.find(p => p.id == id);
-    console.log("Selected program:", selectedProgram);
-    // Safe JSON parsing for blocks
-    try {
-        blocks = JSON.parse(selectedProgram.blocks || "[]");
-        console.log("Parsed blocks:", blocks);
-    } catch (e) {
-        console.error("Failed to parse blocks:", e);
-        blocks = [];
-    }
-    news = JSON.parse(selectedProgram.news || "[]");
+function selectProgram(id){
+    selectedProgram=programs.find(p=>p.id==id);
+    try{blocks=JSON.parse(selectedProgram.blocks||"[]")}catch{e=>blocks=[]}
     renderBlocks();
-    renderNews();
-    resetNewsForm();
 }
 
-async function createProgram() {
-    const name = document.getElementById("newProgName").value.trim() || "New Program";
-    const defaultBlocks = JSON.stringify([
-        { id: "b1", title: "Block", content: "Content", x:5,y:5,w:40,h:30, bg:"#fff", text:"#000", border:"1px solid #3498db" }
-    ]);
-    await fetch(`${API_URL}/programs`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, createdBy: currentUser, blocks: defaultBlocks, news: "[]" })
-    });
+async function createProgram(){
+    const name=document.getElementById("newProgName").value||"New";
+    await fetch(API_URL+"/programs",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+        name,createdBy:currentUser,blocks:"[]",news:"[]"
+    })});
     loadPrograms();
 }
 
-async function deleteProgram() {
-    if (!selectedProgram) return;
-    if (!confirm("Delete permanently?")) return;
-    await fetch(`${API_URL}/programs/${selectedProgram.id}`, { method: "DELETE" });
+async function deleteProgram(){
+    if(!selectedProgram)return;
+    await fetch(`${API_URL}/programs/${selectedProgram.id}`,{method:"DELETE"});
     loadPrograms();
 }
 
-function renderNews() {
-    const list = document.getElementById("newsList");
-    list.innerHTML = "";
-    news.forEach(n => {
-        const div = document.createElement("div");
-        div.className = "news-item";
-        div.innerText = n.title;
-        div.onclick = () => {
-            selectedNews = n;
-            document.getElementById("newsTitle").value = n.title;
-            document.getElementById("newsOverview").value = n.overview;
-            document.getElementById("newsContent").value = n.content;
-            document.getElementById("previewImg").src = n.image || "";
-            document.getElementById("previewImg").style.display = n.image ? "block" : "none";
-            document.getElementById("deleteNewsBtn").style.display = "inline-block";
-        };
-        list.appendChild(div);
+function renderBlocks(){
+    const s=document.getElementById("stage");s.innerHTML="";
+    blocks.forEach(b=>{
+        const e=document.createElement("div");e.className="block";e.dataset.id=b.id;
+        e.style.left=b.x+"%";e.style.top=b.y+"%";e.style.width=b.w+"%";e.style.height=b.h+"%";
+        e.style.backgroundColor=b.bg;e.style.color=b.text;e.style.border=b.border;
+        e.innerHTML=`<strong>${b.title}</strong><br>${b.content}`;
+        
+        const rh=document.createElement("div");rh.className="resize-handle";e.appendChild(rh);
+        
+        e.onclick=()=>{selectedBlock=b;document.getElementById("blockTitle").value=b.title;document.getElementById("blockContent").value=b.content;bgColor.value=b.bg;textColor.value=b.text;syncColors()};
+        
+        let drag=0,sx,sy,ox,oy;
+        e.addEventListener("mousedown",ev=>{if(ev.target===rh)return;ev.preventDefault();drag=1;sx=ev.clientX;sy=ev.clientY;ox=parseFloat(e.style.left);oy=parseFloat(e.style.top)});
+        
+        let resize=0,sw,sh;
+        rh.addEventListener("mousedown",ev=>{ev.preventDefault();resize=1;sx=ev.clientX;sy=ev.clientY;sw=parseFloat(e.style.width);sh=parseFloat(e.style.height)});
+        
+        document.addEventListener("mousemove",ev=>{
+            const rect=s.getBoundingClientRect();
+            if(drag){const dx=(ev.clientX-sx)/rect.width*100;const dy=(ev.clientY-sy)/rect.height*100;e.style.left=Math.max(0,Math.min(100,ox+dx))+"%";e.style.top=Math.max(0,Math.min(100,oy+dy))+"%";}
+            if(resize){const dx=(ev.clientX-sx)/rect.width*100;const dy=(ev.clientY-sy)/rect.height*100;e.style.width=Math.max(5,Math.min(100,sw+dx))+"%";e.style.height=Math.max(5,Math.min(100,sh+dy))+"%";}
+        });
+        
+        document.addEventListener("mouseup",()=>{drag=0;resize=0});
+        s.appendChild(e);
     });
 }
 
-function resetNewsForm() {
-    document.getElementById("newsTitle").value = "";
-    document.getElementById("newsOverview").value = "";
-    document.getElementById("newsContent").value = "";
-    document.getElementById("newsImage").value = "";
-    document.getElementById("previewImg").style.display = "none";
-    selectedNews = null;
-    document.getElementById("deleteNewsBtn").style.display = "none";
-}
-
-async function saveNews() {
-    const title = document.getElementById("newsTitle").value.trim();
-    const overview = document.getElementById("newsOverview").value.trim();
-    const content = document.getElementById("newsContent").value.trim();
-    const image = document.getElementById("previewImg").src || "";
-    if (!title || !overview || !content) return alert("Fill all fields");
-
-    const item = { id: Date.now(), title, overview, content, image };
-    if (selectedNews) news = news.map(n => n.id === selectedNews.id ? item : n);
-    else news.unshift(item);
-
-    await fetch(`${API_URL}/programs/${selectedProgram.id}/news`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ news: JSON.stringify(news) })
-    });
-    renderNews();
-    resetNewsForm();
-}
-
-async function removeSelectedNews() {
-    if (!selectedNews) return;
-    news = news.filter(n => n.id !== selectedNews.id);
-    await fetch(`${API_URL}/programs/${selectedProgram.id}/news`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ news: JSON.stringify(news) })
-    });
-    renderNews();
-    resetNewsForm();
-}
-
-document.getElementById("newsImage").addEventListener("change", e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => {
-        document.getElementById("previewImg").src = ev.target.result;
-        document.getElementById("previewImg").style.display = "block";
-    };
-    reader.readAsDataURL(file);
-});
-
-// --- FIXED RENDER FUNCTION ---
-function renderBlocks() {
-    const stage = document.getElementById("stage");
-    stage.innerHTML = "";
-    console.log("Rendering blocks:", blocks);
-
-    if (blocks.length === 0) {
-        console.log("No blocks to render");
-        return;
-    }
-
-    blocks.forEach(block => {
-        const el = document.createElement("div");
-        el.className = "block";
-        el.dataset.id = block.id;
-        el.style.left = block.x + "%";
-        el.style.top = block.y + "%";
-        el.style.width = block.w + "%";
-        el.style.height = block.h + "%";
-        el.style.backgroundColor = block.bg;
-        el.style.color = block.text;
-        el.style.border = block.border;
-        el.innerHTML = `<strong>${block.title}</strong><br>${block.content}`;
-
-        const resize = document.createElement("div");
-        resize.className = "resize-handle";
-        el.appendChild(resize);
-
-        el.onclick = () => {
-            selectedBlock = block;
-            document.getElementById("blockTitle").value = block.title;
-            document.getElementById("blockContent").value = block.content;
-            bgColor.value = block.bg;
-            textColor.value = block.text;
-            syncColors();
-        };
-
-        let drag = false, startX, startY, origX, origY;
-        el.addEventListener("mousedown", e => {
-            if (e.target === resize) return;
-            e.preventDefault();
-            drag = true;
-            startX = e.clientX;
-            startY = e.clientY;
-            origX = parseFloat(el.style.left);
-            origY = parseFloat(el.style.top);
-        });
-
-        let resizing = false, startW, startH;
-        resize.addEventListener("mousedown", e => {
-            e.preventDefault();
-            resizing = true;
-            startX = e.clientX;
-            startY = e.clientY;
-            startW = parseFloat(el.style.width);
-            startH = parseFloat(el.style.height);
-        });
-
-        document.addEventListener("mousemove", e => {
-            const rect = stage.getBoundingClientRect();
-            if (drag) {
-                const dx = (e.clientX - startX) / rect.width * 100;
-                const dy = (e.clientY - startY) / rect.height * 100;
-                el.style.left = Math.max(0, Math.min(100, origX + dx)) + "%";
-                el.style.top = Math.max(0, Math.min(100, origY + dy)) + "%";
-            }
-            if (resizing) {
-                const dx = (e.clientX - startX) / rect.width * 100;
-                const dy = (e.clientY - startY) / rect.height * 100;
-                el.style.width = Math.max(5, Math.min(100, startW + dx)) + "%";
-                el.style.height = Math.max(5, Math.min(100, startH + dy)) + "%";
-            }
-        });
-
-        document.addEventListener("mouseup", () => {
-            drag = false;
-            resizing = false;
-        });
-
-        stage.appendChild(el);
-    });
-}
-
-// --- FIXED UPDATE FUNCTION (renders after save) ---
-async function updateBlock() {
-    if (!selectedBlock) return;
-    selectedBlock.title = document.getElementById("blockTitle").value;
-    selectedBlock.content = document.getElementById("blockContent").value;
-    selectedBlock.bg = bgColor.value;
-    selectedBlock.text = textColor.value;
-    
-    // Re-render immediately after saving
+async function updateBlock(){
+    if(!selectedBlock)return;
+    selectedBlock.title=document.getElementById("blockTitle").value;
+    selectedBlock.content=document.getElementById("blockContent").value;
+    selectedBlock.bg=bgColor.value;
+    selectedBlock.text=textColor.value;
     renderBlocks();
-
-    await fetch(`${API_URL}/programs/${selectedProgram.id}/blocks`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ blocks: JSON.stringify(blocks) })
+    await fetch(`${API_URL}/programs/${selectedProgram.id}/blocks`,{
+        method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({blocks:JSON.stringify(blocks)})
     });
 }
 
-// --- FIXED SAVE LAYOUT (renders after save) ---
-async function saveLayout() {
-    blocks.forEach(b => {
-        const el = document.querySelector(`[data-id="${b.id}"]`);
-        b.x = parseFloat(el.style.left);
-        b.y = parseFloat(el.style.top);
-        b.w = parseFloat(el.style.width);
-        b.h = parseFloat(el.style.height);
+async function saveLayout(){
+    blocks.forEach(b=>{const el=document.querySelector(`[data-id="${b.id}"]`);b.x=parseFloat(el.style.left);b.y=parseFloat(el.style.top);b.w=parseFloat(el.style.width);b.h=parseFloat(el.style.height)});
+    await fetch(`${API_URL}/programs/${selectedProgram.id}/blocks`,{
+        method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({blocks:JSON.stringify(blocks)})
     });
-
-    await fetch(`${API_URL}/programs/${selectedProgram.id}/blocks`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ blocks: JSON.stringify(blocks) })
-    });
-
-    // Re-render immediately after saving
     renderBlocks();
-    alert("Layout saved!");
+    alert("Saved to database!");
 }
 
-// Your two-box template (renders automatically after generation)
-function generateTabTemplate() {
-    blocks = [
-        {
-            id: "info",
-            title: "Basic Information",
-            content: "Project details, goals, description",
-            x: 2, y: 5, w: 46, h: 90,
-            bg: "#ffffff",
-            text: "#000000",
-            border: "1px solid #ccc"
-        },
-        {
-            id: "contact",
-            title: "Contact Information",
-            content: "Teacher, email, location, schedule",
-            x: 52, y: 5, w: 46, h: 90,
-            bg: "#ffffff",
-            text: "#000000",
-            border: "1px solid #ccc"
-        }
+function generateTabTemplate(){
+    blocks=[
+        {id:"info",title:"Basic Info",content:"",x:2,y:5,w:46,h:90,bg:"#fff",text:"#000",border:"1px solid #ccc"},
+        {id:"contact",title:"Contact",content:"",x:52,y:5,w:46,h:90,bg:"#fff",text:"#000",border:"1px solid #ccc"}
     ];
     renderBlocks();
-    alert("Template created: Left = Info, Right = Contact");
 }
 </script>
 </body>
