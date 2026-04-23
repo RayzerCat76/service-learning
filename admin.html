@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Learning Admin (Debug)</title>
+    <title>Service Learning Admin</title>
     <style>
         * {
             box-sizing: border-box;
@@ -221,7 +221,6 @@ function syncColors() {
     textColorBox.style.backgroundColor = textColor.value;
 }
 
-// Login
 async function login() {
     const username = document.getElementById("username").value.trim();
     const password = document.getElementById("password").value.trim();
@@ -244,10 +243,9 @@ async function login() {
             loadTeachers();
         }
 
-        await loadPrograms(); // wait for programs to load
+        await loadPrograms();
         syncColors();
     } catch (err) {
-        console.error("Login error:", err);
         alert(err.message);
     }
 }
@@ -256,7 +254,6 @@ function logout() {
     location.reload();
 }
 
-// Teachers
 async function loadTeachers() {
     const teachers = await (await fetch(`${API_URL}/teachers`)).json();
     const list = document.getElementById("teacherList");
@@ -291,15 +288,10 @@ async function createTeacher() {
     loadTeachers();
 }
 
-// Programs — WITH LOGS
 async function loadPrograms() {
-    console.log("👉 loadPrograms() called");
     try {
         const res = await fetch(`${API_URL}/programs?user=${currentUser}&admin=${isSuperAdmin}`);
-        console.log("👉 Fetch status:", res.status);
         programs = await res.json();
-        console.log("👉 Programs fetched:", programs);
-
         const sel = document.getElementById("programSelect");
         sel.innerHTML = "";
         programs.forEach(p => {
@@ -308,32 +300,21 @@ async function loadPrograms() {
             opt.innerText = p.name;
             sel.appendChild(opt);
         });
-
         if (programs.length) {
-            console.log("👉 Auto-selecting first program:", programs[0].id);
             selectProgram(programs[0].id);
         }
     } catch (err) {
-        console.error("❌ loadPrograms error:", err);
+        console.error(err);
     }
 }
 
-// Select Program — HEAVY LOGS
 function selectProgram(id) {
-    console.log("\n👉 selectProgram() called with id:", id);
     selectedProgram = programs.find(p => p.id == id);
-    console.log("👉 Selected program object:", selectedProgram);
-
     try {
-        console.log("👉 Raw blocks string from DB:", selectedProgram.blocks);
         blocks = JSON.parse(selectedProgram.blocks || "[]");
-        console.log("👉 Parsed blocks array:", blocks);
     } catch (e) {
-        console.error("❌ Failed to parse blocks JSON:", e);
         blocks = [];
     }
-
-    console.log("👉 Calling renderBlocks()");
     renderBlocks();
 }
 
@@ -359,21 +340,12 @@ async function deleteProgram() {
     loadPrograms();
 }
 
-// Render Blocks — LOG EVERY STEP
 function renderBlocks() {
-    console.log("\n🔥 renderBlocks() START");
     const stage = document.getElementById("stage");
     stage.innerHTML = "";
-    console.log("👉 Stage cleared");
+    if (blocks.length === 0) return;
 
-    if (blocks.length === 0) {
-        console.log("⚠️ blocks array is empty — nothing to render");
-        return;
-    }
-
-    console.log("👉 Rendering", blocks.length, "blocks");
-    blocks.forEach((block, index) => {
-        console.log(`👉 Rendering block ${index}:`, block);
+    blocks.forEach(block => {
         const el = document.createElement("div");
         el.className = "block";
         el.dataset.id = block.id;
@@ -399,7 +371,6 @@ function renderBlocks() {
             syncColors();
         };
 
-        // Drag
         let drag = false, startX, startY, origX, origY;
         el.addEventListener("mousedown", e => {
             if (e.target === rh) return;
@@ -411,7 +382,6 @@ function renderBlocks() {
             origY = parseFloat(el.style.top);
         });
 
-        // Resize
         let resize = false;
         rh.addEventListener("mousedown", e => {
             e.preventDefault();
@@ -444,30 +414,27 @@ function renderBlocks() {
         });
 
         stage.appendChild(el);
-        console.log(`✅ Block ${index} added to stage`);
     });
-
-    console.log("🔥 renderBlocks() DONE — check preview");
 }
 
-// Save block
+// ✅ FIXED: Proper JSON stringify
 async function updateBlock() {
     if (!selectedBlock) return;
     selectedBlock.title = document.getElementById("blockTitle").value;
     selectedBlock.content = document.getElementById("blockContent").value;
     selectedBlock.bg = bgColor.value;
     selectedBlock.text = textColor.value;
-
     renderBlocks();
 
+    const blocksJSON = JSON.stringify(blocks);
     await fetch(`${API_URL}/programs/${selectedProgram.id}/blocks`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ blocks: JSON.stringify(blocks) })
+        body: JSON.stringify({ blocks: blocksJSON })
     });
 }
 
-// Save layout
+// ✅ FIXED: Proper JSON stringify
 async function saveLayout() {
     blocks.forEach(b => {
         const el = document.querySelector(`[data-id="${b.id}"]`);
@@ -477,17 +444,17 @@ async function saveLayout() {
         b.h = parseFloat(el.style.height);
     });
 
+    const blocksJSON = JSON.stringify(blocks);
     await fetch(`${API_URL}/programs/${selectedProgram.id}/blocks`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ blocks: JSON.stringify(blocks) })
+        body: JSON.stringify({ blocks: blocksJSON })
     });
 
     renderBlocks();
-    alert("✅ Layout saved to database!");
+    alert("✅ Layout saved successfully!");
 }
 
-// Two-box template
 function generateTemplate() {
     blocks = [
         {
