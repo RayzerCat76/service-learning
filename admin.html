@@ -329,9 +329,11 @@ async function loadPrograms() {
 
 async function selectProgram(id) {
     selectedProgram = programs.find(p => p.id == id);
+    console.log("Selected program:", selectedProgram);
     // Safe JSON parsing for blocks
     try {
         blocks = JSON.parse(selectedProgram.blocks || "[]");
+        console.log("Parsed blocks:", blocks);
     } catch (e) {
         console.error("Failed to parse blocks:", e);
         blocks = [];
@@ -435,9 +437,17 @@ document.getElementById("newsImage").addEventListener("change", e => {
     reader.readAsDataURL(file);
 });
 
+// --- FIXED RENDER FUNCTION ---
 function renderBlocks() {
     const stage = document.getElementById("stage");
     stage.innerHTML = "";
+    console.log("Rendering blocks:", blocks);
+
+    if (blocks.length === 0) {
+        console.log("No blocks to render");
+        return;
+    }
+
     blocks.forEach(block => {
         const el = document.createElement("div");
         el.className = "block";
@@ -510,12 +520,15 @@ function renderBlocks() {
     });
 }
 
+// --- FIXED UPDATE FUNCTION (renders after save) ---
 async function updateBlock() {
     if (!selectedBlock) return;
     selectedBlock.title = document.getElementById("blockTitle").value;
     selectedBlock.content = document.getElementById("blockContent").value;
     selectedBlock.bg = bgColor.value;
     selectedBlock.text = textColor.value;
+    
+    // Re-render immediately after saving
     renderBlocks();
 
     await fetch(`${API_URL}/programs/${selectedProgram.id}/blocks`, {
@@ -525,6 +538,7 @@ async function updateBlock() {
     });
 }
 
+// --- FIXED SAVE LAYOUT (renders after save) ---
 async function saveLayout() {
     blocks.forEach(b => {
         const el = document.querySelector(`[data-id="${b.id}"]`);
@@ -540,10 +554,12 @@ async function saveLayout() {
         body: JSON.stringify({ blocks: JSON.stringify(blocks) })
     });
 
+    // Re-render immediately after saving
+    renderBlocks();
     alert("Layout saved!");
 }
 
-// Your two-box template
+// Your two-box template (renders automatically after generation)
 function generateTabTemplate() {
     blocks = [
         {
