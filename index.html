@@ -68,44 +68,39 @@
             padding: 8px 0;
             border-bottom: 1px solid #eee;
         }
-        .loading {
-            color: #666;
-            text-align: center;
-            padding: 20px;
-        }
     </style>
 </head>
 <body>
 
 <div class="header-bar">
     <h1>Service Learning Projects</h1>
-    <div class="tab-buttons" id="tabs">
-        <div class="loading">Loading tabs...</div>
-    </div>
+    <div class="tab-buttons" id="tabs"></div>
 </div>
 
-<div class="two-column" id="content">
-    <div class="loading">Loading content...</div>
-</div>
+<div class="two-column" id="content"></div>
 
 <div class="news-section">
     <h3>Latest News</h3>
-    <div id="news-container">
-        <div class="loading">Loading news...</div>
-    </div>
+    <div id="news-container"></div>
 </div>
 
 <script>
-// Run immediately when the script loads (no window.onload issues)
 const API = "/api";
 let programs = [];
 let currentProgram;
 
-// Load data first
+console.log("Loading index.html...");
+
+// 1. Load programs from API
 fetch(`${API}/programs`)
-    .then(res => res.json())
+    .then(res => {
+        console.log("API response status:", res.status);
+        return res.json();
+    })
     .then(data => {
+        console.log("API returned data:", data);
         programs = data;
+
         if (programs.length > 0) {
             currentProgram = programs[0];
             renderAll();
@@ -117,12 +112,12 @@ fetch(`${API}/programs`)
     })
     .catch(err => {
         console.error("API Error:", err);
-        document.getElementById("tabs").innerHTML = "<p>Failed to load tabs.</p>";
+        document.getElementById("tabs").innerHTML = "<p>Failed to load programs.</p>";
         document.getElementById("content").innerHTML = "<p>Failed to load content.</p>";
         document.getElementById("news-container").innerHTML = "<p>Failed to load news.</p>";
     });
 
-// Render everything
+// 2. Render everything
 function renderAll() {
     renderTabs();
     renderInfoCards();
@@ -153,7 +148,6 @@ function renderInfoCards() {
 
     let blocks = [];
     try {
-        // Handle both parsed JSONB and string JSON
         if (Array.isArray(currentProgram.blocks)) {
             blocks = currentProgram.blocks;
         } else if (typeof currentProgram.blocks === "string") {
