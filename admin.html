@@ -100,16 +100,12 @@
         .block {
             position: absolute;
             padding: 12px;
-            border-radius: 0;
             background: white;
             border: 1px solid #3498db;
             cursor: move;
             overflow: hidden;
             font-size: 14px;
             line-height: 1.5;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
         .resize-handle {
             position: absolute;
@@ -541,7 +537,6 @@ async function saveLayout() {
     alert("Layout saved!");
 }
 
-// ✅ ONLY THIS PART IS CHANGED — your two-box info + contact template
 function generateTabTemplate() {
     blocks = [
         {
