@@ -300,17 +300,27 @@ async function loadPrograms() {
     }
 }
 
-// 🔥 Critical fix: Always force a valid blocks array
+// ✅ FIXED: Handles both string and parsed jsonb data
 function selectProgram(id) {
     selectedProgram = programs.find(p => p.id == id);
+
     try {
-        const rawBlocks = selectedProgram.blocks || "[]";
-        blocks = JSON.parse(rawBlocks);
-        if (!Array.isArray(blocks)) throw new Error("Not an array");
+        // If blocks is already an array (from jsonb), use it directly
+        if (Array.isArray(selectedProgram.blocks)) {
+            blocks = selectedProgram.blocks;
+        } 
+        // If it's a string, parse it
+        else if (typeof selectedProgram.blocks === "string") {
+            blocks = JSON.parse(selectedProgram.blocks || "[]");
+        } 
+        // Fallback to empty array
+        else {
+            blocks = [];
+        }
     } catch (e) {
-        // If invalid, reset to empty array
         blocks = [];
     }
+
     renderBlocks();
 }
 
@@ -336,7 +346,6 @@ async function deleteProgram() {
     loadPrograms();
 }
 
-// 🔥 Simplified, guaranteed render function
 function renderBlocks() {
     const stage = document.getElementById("stage");
     stage.innerHTML = "";
@@ -422,7 +431,6 @@ async function updateBlock() {
     selectedBlock.text = textColor.value;
     renderBlocks();
 
-    // 🔥 Ensure we send valid JSON
     const blocksJSON = JSON.stringify(blocks);
     await fetch(`${API_URL}/programs/${selectedProgram.id}/blocks`, {
         method: "PATCH",
@@ -440,7 +448,6 @@ async function saveLayout() {
         b.h = parseFloat(el.style.height);
     });
 
-    // 🔥 Ensure we send valid JSON
     const blocksJSON = JSON.stringify(blocks);
     await fetch(`${API_URL}/programs/${selectedProgram.id}/blocks`, {
         method: "PATCH",
@@ -452,7 +459,6 @@ async function saveLayout() {
     alert("✅ Layout saved!");
 }
 
-// 🔥 This is the key: when you click this, it resets and renders immediately
 function generateTemplate() {
     blocks = [
         {
