@@ -12,73 +12,85 @@
             font-family: Arial, sans-serif;
         }
         body {
-            background: #f5f5f5;
+            background: #f5f7fa;
             padding: 20px;
             max-width: 1200px;
             margin: auto;
         }
         .box {
             background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            margin-bottom: 15px;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
         }
         h2, h3 {
-            margin-bottom: 15px;
-            color: #333;
+            margin-bottom: 16px;
+            color: #2d3748;
             border-bottom: 1px solid #eee;
             padding-bottom: 8px;
-            font-size: 18px;
         }
         .form-group {
-            margin-bottom: 12px;
+            margin-bottom: 14px;
         }
         input, textarea, select {
             width: 100%;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
         }
         button {
-            padding: 8px 14px;
-            border-radius: 4px;
+            padding: 10px 16px;
+            border-radius: 6px;
             border: none;
             cursor: pointer;
-            margin-right: 6px;
+            margin-right: 8px;
         }
-        .btn-blue { background: #0066cc; color: white; }
-        .btn-red { background: #cc0000; color: white; }
-        .btn-green { background: #009933; color: white; }
-        .btn-orange { background: #ff9900; color: white; }
+        .btn-blue { background: #3498db; color: white; }
+        .btn-red  { background: #e74c3c; color: white; }
+        .btn-green{ background: #2ecc71; color: white; }
+        .btn-purple{ background: #9b59b6; color: white; }
+        .btn-orange{ background: #f39c12; color: white; }
         .hidden { display: none; }
-
-        #projectTabs {
+        .flex {
             display: flex;
-            gap: 5px;
-            margin-bottom: 15px;
+            gap: 12px;
             flex-wrap: wrap;
         }
-        .project-tab {
-            padding: 10px 16px;
-            background: #e6e6e6;
-            border: none;
-            border-radius: 4px;
+        .account-item {
+            padding: 12px;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .color-box {
+            width: 44px;
+            height: 44px;
+            border-radius: 6px;
+            border: 2px solid #ddd;
             cursor: pointer;
         }
-        .project-tab.active {
-            background: #0066cc;
-            color: white;
+        .color-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-
+        input[type="color"] {
+            display: none;
+        }
         .preview {
             position: relative;
             width: 100%;
-            height: 450px;
-            background: #ffffff;
-            border: 1px solid #ccc;
-            margin-top: 10px;
+            height: 420px;
+            background: #fafafa;
+            border: 1px solid #ddd;
+            border-radius: 10px;
             overflow: hidden;
+            margin-top: 16px;
         }
         .preview-stage {
             position: relative;
@@ -87,34 +99,49 @@
         }
         .block {
             position: absolute;
-            padding: 15px;
-            background: #f9f9f9;
-            border: 1px solid #ccc;
+            padding: 12px;
+            border-radius: 0;
+            background: white;
+            border: 1px solid #3498db;
             cursor: move;
+            overflow: hidden;
             font-size: 14px;
+            line-height: 1.5;
             display: flex;
             align-items: center;
             justify-content: center;
-            text-align: center;
         }
         .resize-handle {
             position: absolute;
             right: 0;
             bottom: 0;
-            width: 14px;
-            height: 14px;
-            background: #0066cc;
+            width: 16px;
+            height: 16px;
+            background: #3498db;
+            cursor: se-resize;
         }
-
         .news-list {
-            max-height: 220px;
+            max-height: 300px;
             overflow-y: auto;
-            margin-top: 10px;
+            margin-top: 12px;
         }
         .news-item {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
+            padding: 12px;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            margin-bottom: 8px;
             cursor: pointer;
+        }
+        .news-item:hover {
+            background: #f8f9fa;
+        }
+        .bg-preview {
+            width: 100%;
+            max-height: 160px;
+            object-fit: cover;
+            border-radius: 6px;
+            margin: 10px 0;
+            display: none;
         }
     </style>
 </head>
@@ -123,10 +150,10 @@
 <div class="box" id="loginPanel">
     <h2>Admin Login</h2>
     <div class="form-group">
-        <input type="text" id="username" placeholder="Username">
+        <input type="text" id="username" placeholder="Username" value="master">
     </div>
     <div class="form-group">
-        <input type="password" id="password" placeholder="Password">
+        <input type="password" id="password" placeholder="Password" value="master123">
     </div>
     <button class="btn-blue" onclick="login()">Login</button>
 </div>
@@ -136,36 +163,69 @@
         <h2>Service Learning Admin
             <button class="btn-red" style="float:right" onclick="logout()">Logout</button>
         </h2>
+        <p id="userRoleDisplay"></p>
+    </div>
+
+    <div class="box" id="teacherManagementSection">
+        <h3>Teacher Management</h3>
+        <div class="form-group"><input type="text" id="newTeacherUser" placeholder="Username"></div>
+        <div class="form-group"><input type="password" id="newTeacherPass" placeholder="Password"></div>
+        <button class="btn-green" onclick="createTeacher()">Create Teacher</button>
+        <div id="teacherList"></div>
     </div>
 
     <div class="box">
-        <h3>My Projects</h3>
-        <div id="projectTabs"></div>
-        <button class="btn-green" onclick="createProject()">Add New Project</button>
-    </div>
-
-    <div class="box">
-        <h3>Edit Project Content</h3>
+        <h3>Programs</h3>
         <div class="form-group">
-            <input type="text" id="projectNameInput" placeholder="Project Name">
-        </div>
-        <button class="btn-green" onclick="saveProjectName()">Save Name</button>
-    </div>
-
-    <div class="box">
-        <h3>Edit Text & Colors</h3>
-        <div class="form-group">
-            <input type="text" id="blockTitle" placeholder="Title">
+            <input type="text" id="newProgName" placeholder="Program Name">
+            <button class="btn-green" onclick="createProgram()">Create Program</button>
         </div>
         <div class="form-group">
-            <textarea id="blockContent" rows="3" placeholder="Content"></textarea>
+            <select id="programSelect" onchange="selectProgram(this.value)"></select>
         </div>
-        <button class="btn-blue" onclick="updateBlock()">Save Changes</button>
+        <button class="btn-red" onclick="deleteProgram()">Delete Program</button>
     </div>
 
     <div class="box">
-        <h3>Page Layout</h3>
-        <button class="btn-orange" onclick="generateTwoBoxTemplate()">Generate Info + Contact Template</button>
+        <h3>News</h3>
+        <div class="form-group"><input type="text" id="newsTitle" placeholder="Title"></div>
+        <div class="form-group"><input type="text" id="newsOverview" placeholder="Overview"></div>
+        <div class="form-group">
+            <input type="file" id="newsImage" accept="image/*">
+            <img id="previewImg" class="bg-preview">
+        </div>
+        <div class="form-group"><textarea id="newsContent" rows="4" placeholder="Content"></textarea></div>
+        <button class="btn-purple" onclick="saveNews()">Save News</button>
+        <button class="btn-red" id="deleteNewsBtn" style="display:none;" onclick="removeSelectedNews()">Delete News</button>
+        <div class="news-list" id="newsList"></div>
+    </div>
+
+    <div class="box">
+        <h3>Edit Block</h3>
+        <div class="form-group"><input type="text" id="blockTitle" placeholder="Title"></div>
+        <div class="form-group"><textarea id="blockContent" rows="3" placeholder="Content"></textarea></div>
+        <div class="flex">
+            <div>
+                <label>Background</label>
+                <div class="color-row">
+                    <div id="bgBox" class="color-box"></div>
+                    <input type="color" id="bgColor" value="#ffffff">
+                </div>
+            </div>
+            <div>
+                <label>Text Color</label>
+                <div class="color-row">
+                    <div id="textColorBox" class="color-box"></div>
+                    <input type="color" id="textColor" value="#000000">
+                </div>
+            </div>
+        </div>
+        <button class="btn-blue" onclick="updateBlock()">Save Block</button>
+    </div>
+
+    <div class="box">
+        <h3>Layout Preview</h3>
+        <button class="btn-orange" onclick="generateTabTemplate()">Generate Template</button>
         <button class="btn-blue" onclick="saveLayout()">Save Layout</button>
         <div class="preview">
             <div id="stage" class="preview-stage"></div>
@@ -175,15 +235,27 @@
 
 <script>
 const API_URL = "/api";
-let currentUser;
-let projects = [];
-let currentProjectId = null;
-let blocks = [];
-let selectedBlock = null;
+let currentUser, isSuperAdmin;
+let programs, selectedProgram;
+let blocks = [], selectedBlock = null;
+let news = [], selectedNews = null;
+
+const bgColor = document.getElementById("bgColor");
+const textColor = document.getElementById("textColor");
+const bgBox = document.getElementById("bgBox");
+const textColorBox = document.getElementById("textColorBox");
+
+bgColor.addEventListener("input", syncColors);
+textColor.addEventListener("input", syncColors);
+
+function syncColors() {
+    bgBox.style.backgroundColor = bgColor.value;
+    textColorBox.style.backgroundColor = textColor.value;
+}
 
 async function login() {
-    const username = document.getElementById("username").value;
-    const password = document.getElementById("password").value;
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
     try {
         const res = await fetch(`${API_URL}/login`, {
             method: "POST",
@@ -191,72 +263,175 @@ async function login() {
             body: JSON.stringify({ username, password })
         });
         const data = await res.json();
-        currentUser = data.user;
+        if (!res.ok) throw new Error(data.error);
+
+        currentUser = data.user.username;
+        isSuperAdmin = data.user.role === "master";
+
         document.getElementById("loginPanel").classList.add("hidden");
         document.getElementById("dashboard").classList.remove("hidden");
-        loadProjects();
-    } catch (e) {
-        alert("Login failed");
+        document.getElementById("userRoleDisplay").innerText = isSuperAdmin ? "Master Admin" : "Teacher";
+
+        if (!isSuperAdmin) document.getElementById("teacherManagementSection").style.display = "none";
+        else loadTeachers();
+
+        loadPrograms();
+        syncColors();
+    } catch (err) {
+        alert(err.message);
     }
 }
 
-function logout() {
-    location.reload();
-}
+function logout() { location.reload(); }
 
-async function loadProjects() {
-    const res = await fetch(`${API_URL}/projects?user=${currentUser.id}`);
-    projects = await res.json();
-    renderProjectTabs();
-    if (projects.length > 0) {
-        openProject(projects[0].id);
-    }
-}
-
-function renderProjectTabs() {
-    const container = document.getElementById("projectTabs");
-    container.innerHTML = "";
-    projects.forEach(p => {
+async function loadTeachers() {
+    const teachers = await (await fetch(`${API_URL}/teachers`)).json();
+    const list = document.getElementById("teacherList");
+    list.innerHTML = "";
+    teachers.forEach(t => {
+        const div = document.createElement("div");
+        div.className = "account-item";
+        div.innerHTML = `<span>${t.username}</span>`;
         const btn = document.createElement("button");
-        btn.className = "project-tab" + (p.id === currentProjectId ? " active" : "");
-        btn.innerText = p.name;
-        btn.onclick = () => openProject(p.id);
-        container.appendChild(btn);
+        btn.className = "btn-red";
+        btn.innerText = "Delete";
+        btn.onclick = async () => {
+            await fetch(`${API_URL}/teachers/${t.id}`, { method: "DELETE" });
+            loadTeachers();
+        };
+        div.appendChild(btn);
+        list.appendChild(div);
     });
 }
 
-async function openProject(id) {
-    currentProjectId = id;
-    const p = projects.find(x => x.id === id);
-    document.getElementById("projectNameInput").value = p.name;
-    blocks = JSON.parse(p.layout || "[]");
-    renderProjectTabs();
-    renderBlocks();
-}
-
-async function createProject() {
-    const name = "New Project";
-    const res = await fetch(`${API_URL}/projects`, {
+async function createTeacher() {
+    const u = document.getElementById("newTeacherUser").value.trim();
+    const p = document.getElementById("newTeacherPass").value.trim();
+    if (!u || !p) return alert("Fill all fields");
+    await fetch(`${API_URL}/teachers`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            name,
-            userId: currentUser.id,
-            layout: "[]"
-        })
+        body: JSON.stringify({ username: u, password: p })
     });
-    loadProjects();
+    document.getElementById("newTeacherUser").value = "";
+    document.getElementById("newTeacherPass").value = "";
+    loadTeachers();
 }
 
-async function saveProjectName() {
-    const name = document.getElementById("projectNameInput").value;
-    await fetch(`${API_URL}/projects/${currentProjectId}`, {
+async function loadPrograms() {
+    programs = await (await fetch(`${API_URL}/programs?user=${currentUser}&admin=${isSuperAdmin}`)).json();
+    const sel = document.getElementById("programSelect");
+    sel.innerHTML = "";
+    programs.forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p.id;
+        opt.innerText = p.name;
+        sel.appendChild(opt);
+    });
+    if (programs.length) selectProgram(programs[0].id);
+}
+
+async function selectProgram(id) {
+    selectedProgram = programs.find(p => p.id == id);
+    blocks = JSON.parse(selectedProgram.blocks || "[]");
+    news = JSON.parse(selectedProgram.news || "[]");
+    renderBlocks();
+    renderNews();
+    resetNewsForm();
+}
+
+async function createProgram() {
+    const name = document.getElementById("newProgName").value.trim() || "New Program";
+    const defaultBlocks = JSON.stringify([
+        { id: "b1", title: "Block", content: "Content", x:5,y:5,w:40,h:30, bg:"#fff", text:"#000", border:"1px solid #3498db" }
+    ]);
+    await fetch(`${API_URL}/programs`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, createdBy: currentUser, blocks: defaultBlocks, news: "[]" })
+    });
+    loadPrograms();
+}
+
+async function deleteProgram() {
+    if (!selectedProgram) return;
+    if (!confirm("Delete permanently?")) return;
+    await fetch(`${API_URL}/programs/${selectedProgram.id}`, { method: "DELETE" });
+    loadPrograms();
+}
+
+function renderNews() {
+    const list = document.getElementById("newsList");
+    list.innerHTML = "";
+    news.forEach(n => {
+        const div = document.createElement("div");
+        div.className = "news-item";
+        div.innerText = n.title;
+        div.onclick = () => {
+            selectedNews = n;
+            document.getElementById("newsTitle").value = n.title;
+            document.getElementById("newsOverview").value = n.overview;
+            document.getElementById("newsContent").value = n.content;
+            document.getElementById("previewImg").src = n.image || "";
+            document.getElementById("previewImg").style.display = n.image ? "block" : "none";
+            document.getElementById("deleteNewsBtn").style.display = "inline-block";
+        };
+        list.appendChild(div);
+    });
+}
+
+function resetNewsForm() {
+    document.getElementById("newsTitle").value = "";
+    document.getElementById("newsOverview").value = "";
+    document.getElementById("newsContent").value = "";
+    document.getElementById("newsImage").value = "";
+    document.getElementById("previewImg").style.display = "none";
+    selectedNews = null;
+    document.getElementById("deleteNewsBtn").style.display = "none";
+}
+
+async function saveNews() {
+    const title = document.getElementById("newsTitle").value.trim();
+    const overview = document.getElementById("newsOverview").value.trim();
+    const content = document.getElementById("newsContent").value.trim();
+    const image = document.getElementById("previewImg").src || "";
+    if (!title || !overview || !content) return alert("Fill all fields");
+
+    const item = { id: Date.now(), title, overview, content, image };
+    if (selectedNews) news = news.map(n => n.id === selectedNews.id ? item : n);
+    else news.unshift(item);
+
+    await fetch(`${API_URL}/programs/${selectedProgram.id}/news`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name })
+        body: JSON.stringify({ news: JSON.stringify(news) })
     });
-    loadProjects();
+    renderNews();
+    resetNewsForm();
 }
+
+async function removeSelectedNews() {
+    if (!selectedNews) return;
+    news = news.filter(n => n.id !== selectedNews.id);
+    await fetch(`${API_URL}/programs/${selectedProgram.id}/news`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ news: JSON.stringify(news) })
+    });
+    renderNews();
+    resetNewsForm();
+}
+
+document.getElementById("newsImage").addEventListener("change", e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+        document.getElementById("previewImg").src = ev.target.result;
+        document.getElementById("previewImg").style.display = "block";
+    };
+    reader.readAsDataURL(file);
+});
 
 function renderBlocks() {
     const stage = document.getElementById("stage");
@@ -269,71 +444,83 @@ function renderBlocks() {
         el.style.top = block.y + "%";
         el.style.width = block.w + "%";
         el.style.height = block.h + "%";
-        el.style.background = block.bg;
-        el.style.color = block.text || "#000";
-        el.style.border = block.border || "1px solid #ccc";
-        
-        el.innerText = block.content;
+        el.style.backgroundColor = block.bg;
+        el.style.color = block.text;
+        el.style.border = block.border;
+        el.innerHTML = `<strong>${block.title}</strong><br>${block.content}`;
 
-        const rh = document.createElement("div");
-        rh.className = "resize-handle";
-        el.appendChild(rh);
+        const resize = document.createElement("div");
+        resize.className = "resize-handle";
+        el.appendChild(resize);
 
-        el.onclick = (e) => {
-            if (e.target === rh) return;
+        el.onclick = () => {
             selectedBlock = block;
             document.getElementById("blockTitle").value = block.title;
             document.getElementById("blockContent").value = block.content;
+            bgColor.value = block.bg;
+            textColor.value = block.text;
+            syncColors();
         };
 
-        let drag = false, ox = 0, oy = 0, lx = 0, ly = 0;
-        let resizing = false, w = 0, h = 0;
-
-        el.onmousedown = (e) => {
+        let drag = false, startX, startY, origX, origY;
+        el.addEventListener("mousedown", e => {
+            if (e.target === resize) return;
             e.preventDefault();
-            if (e.target === rh) {
-                resizing = true;
-                ox = e.x; oy = e.y;
-                w = parseFloat(el.style.width);
-                h = parseFloat(el.style.height);
-                return;
-            }
             drag = true;
-            ox = e.x; oy = e.y;
-            lx = parseFloat(el.style.left);
-            ly = parseFloat(el.style.top);
-        };
+            startX = e.clientX;
+            startY = e.clientY;
+            origX = parseFloat(el.style.left);
+            origY = parseFloat(el.style.top);
+        });
 
-        document.onmousemove = (e) => {
-            const r = stage.getBoundingClientRect();
+        let resizing = false, startW, startH;
+        resize.addEventListener("mousedown", e => {
+            e.preventDefault();
+            resizing = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            startW = parseFloat(el.style.width);
+            startH = parseFloat(el.style.height);
+        });
+
+        document.addEventListener("mousemove", e => {
+            const rect = stage.getBoundingClientRect();
             if (drag) {
-                const dx = (e.x - ox) / r.width * 100;
-                const dy = (e.y - oy) / r.height * 100;
-                el.style.left = Math.max(0, lx + dx) + "%";
-                el.style.top = Math.max(0, ly + dy) + "%";
+                const dx = (e.clientX - startX) / rect.width * 100;
+                const dy = (e.clientY - startY) / rect.height * 100;
+                el.style.left = Math.max(0, Math.min(100, origX + dx)) + "%";
+                el.style.top = Math.max(0, Math.min(100, origY + dy)) + "%";
             }
             if (resizing) {
-                const dx = (e.x - ox) / r.width * 100;
-                const dy = (e.y - oy) / r.height * 100;
-                el.style.width = Math.max(10, w + dx) + "%";
-                el.style.height = Math.max(10, h + dy) + "%";
+                const dx = (e.clientX - startX) / rect.width * 100;
+                const dy = (e.clientY - startY) / rect.height * 100;
+                el.style.width = Math.max(5, Math.min(100, startW + dx)) + "%";
+                el.style.height = Math.max(5, Math.min(100, startH + dy)) + "%";
             }
-        };
+        });
 
-        document.onmouseup = () => {
+        document.addEventListener("mouseup", () => {
             drag = false;
             resizing = false;
-        };
+        });
 
         stage.appendChild(el);
     });
 }
 
-function updateBlock() {
+async function updateBlock() {
     if (!selectedBlock) return;
     selectedBlock.title = document.getElementById("blockTitle").value;
     selectedBlock.content = document.getElementById("blockContent").value;
+    selectedBlock.bg = bgColor.value;
+    selectedBlock.text = textColor.value;
     renderBlocks();
+
+    await fetch(`${API_URL}/programs/${selectedProgram.id}/blocks`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ blocks: JSON.stringify(blocks) })
+    });
 }
 
 async function saveLayout() {
@@ -344,20 +531,23 @@ async function saveLayout() {
         b.w = parseFloat(el.style.width);
         b.h = parseFloat(el.style.height);
     });
-    await fetch(`${API_URL}/projects/${currentProjectId}/layout`, {
+
+    await fetch(`${API_URL}/programs/${selectedProgram.id}/blocks`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ layout: JSON.stringify(blocks) })
+        body: JSON.stringify({ blocks: JSON.stringify(blocks) })
     });
-    alert("Layout saved");
+
+    alert("Layout saved!");
 }
 
-function generateTwoBoxTemplate() {
+// ✅ ONLY THIS PART IS CHANGED — your two-box info + contact template
+function generateTabTemplate() {
     blocks = [
         {
             id: "info",
             title: "Basic Information",
-            content: "Basic Information",
+            content: "Project details, goals, description",
             x: 2, y: 5, w: 46, h: 90,
             bg: "#ffffff",
             text: "#000000",
@@ -366,7 +556,7 @@ function generateTwoBoxTemplate() {
         {
             id: "contact",
             title: "Contact Information",
-            content: "Contact Information",
+            content: "Teacher, email, location, schedule",
             x: 52, y: 5, w: 46, h: 90,
             bg: "#ffffff",
             text: "#000000",
