@@ -3,303 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin</title>
+    <title>Fixed Admin Preview</title>
     <style>
-        *{box-sizing:border-box;margin:0;padding:0;font-family:Arial}
-        body{background:#f5f7fa;padding:20px;max-width:1200px;margin:auto}
-        .box{background:white;padding:24px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.08);margin-bottom:20px}
-        h2,h3{margin-bottom:16px;color:#2d3748;border-bottom:1px solid #eee;padding-bottom:8px}
-        .form-group{margin-bottom:14px}
-        input,textarea,select{width:100%;padding:10px;border:1px solid #ddd;border-radius:6px}
-        button{padding:10px 16px;border-radius:6px;border:none;cursor:pointer;margin-right:8px}
-        .btn-blue{background:#3498db;color:white}
-        .btn-red{background:#e74c3c;color:white}
-        .btn-green{background:#2ecc71;color:white}
-        .btn-orange{background:#f39c12;color:white}
-        .hidden{display:none}
-        .preview{position:relative;width:100%;height:420px;background:#fff;border:1px solid #ddd;border-radius:10px;margin-top:16px}
-        .block{position:absolute;padding:12px;background:white;border:1px solid #3498db;cursor:move}
-        .resize-handle{position:absolute;right:0;bottom:0;width:16px;height:16px;background:#3498db}
-        .color-box{width:44px;height:44px;border-radius:6px;border:2px solid #ddd}
-        .color-row{display:flex;align-items:center;gap:10px}
-        input[type="color"]{display:none}
-        .account-item{padding:12px;border:1px solid #eee;border-radius:6px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            background: #f5f7fa;
+            padding: 20px;
+            max-width: 1200px;
+            margin: auto;
+        }
+        .box {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+        h2, h3 {
+            margin-bottom: 16px;
+            color: #2d3748;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+        }
+        .form-group {
+            margin-bottom: 14px;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        button {
+            padding: 10px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            margin-right: 8px;
+        }
+        .btn-blue { background: #3498db; color: white; }
+        .btn-red  { background: #e74c3c; color: white; }
+        .btn-green{ background: #2ecc71; color: white; }
+        .btn-orange{ background: #f39c12; color: white; }
+
+        /* FORCE PREVIEW TO BE VISIBLE */
+        .preview {
+            position: relative !important;
+            width: 100% !important;
+            height: 420px !important;
+            background: #ffffff !important;
+            border: 2px solid #ddd !important;
+            border-radius: 10px !important;
+            margin-top: 16px !important;
+            display: block !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+        #stage {
+            position: relative !important;
+            width: 100% !important;
+            height: 100% !important;
+            display: block !important;
+        }
+        .block {
+            position: absolute !important;
+            padding: 12px !important;
+            background: white !important;
+            border: 2px solid #3498db !important;
+            cursor: move !important;
+            font-size: 14px !important;
+            line-height: 1.5 !important;
+            display: block !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            z-index: 100 !important;
+        }
+        .resize-handle {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            width: 16px;
+            height: 16px;
+            background: #3498db;
+        }
+        .color-box {
+            width: 44px;
+            height: 44px;
+            border-radius: 6px;
+            border: 2px solid #ddd;
+        }
+        .color-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        input[type="color"] {
+            display: none;
+        }
+        .account-item {
+            padding: 12px;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
 
-<div class="box" id="loginPanel">
-    <h2>Login</h2>
-    <input type="text" id="username" placeholder="User" value="master"><br><br>
-    <input type="password" id="password" placeholder="Pass" value="master123"><br><br>
-    <button class="btn-blue" onclick="login()">Login</button>
-</div>
-
-<div id="dashboard" class="hidden">
-    <div class="box">
-        <h2>Admin Panel <button class="btn-red" onclick="logout()">Logout</button></h2>
-    </div>
-
-    <div class="box" id="teacherSection">
-        <h3>Teacher Management</h3>
-        <input type="text" id="newTeacherUser" placeholder="Username"><br><br>
-        <input type="password" id="newTeacherPass" placeholder="Password"><br><br>
-        <button class="btn-green" onclick="createTeacher()">Add Teacher</button>
-        <div id="teacherList"></div>
-    </div>
-
-    <div class="box">
-        <h3>Programs</h3>
-        <input type="text" id="newProgName" placeholder="Program Name"><br>
-        <button class="btn-green" onclick="createProgram()">Create</button><br><br>
-        <select id="programSelect" onchange="selectProgram(this.value)"></select>
-        <button class="btn-red" onclick="deleteProgram()">Delete</button>
-    </div>
-
-    <div class="box">
-        <h3>Edit Block</h3>
-        <input type="text" id="blockTitle" placeholder="Title"><br><br>
-        <textarea id="blockContent" rows="3" placeholder="Content"></textarea><br>
-        <div>
-            <div>BG Color</div>
-            <div class="color-row">
-                <div id="bgBox" class="color-box"></div>
-                <input type="color" id="bgColor" value="#ffffff">
-            </div>
-        </div>
-        <div>
-            <div>Text Color</div>
-            <div class="color-row">
-                <div id="textColorBox" class="color-box"></div>
-                <input type="color" id="textColor" value="#000000">
-            </div>
-        </div>
-        <button class="btn-blue" onclick="updateBlock()">SAVE BLOCK</button>
-    </div>
-
-    <div class="box">
-        <h3>Layout Preview (FIXED)</h3>
-        <button class="btn-orange" onclick="generateTemplate()">Generate Two Boxes</button>
-        <button class="btn-blue" onclick="saveLayout()">SAVE LAYOUT</button>
-        <div class="preview" id="stage"></div>
+<div class="box">
+    <h2>Layout Preview (FORCE SHOWING)</h2>
+    <div class="preview">
+        <div id="stage"></div>
     </div>
 </div>
 
 <script>
-const API_URL = "/api";
-let currentUser, isSuperAdmin;
-let programs = [], selectedProgram;
-let blocks = [], selectedBlock;
-
-const bgColor = document.getElementById("bgColor");
-const textColor = document.getElementById("textColor");
-const bgBox = document.getElementById("bgBox");
-const textColorBox = document.getElementById("textColorBox");
-
-bgColor.addEventListener("input", syncColors);
-function syncColors() {
-    bgBox.style.backgroundColor = bgColor.value;
-    textColorBox.style.backgroundColor = textColor.value;
-}
-
-// --------------------------
-// LOGIN
-// --------------------------
-async function login() {
-    const user = document.getElementById("username").value;
-    const pass = document.getElementById("password").value;
-    const res = await fetch(API_URL + "/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: user, password: pass })
-    });
-    const data = await res.json();
-    currentUser = data.user.username;
-    isSuperAdmin = data.user.role === "master";
-
-    document.getElementById("loginPanel").classList.add("hidden");
-    document.getElementById("dashboard").classList.remove("hidden");
-    if (!isSuperAdmin) document.getElementById("teacherSection").style.display = "none";
-
-    loadPrograms();
-    syncColors();
-}
-
-function logout() { location.reload(); }
-
-// --------------------------
-// TEACHERS
-// --------------------------
-async function loadTeachers() {
-    const teachers = await (await fetch(API_URL + "/teachers")).json();
-    const list = document.getElementById("teacherList");
-    list.innerHTML = "";
-    teachers.forEach(t => {
-        const div = document.createElement("div");
-        div.className = "account-item";
-        div.innerText = t.username;
-        const btn = document.createElement("button");
-        btn.className = "btn-red";
-        btn.innerText = "Delete";
-        btn.onclick = async () => {
-            await fetch(`${API_URL}/teachers/${t.id}`, { method: "DELETE" });
-            loadTeachers();
-        };
-        div.appendChild(btn);
-        list.appendChild(div);
-    });
-}
-
-async function createTeacher() {
-    const u = document.getElementById("newTeacherUser").value;
-    const p = document.getElementById("newTeacherPass").value;
-    await fetch(API_URL + "/teachers", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: u, password: p })
-    });
-    loadTeachers();
-}
-
-// --------------------------
-// PROGRAMS — FULLY FIXED
-// --------------------------
-async function loadPrograms() {
-    const res = await fetch(`${API_URL}/programs?user=${currentUser}&admin=${isSuperAdmin}`);
-    programs = await res.json();
-    const sel = document.getElementById("programSelect");
-    sel.innerHTML = "";
-    programs.forEach(p => {
-        const opt = document.createElement("option");
-        opt.value = p.id;
-        opt.innerText = p.name;
-        sel.appendChild(opt);
-    });
-    if (programs.length) selectProgram(programs[0].id);
-}
-
-// ✅ THIS NOW 100% LOADS PREVIEW WHEN SWITCHING
-function selectProgram(id) {
-    selectedProgram = programs.find(p => p.id == id);
-    console.log("LOADED PROGRAM:", selectedProgram);
-
-    try {
-        blocks = JSON.parse(selectedProgram.blocks || "[]");
-    } catch (e) {
-        blocks = [];
+// 🔥 FORCE TEST BLOCKS — NO DATABASE, NO LOGIN, NO CONDITIONS
+let blocks = [
+    {
+        id: "test1",
+        title: "TEST BLOCK 1",
+        content: "THIS IS A TEST TO SHOW PREVIEW WORKS",
+        x: 2,
+        y: 5,
+        w: 45,
+        h: 80,
+        bg: "#ffffff",
+        text: "#000000",
+        border: "2px solid #3498db"
+    },
+    {
+        id: "test2",
+        title: "TEST BLOCK 2",
+        content: "THIS IS A TEST TO SHOW PREVIEW WORKS",
+        x: 52,
+        y: 5,
+        w: 45,
+        h: 80,
+        bg: "#ffffff",
+        text: "#000000",
+        border: "2px solid #3498db"
     }
+];
 
-    console.log("BLOCKS TO RENDER:", blocks);
-    renderBlocks(); // ✅ FORCE PREVIEW
-}
-
-async function createProgram() {
-    const name = document.getElementById("newProgName").value || "New";
-    await fetch(API_URL + "/programs", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            name, createdBy: currentUser, blocks: "[]", news: "[]"
-        })
-    });
-    loadPrograms();
-}
-
-async function deleteProgram() {
-    if (!selectedProgram) return;
-    await fetch(`${API_URL}/programs/${selectedProgram.id}`, { method: "DELETE" });
-    loadPrograms();
-}
-
-// --------------------------
-// ✅ PREVIEW — 100% FIXED
-// --------------------------
-function renderBlocks() {
+// 🔥 FORCE RENDER — RUNS IMMEDIATELY
+function forceRender() {
     const stage = document.getElementById("stage");
-    stage.innerHTML = ""; // CLEAR OLD
+    stage.innerHTML = "";
+    console.log("Rendering test blocks:", blocks);
 
-    if (blocks.length === 0) {
-        console.log("No blocks — create template first");
-        return;
-    }
-
-    blocks.forEach(b => {
+    blocks.forEach(block => {
         const el = document.createElement("div");
         el.className = "block";
-        el.dataset.id = b.id;
-        el.style.left = b.x + "%";
-        el.style.top = b.y + "%";
-        el.style.width = b.w + "%";
-        el.style.height = b.h + "%";
-        el.style.backgroundColor = b.bg;
-        el.style.color = b.text;
-        el.style.border = b.border;
-        el.innerHTML = `<strong>${b.title}</strong><br>${b.content}`;
-
-        const rh = document.createElement("div");
-        rh.className = "resize-handle";
-        el.appendChild(rh);
-
-        el.onclick = () => {
-            selectedBlock = b;
-            document.getElementById("blockTitle").value = b.title;
-            document.getElementById("blockContent").value = b.content;
-            bgColor.value = b.bg;
-            textColor.value = b.text;
-            syncColors();
-        };
-
+        el.style.left = block.x + "%";
+        el.style.top = block.y + "%";
+        el.style.width = block.w + "%";
+        el.style.height = block.h + "%";
+        el.style.backgroundColor = block.bg;
+        el.style.color = block.text;
+        el.style.border = block.border;
+        el.innerHTML = `<strong>${block.title}</strong><br>${block.content}`;
         stage.appendChild(el);
     });
 }
 
-// --------------------------
-// SAVE TO DATABASE
-// --------------------------
-async function updateBlock() {
-    if (!selectedBlock) return;
-    selectedBlock.title = document.getElementById("blockTitle").value;
-    selectedBlock.content = document.getElementById("blockContent").value;
-    selectedBlock.bg = bgColor.value;
-    selectedBlock.text = textColor.value;
-    renderBlocks();
-
-    await fetch(`${API_URL}/programs/${selectedProgram.id}/blocks`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ blocks: JSON.stringify(blocks) })
-    });
-}
-
-async function saveLayout() {
-    blocks.forEach(b => {
-        const el = document.querySelector(`[data-id="${b.id}"]`);
-        b.x = parseFloat(el.style.left);
-        b.y = parseFloat(el.style.top);
-        b.w = parseFloat(el.style.width);
-        b.h = parseFloat(el.style.height);
-    });
-
-    await fetch(`${API_URL}/programs/${selectedProgram.id}/blocks`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ blocks: JSON.stringify(blocks) })
-    });
-
-    renderBlocks();
-    alert("✅ Layout SAVED to database!");
-}
-
-// --------------------------
-// GENERATE TEMPLATE
-// --------------------------
-function generateTemplate() {
-    blocks = [
-        { id: "info", title: "Info", content: "Test", x: 2, y: 5, w: 46, h: 90, bg: "#fff", text: "#000", border: "1px solid #ccc" },
-        { id: "contact", title: "Contact", content: "Test", x: 52, y: 5, w: 46, h: 90, bg: "#fff", text: "#000", border: "1px solid #ccc" }
-    ];
-    renderBlocks();
-}
+// RUN ON PAGE LOAD
+window.onload = forceRender;
 </script>
+
 </body>
 </html>
