@@ -1,21 +1,24 @@
+// api/programs.js
 const { Pool } = require('pg');
 
+// Use the environment variable for your Neon connection string
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || "postgresql://neondb_owner:npg_wtf37jIHuMWh@ep-blue-mud-a1qj5gi3-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
+  connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
 });
 
 module.exports = async (req, res) => {
-  if (req.method === 'GET') {
-    try {
-      const result = await pool.query('SELECT id, name, blocks, news FROM programs');
-      res.status(200).json(result.rows);
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: 'Failed to load programs' });
-    }
-  } else {
-    res.setHeader('Allow', ['GET']);
-    res.status(405).end(`Method ${req.method} Not Allowed`);
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    // Query the programs table
+    const { rows } = await pool.query('SELECT id, name, blocks, news FROM programs');
+    console.log('Fetched programs:', rows); // Log the result for debugging
+    res.status(200).json(rows);
+  } catch (err) {
+    console.error('Database error:', err);
+    res.status(500).json({ error: 'Failed to load programs' });
   }
 };
