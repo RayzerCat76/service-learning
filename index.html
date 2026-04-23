@@ -19,7 +19,6 @@
             padding: 20px;
         }
 
-        /* Top Project Navigation Bar */
         .project-nav {
             background: white;
             padding: 20px;
@@ -54,7 +53,6 @@
             color: white;
         }
 
-        /* Project Content Layout */
         .project-container {
             display: flex;
             gap: 20px;
@@ -84,7 +82,6 @@
             font-size: 15px;
         }
 
-        /* Empty State */
         .empty {
             background: white;
             padding: 30px;
@@ -96,7 +93,6 @@
 </head>
 <body>
 
-<!-- TOP PROJECT NAVIGATION -->
 <div class="project-nav">
     <h2>Service Learning Projects</h2>
     <div id="projectTabs" class="project-tabs">
@@ -104,59 +100,57 @@
     </div>
 </div>
 
-<!-- PROJECT CONTENT (LEFT INFO + RIGHT CONTACT) -->
 <div id="projectContent"></div>
 
 <script>
     const API_URL = "/api";
-    let projects = [];
-    let currentProject = null;
+    let programs = [];
+    let currentProgram = null;
 
-    // Load all projects from database
-    async function loadProjects() {
+    // Load programs using the same endpoint as your admin page
+    async function loadPrograms() {
         try {
-            const res = await fetch(`${API_URL}/projects`);
-            projects = await res.json();
-            renderProjectTabs();
+            // Match the API call in your admin.html
+            const res = await fetch(`${API_URL}/programs`);
+            programs = await res.json();
+            renderProgramTabs();
             
-            if (projects.length > 0) {
-                openProject(projects[0].id);
+            if (programs.length > 0) {
+                openProgram(programs[0].id);
             } else {
                 document.getElementById("projectContent").innerHTML = `
-                    <div class="empty">No projects available yet.</div>
+                    <div class="empty">No programs available yet. Create one in the admin panel first.</div>
                 `;
             }
         } catch (err) {
+            console.error("Load error:", err);
             document.getElementById("projectContent").innerHTML = `
-                <div class="empty">Failed to load projects.</div>
+                <div class="empty">Failed to load projects. Please check your backend API.</div>
             `;
         }
     }
 
-    // Render top project tabs
-    function renderProjectTabs() {
+    function renderProgramTabs() {
         const container = document.getElementById("projectTabs");
         container.innerHTML = "";
 
-        projects.forEach(proj => {
+        programs.forEach(prog => {
             const btn = document.createElement("button");
-            btn.className = "project-tab" + (proj.id === currentProject?.id ? " active" : "");
-            btn.innerText = proj.name;
-            btn.onclick = () => openProject(proj.id);
+            btn.className = "project-tab" + (prog.id === currentProgram?.id ? " active" : "");
+            btn.innerText = prog.name;
+            btn.onclick = () => openProgram(prog.id);
             container.appendChild(btn);
         });
     }
 
-    // Open & display a project
-    function openProject(id) {
-        currentProject = projects.find(p => p.id === id);
-        renderProjectTabs();
-        renderProjectContent();
+    function openProgram(id) {
+        currentProgram = programs.find(p => p.id === id);
+        renderProgramTabs();
+        renderProgramContent();
     }
 
-    // Show left + right layout from admin template
-    function renderProjectContent() {
-        const blocks = JSON.parse(currentProject.layout || "[]");
+    function renderProgramContent() {
+        const blocks = JSON.parse(currentProgram.blocks || "[]");
         
         const infoBlock = blocks.find(b => b.id === "info") || {};
         const contactBlock = blocks.find(b => b.id === "contact") || {};
@@ -175,8 +169,7 @@
         `;
     }
 
-    // Start
-    loadProjects();
+    loadPrograms();
 </script>
 
 </body>
