@@ -1,16 +1,20 @@
 const express = require('express');
 const { Pool } = require('pg');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
 
-// Middleware
+// Critical Middleware
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
-// SERVE STATIC FILES (fixes Cannot GET /admin.html)
-app.use(express.static('.'));
+// ------------------------------
+// SERVE STATIC FILES (THE FIX)
+// ------------------------------
+// This explicitly tells Express to serve all files in the project root
+app.use(express.static(path.join(__dirname, '.')));
 
 // Database Connection
 const pool = new Pool({
@@ -40,34 +44,26 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// Get Teachers
+// Teachers
 app.get('/api/teachers', async (req, res) => {
   try {
-    const result = await pool.query(
-      'SELECT id, username FROM users WHERE role = $1',
-      ['teacher']
-    );
+    const result = await pool.query('SELECT id, username FROM users WHERE role = $1', ['teacher']);
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }
 });
 
-// Create Teacher
 app.post('/api/teachers', async (req, res) => {
   try {
     const { username, password } = req.body;
-    await pool.query(
-      'INSERT INTO users (username, password, role) VALUES ($1, $2, $3)',
-      [username, password, 'teacher']
-    );
+    await pool.query('INSERT INTO users (username, password, role) VALUES ($1, $2, $3)', [username, password, 'teacher']);
     res.status(201).json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }
 });
 
-// Delete Teacher
 app.delete('/api/teachers/:id', async (req, res) => {
   try {
     await pool.query('DELETE FROM users WHERE id = $1', [req.params.id]);
@@ -77,7 +73,7 @@ app.delete('/api/teachers/:id', async (req, res) => {
   }
 });
 
-// Get Programs
+// Programs
 app.get('/api/programs', async (req, res) => {
   try {
     const { user, admin } = req.query;
@@ -93,7 +89,6 @@ app.get('/api/programs', async (req, res) => {
   }
 });
 
-// Create Program
 app.post('/api/programs', async (req, res) => {
   try {
     const { name, createdBy, blocks, news } = req.body;
@@ -107,7 +102,6 @@ app.post('/api/programs', async (req, res) => {
   }
 });
 
-// Delete Program
 app.delete('/api/programs/:id', async (req, res) => {
   try {
     await pool.query('DELETE FROM programs WHERE id = $1', [req.params.id]);
@@ -117,37 +111,38 @@ app.delete('/api/programs/:id', async (req, res) => {
   }
 });
 
-// Update Blocks
+// Blocks & News
 app.patch('/api/programs/:id/blocks', async (req, res) => {
   try {
     const { blocks } = req.body;
-    await pool.query(
-      'UPDATE programs SET blocks = $1 WHERE id = $2',
-      [blocks, req.params.id]
-    );
+    await pool.query('UPDATE programs SET blocks = $1 WHERE id = $2', [blocks, req.params.id]);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }
 });
 
-// Update News
 app.patch('/api/programs/:id/news', async (req, res) => {
   try {
     const { news } = req.body;
-    await pool.query(
-      'UPDATE programs SET news = $1 WHERE id = $2',
-      [news, req.params.id]
-    );
+    await pool.query('UPDATE programs SET news = $1 WHERE id = $2', [news, req.params.id]);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }
 });
 
-// Default Route
+// ------------------------------
+// ROOT ROUTES
+// ------------------------------
+// This handles the root path to serve index.html
 app.get('/', (req, res) => {
-  res.sendFile('index.html', { root: '.' });
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// This explicitly serves admin.html at /admin.html
+app.get('/admin.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
 // Start Server
