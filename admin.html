@@ -329,7 +329,13 @@ async function loadPrograms() {
 
 async function selectProgram(id) {
     selectedProgram = programs.find(p => p.id == id);
-    blocks = JSON.parse(selectedProgram.blocks || "[]");
+    // Safe JSON parsing for blocks
+    try {
+        blocks = JSON.parse(selectedProgram.blocks || "[]");
+    } catch (e) {
+        console.error("Failed to parse blocks:", e);
+        blocks = [];
+    }
     news = JSON.parse(selectedProgram.news || "[]");
     renderBlocks();
     renderNews();
@@ -537,6 +543,7 @@ async function saveLayout() {
     alert("Layout saved!");
 }
 
+// Your two-box template
 function generateTabTemplate() {
     blocks = [
         {
