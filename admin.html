@@ -148,6 +148,7 @@
 </head>
 <body>
 
+<!-- Login -->
 <div class="box" id="loginPanel">
     <h2>Admin Login</h2>
     <div class="form-group">
@@ -159,6 +160,7 @@
     <button class="btn-blue" onclick="login()">Login</button>
 </div>
 
+<!-- Dashboard -->
 <div id="dashboard" class="hidden">
     <div class="box">
         <h2>Service Learning Admin
@@ -167,7 +169,8 @@
         <p id="userRoleDisplay"></p>
     </div>
 
-    <div class="box" id="teacherManagementSection" class="hidden">
+    <!-- Teacher Management (Super Admin Only) -->
+    <div class="box" id="teacherManagementSection">
         <h3>Teacher Account Management</h3>
         <div class="form-group">
             <input type="text" id="newTeacherUser" placeholder="New Teacher Username">
@@ -175,46 +178,50 @@
         <div class="form-group">
             <input type="password" id="newTeacherPass" placeholder="New Teacher Password">
         </div>
-        <button class="btn-green" onclick="createTeacherAccount()">Create Teacher Account</button>
-        <h3 style="margin-top:24px;">Existing Teachers</h3>
-        <div id="accountsList"></div>
+        <button class="btn-green" onclick="createTeacher()">Create Teacher</button>
+
+        <h3 style="margin-top:24px;">Registered Teachers</h3>
+        <div id="teacherList"></div>
     </div>
 
+    <!-- Programs -->
     <div class="box">
         <h3>My Programs</h3>
         <div class="form-group">
-            <input type="text" id="newProgName" placeholder="Program Name">
-            <button class="btn-green" onclick="createProgramWithTemplate()">Create Program</button>
+            <input type="text" id="newProgName" placeholder="Program name">
+            <button class="btn-green" onclick="createProgram()">Create Program</button>
         </div>
         <div class="form-group">
             <select id="programSelect" onchange="selectProgram(this.value)"></select>
         </div>
-        <button class="btn-red" onclick="deleteCurrentProgram()">Delete Program</button>
+        <button class="btn-red" onclick="deleteProgram()">Delete This Program</button>
     </div>
 
+    <!-- News -->
     <div class="box">
         <h3>Program News</h3>
         <div class="form-group">
-            <input type="text" id="newsTitle" placeholder="News Title">
+            <input type="text" id="newsTitle" placeholder="Title">
         </div>
         <div class="form-group">
-            <input type="text" id="newsOverview" placeholder="Short Overview">
+            <input type="text" id="newsOverview" placeholder="Short overview">
         </div>
         <div class="form-group">
             <label>Background Image</label>
-            <input type="file" id="newsBgImage" accept="image/*">
-            <img id="bgPreview" class="bg-preview">
+            <input type="file" id="newsImage" accept="image/*">
+            <img id="previewImg" class="bg-preview">
         </div>
         <div class="form-group">
-            <textarea id="newsContent" rows="4" placeholder="Full Content"></textarea>
+            <textarea id="newsContent" rows="4" placeholder="Full content"></textarea>
         </div>
-        <button class="btn-purple" onclick="saveProgramNews()">Save News</button>
-        <button class="btn-red" id="delNewsBtn" onclick="deleteSelectedNews()" style="display:none">Delete News</button>
-        <div class="news-list" id="programNewsList"></div>
+        <button class="btn-purple" onclick="saveNews()">Save News</button>
+        <button class="btn-red" id="deleteNewsBtn" style="display:none" onclick="removeSelectedNews()">Delete News</button>
+        <div class="news-list" id="newsList"></div>
     </div>
 
+    <!-- Blocks -->
     <div class="box">
-        <h3>Edit Blocks</h3>
+        <h3>Edit Content Blocks</h3>
         <div class="form-group">
             <input type="text" id="blockTitle" placeholder="Block Title">
         </div>
@@ -237,300 +244,319 @@
                 </div>
             </div>
         </div>
-        <button class="btn-blue" onclick="saveBlock()">Save Block</button>
+        <button class="btn-blue" onclick="updateBlock()">Save Block</button>
     </div>
 
+    <!-- Preview -->
     <div class="box">
         <h3>Preview</h3>
         <div class="preview">
             <div id="stage" class="preview-stage"></div>
         </div>
-        <button class="btn-blue" onclick="savePositions()">Save Position & Size</button>
+        <button class="btn-blue" onclick="saveLayout()">Save Positions & Sizes</button>
     </div>
 </div>
 
 <script>
-// --------------------------
-// GLOBAL STORAGE PATHS (FIXED)
-// --------------------------
-const STORAGE_ACCOUNTS = "sl_accounts";
-const STORAGE_PROGRAMS = "sl_programs";
+// ==============================
+// STORAGE KEYS (DATABASE)
+// ==============================
+const USER_DB = 'sl_users';
+const PROGRAM_DB = 'sl_programs';
 
-// --------------------------
-// ACCOUNT SYSTEM (100% FIXED)
-// --------------------------
-let currentUser = null;
+// ==============================
+// USER MANAGEMENT
+// ==============================
+let currentUser;
 let isSuperAdmin = false;
-let userAccounts = [];
+let users = [];
 
-function initAccounts() {
-    let data = localStorage.getItem(STORAGE_ACCOUNTS);
-    if (!data) {
-        userAccounts = [
-            { username: "superadmin", password: "super123", role: "superadmin" }
-        ];
-        localStorage.setItem(STORAGE_ACCOUNTS, JSON.stringify(userAccounts));
+// Load users from database
+function loadUsers() {
+    const saved = localStorage.getItem(USER_DB);
+    if (saved) {
+        users = JSON.parse(saved);
     } else {
-        userAccounts = JSON.parse(data);
+        // Default super admin
+        users = [
+            { username: 'superadmin', password: 'super123', role: 'superadmin' }
+        ];
+        saveUsersToDB();
     }
 }
 
-function login() {
-    initAccounts();
-    let user = document.getElementById("username").value.trim();
-    let pass = document.getElementById("password").value.trim();
-    let account = userAccounts.find(a => a.username === user && a.password === pass);
+// Save users to database
+function saveUsersToDB() {
+    localStorage.setItem(USER_DB, JSON.stringify(users));
+}
 
-    if (!account) { alert("Invalid login"); return; }
+// Create teacher (saved permanently)
+function createTeacher() {
+    const user = document.getElementById('newTeacherUser').value.trim();
+    const pass = document.getElementById('newTeacherPass').value.trim();
+    if (!user || !pass) return alert('Fill all fields');
+    if (users.some(u => u.username === user)) return alert('Username exists');
+
+    users.push({ username: user, password: pass, role: 'teacher' });
+    saveUsersToDB();
+    renderTeacherList();
+    document.getElementById('newTeacherUser').value = '';
+    document.getElementById('newTeacherPass').value = '';
+    alert('Teacher created and saved to database!');
+}
+
+// Show teacher list
+function renderTeacherList() {
+    const el = document.getElementById('teacherList');
+    el.innerHTML = '';
+    users.forEach(u => {
+        if (u.role === 'superadmin') return;
+        const div = document.createElement('div');
+        div.className = 'account-item';
+        div.innerHTML = `<span>${u.username}</span>`;
+        const btn = document.createElement('button');
+        btn.className = 'btn-red';
+        btn.innerText = 'Delete';
+        btn.onclick = () => {
+            if (!confirm('Delete?')) return;
+            users = users.filter(x => x.username !== u.username);
+            saveUsersToDB();
+            renderTeacherList();
+        };
+        div.appendChild(btn);
+        el.appendChild(div);
+    });
+}
+
+// Login
+function login() {
+    loadUsers();
+    const user = document.getElementById('username').value.trim();
+    const pass = document.getElementById('password').value.trim();
+    const found = users.find(u => u.username === user && u.password === pass);
+    if (!found) return alert('Invalid login');
 
     currentUser = user;
-    isSuperAdmin = account.role === "superadmin";
-    document.getElementById("loginPanel").classList.add("hidden");
-    document.getElementById("dashboard").classList.remove("hidden");
-    document.getElementById("userRoleDisplay").innerText =
-        isSuperAdmin ? "Role: Super Admin" : "Role: Teacher";
+    isSuperAdmin = found.role === 'superadmin';
+    document.getElementById('loginPanel').classList.add('hidden');
+    document.getElementById('dashboard').classList.remove('hidden');
+    document.getElementById('userRoleDisplay').innerText =
+        isSuperAdmin ? 'Logged in as Super Admin' : 'Logged in as Teacher';
 
-    if (isSuperAdmin) {
-        document.getElementById("teacherManagementSection").style.display = "block";
-        renderAccountList();
+    if (!isSuperAdmin) {
+        document.getElementById('teacherManagementSection').style.display = 'none';
+    } else {
+        renderTeacherList();
     }
 
     loadPrograms();
-    syncColorBoxes();
+    syncColors();
 }
 
 function logout() { location.reload(); }
 
-function createTeacherAccount() {
-    if (!isSuperAdmin) return;
-    let user = document.getElementById("newTeacherUser").value.trim();
-    let pass = document.getElementById("newTeacherPass").value.trim();
-    if (!user || !pass) { alert("Fill all fields"); return; }
-    if (userAccounts.some(a => a.username === user)) { alert("Username exists"); return; }
-
-    userAccounts.push({ username: user, password: pass, role: "teacher" });
-    localStorage.setItem(STORAGE_ACCOUNTS, JSON.stringify(userAccounts));
-    renderAccountList();
-    document.getElementById("newTeacherUser").value = "";
-    document.getElementById("newTeacherPass").value = "";
-    alert("Teacher created!");
-}
-
-function renderAccountList() {
-    let list = document.getElementById("accountsList");
-    list.innerHTML = "";
-    userAccounts.forEach(acc => {
-        if (acc.role === "superadmin") return;
-        let div = document.createElement("div");
-        div.className = "account-item";
-        div.innerHTML = `<span>${acc.username}</span>`;
-        let btn = document.createElement("button");
-        btn.className = "btn-red";
-        btn.innerText = "Delete";
-        btn.onclick = () => {
-            if (!confirm("Delete teacher?")) return;
-            userAccounts = userAccounts.filter(a => a.username !== acc.username);
-            localStorage.setItem(STORAGE_ACCOUNTS, JSON.stringify(userAccounts));
-            renderAccountList();
-        };
-        div.appendChild(btn);
-        list.appendChild(div);
-    });
-}
-
-// --------------------------
-// PROGRAM & NEWS (100% FIXED STORAGE)
-// --------------------------
+// ==============================
+// PROGRAM & NEWS (PERMANENT DB)
+// ==============================
 let programs = [];
-let selectedProgram = null;
+let selectedProgram;
 let blocks = [];
-let selectedBlock = null;
-let programNews = [];
-let selectedNews = null;
+let selectedBlock;
+let news = [];
+let selectedNews;
 
-const bgBox = document.getElementById("bgBox");
-const textColorBox = document.getElementById("textColorBox");
-const bgColor = document.getElementById("bgColor");
-const textColor = document.getElementById("textColor");
+// Color sync
+const bgBox = document.getElementById('bgBox');
+const textColorBox = document.getElementById('textColorBox');
+const bgColor = document.getElementById('bgColor');
+const textColor = document.getElementById('textColor');
 
-bgColor.addEventListener("input", () => bgBox.style.background = bgColor.value);
-textColor.addEventListener("input", () => textColorBox.style.background = textColor.value);
+bgColor.addEventListener('input', () => bgBox.style.background = bgColor.value);
+textColor.addEventListener('input', () => textColorBox.style.background = textColor.value);
 
-const bgInput = document.getElementById("newsBgImage");
-const bgPreview = document.getElementById("bgPreview");
-bgInput.addEventListener("change", () => {
-    let f = bgInput.files[0];
-    if (!f) return;
-    let r = new FileReader();
-    r.onload = e => { bgPreview.src = e.target.result; bgPreview.style.display = "block"; };
-    r.readAsDataURL(f);
-});
-
-function syncColorBoxes() {
+function syncColors() {
     bgBox.style.background = bgColor.value;
     textColorBox.style.background = textColor.value;
 }
 
-// LOAD PROGRAMS WITH PERMISSIONS
+// Image preview
+const imgInput = document.getElementById('newsImage');
+const previewImg = document.getElementById('previewImg');
+imgInput.addEventListener('change', () => {
+    const f = imgInput.files[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = e => {
+        previewImg.src = e.target.result;
+        previewImg.style.display = 'block';
+    };
+    r.readAsDataURL(f);
+});
+
+// Load programs from DB
 function loadPrograms() {
-    let data = localStorage.getItem(STORAGE_PROGRAMS);
+    const data = localStorage.getItem(PROGRAM_DB);
     programs = data ? JSON.parse(data) : [];
     if (!isSuperAdmin) {
         programs = programs.filter(p => p.createdBy === currentUser);
     }
 
-    let sel = document.getElementById("programSelect");
-    sel.innerHTML = "";
+    const sel = document.getElementById('programSelect');
+    sel.innerHTML = '';
     programs.forEach(p => {
-        let opt = document.createElement("option");
+        const opt = document.createElement('option');
         opt.value = p.id;
         opt.innerText = p.name;
         sel.appendChild(opt);
     });
-    if (programs.length > 0) selectProgram(programs[0].id);
+    if (programs.length) selectProgram(programs[0].id);
 }
 
+// Save programs to DB
+function saveProgramsToDB() {
+    localStorage.setItem(PROGRAM_DB, JSON.stringify(programs));
+}
+
+// Select program
 function selectProgram(id) {
     selectedProgram = programs.find(p => p.id === id);
     blocks = [...selectedProgram.blocks];
-    programNews = selectedProgram.news || [];
+    news = selectedProgram.news || [];
     renderStage();
     renderNewsList();
     resetNewsForm();
-    syncColorBoxes();
 }
 
-function createProgramWithTemplate() {
-    let name = document.getElementById("newProgName").value.trim() || "New Program";
-    let newProg = {
-        id: "prog_" + Date.now(),
-        name: name,
+// Create program
+function createProgram() {
+    const name = document.getElementById('newProgName').value.trim() || 'New Program';
+    const p = {
+        id: 'p' + Date.now(),
+        name,
         createdBy: currentUser,
         blocks: [
-            { id: "b1", title: "Basic Info", content: "Details here", x:5,y:5,w:42,h:25, bg:"#fff", text:"#000", border:"1px solid #3498db" },
-            { id: "b2", title: "How to Join", content: "Steps here", x:51,y:5,w:42,h:25, bg:"#fff", text:"#000", border:"1px solid #3498db" }
+            { id: 'b1', title: 'Info', content: 'Content', x:5,y:5,w:40,h:25, bg:'#fff', text:'#000', border:'1px solid #3498db' },
+            { id: 'b2', title: 'Details', content: 'Content', x:50,y:5,w:40,h:25, bg:'#fff', text:'#000', border:'1px solid #3498db' }
         ],
         news: []
     };
-    programs.push(newProg);
-    localStorage.setItem(STORAGE_PROGRAMS, JSON.stringify(programs));
+    programs.push(p);
+    saveProgramsToDB();
     loadPrograms();
 }
 
-function deleteCurrentProgram() {
+// Delete program
+function deleteProgram() {
     if (!selectedProgram) return;
-    if (selectedProgram.createdBy !== currentUser && !isSuperAdmin) { alert("No permission"); return; }
-    if (!confirm("Delete permanently?")) return;
+    if (selectedProgram.createdBy !== currentUser && !isSuperAdmin) return alert('No permission');
+    if (!confirm('Delete?')) return;
     programs = programs.filter(p => p.id !== selectedProgram.id);
-    localStorage.setItem(STORAGE_PROGRAMS, JSON.stringify(programs));
+    saveProgramsToDB();
     loadPrograms();
 }
 
-// --------------------------
+// ==============================
 // NEWS
-// --------------------------
+// ==============================
 function renderNewsList() {
-    let list = document.getElementById("programNewsList");
-    list.innerHTML = "";
-    programNews.forEach(n => {
-        let div = document.createElement("div");
-        div.className = "news-item";
+    const list = document.getElementById('newsList');
+    list.innerHTML = '';
+    news.forEach(n => {
+        const div = document.createElement('div');
+        div.className = 'news-item';
         div.innerText = n.title;
         div.onclick = () => {
             selectedNews = n;
-            document.getElementById("newsTitle").value = n.title;
-            document.getElementById("newsOverview").value = n.overview;
-            document.getElementById("newsContent").value = n.content;
-            bgPreview.src = n.bgImage || "";
-            bgPreview.style.display = n.bgImage ? "block" : "none";
-            document.getElementById("delNewsBtn").style.display = "inline-block";
+            document.getElementById('newsTitle').value = n.title;
+            document.getElementById('newsOverview').value = n.overview;
+            document.getElementById('newsContent').value = n.content;
+            previewImg.src = n.image || '';
+            previewImg.style.display = n.image ? 'block' : 'none';
+            document.getElementById('deleteNewsBtn').style.display = 'inline-block';
         };
         list.appendChild(div);
     });
 }
 
 function resetNewsForm() {
-    document.getElementById("newsTitle").value = "";
-    document.getElementById("newsOverview").value = "";
-    document.getElementById("newsContent").value = "";
-    bgInput.value = "";
-    bgPreview.src = "";
-    bgPreview.style.display = "none";
+    document.getElementById('newsTitle').value = '';
+    document.getElementById('newsOverview').value = '';
+    document.getElementById('newsContent').value = '';
+    imgInput.value = '';
+    previewImg.src = '';
+    previewImg.style.display = 'none';
     selectedNews = null;
-    document.getElementById("delNewsBtn").style.display = "none";
+    document.getElementById('deleteNewsBtn').style.display = 'none';
 }
 
-function saveProgramNews() {
-    let title = document.getElementById("newsTitle").value.trim();
-    let overview = document.getElementById("newsOverview").value.trim();
-    let content = document.getElementById("newsContent").value.trim();
-    let bgImage = bgPreview.src || "";
-    if (!title || !overview || !content) { alert("Fill all fields"); return; }
+function saveNews() {
+    const title = document.getElementById('newsTitle').value.trim();
+    const overview = document.getElementById('newsOverview').value.trim();
+    const content = document.getElementById('newsContent').value.trim();
+    const image = previewImg.src || '';
+    if (!title || !overview || !content) return alert('Fill all fields');
 
-    let newsItem = {
-        id: "news_" + Date.now(),
-        title, overview, content, bgImage,
+    const item = {
+        id: 'n' + Date.now(),
+        title, overview, content, image,
         date: new Date().toLocaleString()
     };
 
     if (selectedNews) {
-        let i = programNews.findIndex(x => x.id === selectedNews.id);
-        programNews[i] = { ...selectedNews, title, overview, content, bgImage };
+        const i = news.findIndex(x => x.id === selectedNews.id);
+        news[i] = item;
     } else {
-        programNews.unshift(newsItem);
+        news.unshift(item);
     }
 
-    selectedProgram.news = programNews;
-    localStorage.setItem(STORAGE_PROGRAMS, JSON.stringify(programs));
+    selectedProgram.news = news;
+    saveProgramsToDB();
     renderNewsList();
     resetNewsForm();
-    alert("News saved!");
 }
 
-function deleteSelectedNews() {
+function removeSelectedNews() {
     if (!selectedNews) return;
-    programNews = programNews.filter(n => n.id !== selectedNews.id);
-    selectedProgram.news = programNews;
-    localStorage.setItem(STORAGE_PROGRAMS, JSON.stringify(programs));
+    news = news.filter(n => n.id !== selectedNews.id);
+    selectedProgram.news = news;
+    saveProgramsToDB();
     renderNewsList();
     resetNewsForm();
 }
 
-// --------------------------
-// DRAG & DROP BLOCKS
-// --------------------------
+// ==============================
+// DRAG BLOCKS
+// ==============================
 function renderStage() {
-    let stage = document.getElementById("stage");
-    stage.innerHTML = "";
+    const stage = document.getElementById('stage');
+    stage.innerHTML = '';
     blocks.forEach(b => {
-        let el = document.createElement("div");
-        el.className = "block";
+        const el = document.createElement('div');
+        el.className = 'block';
         el.dataset.id = b.id;
-        el.style.left = b.x + "%";
-        el.style.top = b.y + "%";
-        el.style.width = b.w + "%";
-        el.style.height = b.h + "%";
+        el.style.left = b.x + '%';
+        el.style.top = b.y + '%';
+        el.style.width = b.w + '%';
+        el.style.height = b.h + '%';
         el.style.background = b.bg;
         el.style.color = b.text;
         el.style.border = b.border;
         el.innerHTML = `<strong>${b.title}</strong><br>${b.content}`;
 
-        let rh = document.createElement("div");
-        rh.className = "resize-handle";
+        const rh = document.createElement('div');
+        rh.className = 'resize-handle';
         el.appendChild(rh);
 
         el.onclick = () => {
             selectedBlock = b;
-            document.getElementById("blockTitle").value = b.title;
-            document.getElementById("blockContent").value = b.content;
+            document.getElementById('blockTitle').value = b.title;
+            document.getElementById('blockContent').value = b.content;
             bgColor.value = b.bg;
             textColor.value = b.text;
-            syncColorBoxes();
+            syncColors();
         };
 
-        let drag = null, resize = null;
-        let sx, sy, l, t, w, h;
-
+        let drag, resize, sx, sy, l, t, w, h;
         el.onmousedown = e => {
             e.preventDefault();
             if (e.target === rh) {
@@ -547,50 +573,49 @@ function renderStage() {
         };
 
         document.onmousemove = e => {
-            let r = stage.getBoundingClientRect();
+            const r = stage.getBoundingClientRect();
             if (drag) {
-                let dx = (e.x - sx) / r.width * 100;
-                let dy = (e.y - sy) / r.height * 100;
-                el.style.left = Math.max(0, Math.min(100, l + dx)) + "%";
-                el.style.top = Math.max(0, Math.min(100, t + dy)) + "%";
+                const dx = (e.x - sx) / r.width * 100;
+                const dy = (e.y - sy) / r.height * 100;
+                el.style.left = Math.max(0, Math.min(100, l + dx)) + '%';
+                el.style.top = Math.max(0, Math.min(100, t + dy)) + '%';
             }
             if (resize) {
-                let dx = (e.x - sx) / r.width * 100;
-                let dy = (e.y - sy) / r.height * 100;
-                el.style.width = Math.max(5, Math.min(100, w + dx)) + "%";
-                el.style.height = Math.max(5, Math.min(100, h + dy)) + "%";
+                const dx = (e.x - sx) / r.width * 100;
+                const dy = (e.y - sy) / r.height * 100;
+                el.style.width = Math.max(5, Math.min(100, w + dx)) + '%';
+                el.style.height = Math.max(5, Math.min(100, h + dy)) + '%';
             }
         };
-
-        document.onmouseup = () => { drag = resize = null; };
+        document.onmouseup = () => drag = resize = null;
         stage.appendChild(el);
     });
 }
 
-function saveBlock() {
+function updateBlock() {
     if (!selectedBlock) return;
-    selectedBlock.title = document.getElementById("blockTitle").value;
-    selectedBlock.content = document.getElementById("blockContent").value;
+    selectedBlock.title = document.getElementById('blockTitle').value;
+    selectedBlock.content = document.getElementById('blockContent').value;
     selectedBlock.bg = bgColor.value;
     selectedBlock.text = textColor.value;
     renderStage();
-    localStorage.setItem(STORAGE_PROGRAMS, JSON.stringify(programs));
+    saveProgramsToDB();
 }
 
-function savePositions() {
+function saveLayout() {
     blocks.forEach(b => {
-        let el = document.querySelector(`[data-id="${b.id}"]`);
+        const el = document.querySelector(`[data-id="${b.id}"]`);
         b.x = parseFloat(el.style.left);
         b.y = parseFloat(el.style.top);
         b.w = parseFloat(el.style.width);
         b.h = parseFloat(el.style.height);
     });
-    localStorage.setItem(STORAGE_PROGRAMS, JSON.stringify(programs));
-    alert("Positions saved!");
+    saveProgramsToDB();
+    alert('Layout saved to database');
 }
 
-// INIT
-initAccounts();
+// Init
+loadUsers();
 </script>
 </body>
 </html>
