@@ -97,14 +97,13 @@
 <div id="content"></div>
 
 <script>
-const API = "https://service-learning-ashen.vercel.app/api";
-
+const API = "/api";
 let programs = [];
 let current = null;
 
-// LOAD ALL PROGRAMS FROM DATABASE — works on ANY device
 async function load() {
   try {
+    // Get all programs
     const res = await fetch(`${API}/programs?admin=true`);
     programs = await res.json();
 
@@ -113,11 +112,12 @@ async function load() {
       renderTabs();
       renderContent();
     } else {
-      document.getElementById("tabs").innerHTML = "No projects";
-      document.getElementById("content").innerHTML = `<div class="empty">No projects yet</div>`;
+      document.getElementById("tabs").innerHTML = "No projects yet";
+      document.getElementById("content").innerHTML = `<div class="empty">Create a project in the admin panel first.</div>`;
     }
   } catch (e) {
-    document.getElementById("content").innerHTML = `<div class="empty">Failed to load</div>`;
+    console.error("Full error:", e);
+    document.getElementById("content").innerHTML = `<div class="empty">Failed to load projects. Check console for details.</div>`;
   }
 }
 
@@ -139,22 +139,37 @@ function renderTabs() {
 }
 
 function renderContent() {
-  const blocks = JSON.parse(current.blocks || "[]");
-  const info = blocks.find(x => x.id === "info") || { title: "Basic Info", content: "" };
-  const contact = blocks.find(x => x.id === "contact") || { title: "Contact", content: "" };
+  try {
+    // Safe JSON parsing with fallback
+    let blocks = [];
+    if (current.blocks) {
+      try {
+        blocks = JSON.parse(current.blocks);
+      } catch (parseErr) {
+        console.error("Failed to parse blocks JSON:", parseErr);
+        blocks = [];
+      }
+    }
 
-  document.getElementById("content").innerHTML = `
-    <div class="two-box">
-      <div class="box">
-        <h3>${info.title}</h3>
-        <p>${info.content}</p>
+    const info = blocks.find(x => x.id === "info") || { title: "Basic Information", content: "Add content in the admin panel." };
+    const contact = blocks.find(x => x.id === "contact") || { title: "Contact Information", content: "Add content in the admin panel." };
+
+    document.getElementById("content").innerHTML = `
+      <div class="two-box">
+        <div class="box">
+          <h3>${info.title}</h3>
+          <p>${info.content}</p>
+        </div>
+        <div class="box">
+          <h3>${contact.title}</h3>
+          <p>${contact.content}</p>
+        </div>
       </div>
-      <div class="box">
-        <h3>${contact.title}</h3>
-        <p>${contact.content}</p>
-      </div>
-    </div>
-  `;
+    `;
+  } catch (renderErr) {
+    console.error("Render error:", renderErr);
+    document.getElementById("content").innerHTML = `<div class="empty">Failed to load content. Please save the layout again in the admin panel.</div>`;
+  }
 }
 
 load();
