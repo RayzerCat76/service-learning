@@ -3,170 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Learning Projects</title>
+    <title>Projects</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
-
-        body {
-            background: #f5f7fa;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        .project-bar {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-            margin-bottom: 20px;
-        }
-
-        .project-bar h2 {
-            color: #2d3748;
-            margin-bottom: 15px;
-            font-size: 20px;
-        }
-
-        .tabs {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .tab {
-            padding: 10px 18px;
-            background: #e6e6e6;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
-        .tab.active {
-            background: #3498db;
-            color: white;
-        }
-
-        .two-box {
-            display: flex;
-            gap: 20px;
-        }
-
-        .box {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-            width: 50%;
-            min-height: 400px;
-        }
-
-        .box h3 {
-            color: #2d3748;
-            margin-bottom: 15px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .box p {
-            line-height: 1.6;
-            color: #333;
-        }
-
-        .empty {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            text-align: center;
-            color: #666;
-        }
+        *{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
+        body{background:#f5f7fa;padding:20px;max-width:1200px;margin:auto}
+        .bar{background:white;padding:20px;border-radius:12px;margin-bottom:20px}
+        .tab{padding:10px 18px;background:#e6e6e6;border:none;border-radius:6px;margin:5px;cursor:pointer}
+        .tab.active{background:#3498db;color:white}
+        .two{display:flex;gap:20px}
+        .box{background:white;padding:25px;border-radius:12px;width:50%;min-height:400px}
+        .box h3{border-bottom:1px solid #eee;padding-bottom:8px;margin-bottom:15px}
     </style>
 </head>
 <body>
-
-<div class="project-bar">
-    <h2>Service Learning</h2>
-    <div id="tabs" class="tabs">Loading...</div>
+<div class="bar">
+    <h2>Projects</h2>
+    <div id="tabs"></div>
 </div>
-
 <div id="content"></div>
 
 <script>
 const API = "/api";
-let programs = [];
-let current = null;
+let programs = [], current;
 
 async function load() {
-  try {
     const res = await fetch(`${API}/programs?admin=true`);
     programs = await res.json();
-
-    if (programs.length > 0) {
-      current = programs[0];
-      renderTabs();
-      renderContent();
-    } else {
-      document.getElementById("tabs").innerHTML = "No projects yet";
-      document.getElementById("content").innerHTML = `<div class="empty">Create a project in the admin panel first.</div>`;
+    if (programs.length) {
+        current = programs[0];
+        render();
     }
-  } catch (e) {
-    console.error(e);
-    document.getElementById("content").innerHTML = `<div class="empty">Failed to load projects.</div>`;
-  }
 }
 
-function renderTabs() {
-  const el = document.getElementById("tabs");
-  el.innerHTML = "";
+function render() {
+    const t = document.getElementById("tabs");
+    t.innerHTML = "";
+    programs.forEach(p => {
+        const b = document.createElement("button");
+        b.className = "tab" + (p.id === current.id ? " active" : "");
+        b.innerText = p.name;
+        b.onclick = () => { current = p; render(); };
+        t.appendChild(b);
+    });
 
-  programs.forEach(p => {
-    const btn = document.createElement("button");
-    btn.className = "tab" + (p.id === current.id ? " active" : "");
-    btn.innerText = p.name;
-    btn.onclick = () => {
-      current = p;
-      renderTabs();
-      renderContent();
-    };
-    el.appendChild(btn);
-  });
+    let blocks = [];
+    try { blocks = JSON.parse(current.blocks || "[]"); } catch {}
+    const info = blocks.find(x=>x.id==="info")||{title:"Info",content:""};
+    const contact = blocks.find(x=>x.id==="contact")||{title:"Contact",content:""};
+
+    document.getElementById("content").innerHTML = `
+    <div class="two">
+        <div class="box"><h3>${info.title}</h3><p>${info.content}</p></div>
+        <div class="box"><h3>${contact.title}</h3><p>${contact.content}</p></div>
+    </div>`;
 }
 
-function renderContent() {
-  let blocks = [];
-  try {
-    blocks = JSON.parse(current.blocks || "[]");
-  } catch (e) {
-    console.error("Failed to parse blocks:", e);
-    blocks = [];
-  }
-
-  const info = blocks.find(x => x.id === "info") || { title: "Basic Info", content: "" };
-  const contact = blocks.find(x => x.id === "contact") || { title: "Contact", content: "" };
-
-  document.getElementById("content").innerHTML = `
-    <div class="two-box">
-      <div class="box">
-        <h3>${info.title}</h3>
-        <p>${info.content}</p>
-      </div>
-      <div class="box">
-        <h3>${contact.title}</h3>
-        <p>${contact.content}</p>
-      </div>
-    </div>
-  `;
-}
-
-// Auto-refresh every 2 seconds to show admin changes
 load();
 setInterval(load, 2000);
 </script>
-
 </body>
 </html>
