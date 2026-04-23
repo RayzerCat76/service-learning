@@ -1,595 +1,336 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Learning Admin</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-        }
-        body {
-            background: #f5f7fa;
-            padding: 20px;
-            max-width: 1200px;
-            margin: auto;
-        }
-        .box {
-            background: white;
-            padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-            margin-bottom: 20px;
-        }
-        h2, h3 {
-            margin-bottom: 16px;
-            color: #2d3748;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 8px;
-        }
-        .form-group {
-            margin-bottom: 14px;
-        }
-        input, textarea, select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-        button {
-            padding: 10px 16px;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            margin-right: 6px;
-        }
-        .btn-blue { background: #3498db; color: white; }
-        .btn-red  { background: #e74c3c; color: white; }
-        .btn-green{ background: #2ecc71; color: white; }
-        .btn-purple{ background: #9b59b6; color: white; }
-        .hidden { display: none; }
-        .flex {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        .account-item {
-            padding: 12px;
-            border: 1px solid #eee;
-            border-radius: 6px;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .color-box {
-            width: 44px;
-            height: 44px;
-            border-radius: 6px;
-            border: 2px solid #ddd;
-            cursor: pointer;
-        }
-        .color-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        input[type="color"] { display: none; }
-        .preview {
-            position: relative;
-            width: 100%;
-            height: 400px;
-            background: #fafafa;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        .preview-stage {
-            position: relative;
-            width: 100%;
-            height: 100%;
-        }
-        .block {
-            position: absolute;
-            padding: 14px;
-            border-radius: 8px;
-            background: white;
-            border: 1px solid #3498db;
-            cursor: move;
-            overflow: hidden;
-            line-height: 1.5;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .resize-handle {
-            position: absolute;
-            right: 0;
-            bottom: 0;
-            width: 16px;
-            height: 16px;
-            background: #3498db;
-            cursor: se-resize;
-            border-radius: 0 0 8px 0;
-        }
-        .news-list {
-            max-height: 300px;
-            overflow-y: auto;
-            margin-top: 10px;
-        }
-        .news-item {
-            padding: 12px;
-            border: 1px solid #eee;
-            border-radius: 6px;
-            margin-bottom: 8px;
-            cursor: pointer;
-        }
-        .news-item:hover { background: #f8f9fa; }
-        .bg-preview {
-            width: 100%;
-            max-height: 150px;
-            object-fit: cover;
-            border-radius: 6px;
-            margin: 10px 0;
-            display: none;
-        }
-        @media (max-width: 768px) {
-            .preview { height: 320px; }
-            .flex { gap: 8px; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Service Learning Admin</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
+  body{background:#f5f7fa;padding:20px;max-width:1200px;margin:auto}
+  .box{background:white;padding:24px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.08);margin-bottom:20px}
+  h2,h3{margin-bottom:16px;color:#2d3748;border-bottom:1px solid #eee;padding-bottom:8px}
+  .form-group{margin-bottom:14px}
+  input,textarea,select{width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:14px}
+  button{padding:10px 16px;border-radius:6px;border:none;cursor:pointer;margin-right:6px}
+  .btn-blue{background:#3498db;color:white}
+  .btn-red{background:#e74c3c;color:white}
+  .btn-green{background:#2ecc71;color:white}
+  .btn-purple{background:#9b59b6;color:white}
+  .hidden{display:none}
+  .flex{display:flex;gap:12px;flex-wrap:wrap}
+  .account-item{padding:12px;border:1px solid #eee;border-radius:6px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+  .color-box{width:44px;height:44px;border-radius:6px;border:2px solid #ddd;cursor:pointer}
+  .color-row{display:flex;align-items:center;gap:10px}
+  input[type="color"]{display:none}
+  .preview{position:relative;width:100%;height:400px;background:#fafafa;border:1px solid #ddd;border-radius:10px;overflow:hidden}
+  .preview-stage{position:relative;width:100%;height:100%}
+  .block{position:absolute;padding:14px;border-radius:8px;background:white;border:1px solid #3498db;overflow:hidden;line-height:1.5;box-shadow:0 2px 4px rgba(0,0,0,0.1)}
+  .resize-handle{position:absolute;right:0;bottom:0;width:16px;height:16px;background:#3498db;border-radius:0 0 8px 0}
+  .news-list{max-height:300px;overflow-y:auto;margin-top:10px}
+  .news-item{padding:12px;border:1px solid #eee;border-radius:6px;margin-bottom:8px;cursor:pointer}
+  .news-item:hover{background:#f8f9fa}
+  .bg-preview{width:100%;max-height:150px;object-fit:cover;border-radius:6px;margin:10px 0;display:none}
+  @media (max-width:768px){.preview{height:320px}.flex{gap:8px}}
+</style>
 </head>
 <body>
 
-<!-- LOGIN -->
 <div class="box" id="loginPanel">
-    <h2>Admin Login</h2>
-    <div class="form-group">
-        <input type="text" id="username" placeholder="Username" value="master">
-    </div>
-    <div class="form-group">
-        <input type="password" id="password" placeholder="Password" value="master123">
-    </div>
-    <button class="btn-blue" onclick="login()">Login</button>
+  <h2>Admin Login</h2>
+  <div class="form-group"><input type="text" id="username" placeholder="Username" value="master"></div>
+  <div class="form-group"><input type="password" id="password" placeholder="Password" value="master123"></div>
+  <button class="btn-blue" onclick="login()">Login</button>
 </div>
 
-<!-- DASHBOARD -->
 <div id="dashboard" class="hidden">
-    <div class="box">
-        <h2>Service Learning Admin
-            <button class="btn-red" style="float:right" onclick="logout()">Logout</button>
-        </h2>
-        <p id="userRoleDisplay"></p>
-    </div>
+  <div class="box">
+    <h2>Service Learning Admin <button class="btn-red" style="float:right" onclick="logout()">Logout</button></h2>
+    <p id="userRoleDisplay"></p>
+  </div>
 
-    <div class="box" id="teacherManagementSection">
-        <h3>Teacher Management</h3>
-        <div class="form-group">
-            <input type="text" id="newTeacherUser" placeholder="Username">
-        </div>
-        <div class="form-group">
-            <input type="password" id="newTeacherPass" placeholder="Password">
-        </div>
-        <button class="btn-green" onclick="createTeacher()">Create Teacher</button>
-        <h3 style="margin-top:24px;">Teacher List</h3>
-        <div id="teacherList"></div>
-    </div>
+  <div class="box" id="teacherManagementSection">
+    <h3>Teacher Management</h3>
+    <div class="form-group"><input type="text" id="newTeacherUser" placeholder="Username"></div>
+    <div class="form-group"><input type="password" id="newTeacherPass" placeholder="Password"></div>
+    <button class="btn-green" onclick="createTeacher()">Create Teacher</button>
+    <h3 style="margin-top:24px;">Teacher List</h3>
+    <div id="teacherList"></div>
+  </div>
 
-    <div class="box">
-        <h3>Programs</h3>
-        <div class="form-group">
-            <input type="text" id="newProgName" placeholder="Program Name">
-            <button class="btn-green" onclick="createProgram()">Create</button>
-        </div>
-        <div class="form-group">
-            <select id="programSelect" onchange="selectProgram(this.value)"></select>
-        </div>
-        <button class="btn-red" onclick="deleteProgram()">Delete Program</button>
+  <div class="box">
+    <h3>Programs</h3>
+    <div class="form-group">
+      <input type="text" id="newProgName" placeholder="Program Name">
+      <button class="btn-green" onclick="createProgram()">Create</button>
     </div>
+    <div class="form-group"><select id="programSelect" onchange="selectProgram(this.value)"></select></div>
+    <button class="btn-red" onclick="deleteProgram()">Delete Program</button>
+  </div>
 
-    <div class="box">
-        <h3>News</h3>
-        <div class="form-group">
-            <input type="text" id="newsTitle" placeholder="Title">
-        </div>
-        <div class="form-group">
-            <input type="text" id="newsOverview" placeholder="Overview">
-        </div>
-        <div class="form-group">
-            <label>Image</label>
-            <input type="file" id="newsImage" accept="image/*">
-            <img id="previewImg" class="bg-preview">
-        </div>
-        <div class="form-group">
-            <textarea id="newsContent" rows="4" placeholder="Content"></textarea>
-        </div>
-        <button class="btn-purple" onclick="saveNews()">Save News</button>
-        <button class="btn-red" id="deleteNewsBtn" style="display:none" onclick="removeSelectedNews()">Delete News</button>
-        <div class="news-list" id="newsList"></div>
+  <div class="box">
+    <h3>News</h3>
+    <div class="form-group"><input type="text" id="newsTitle" placeholder="Title"></div>
+    <div class="form-group"><input type="text" id="newsOverview" placeholder="Overview"></div>
+    <div class="form-group">
+      <label>Image</label><input type="file" id="newsImage" accept="image/*">
+      <img id="previewImg" class="bg-preview">
     </div>
+    <div class="form-group"><textarea id="newsContent" rows="4" placeholder="Content"></textarea></div>
+    <button class="btn-purple" onclick="saveNews()">Save News</button>
+    <button class="btn-red" id="deleteNewsBtn" style="display:none" onclick="removeSelectedNews()">Delete News</button>
+    <div class="news-list" id="newsList"></div>
+  </div>
 
-    <div class="box">
-        <h3>Edit Block</h3>
-        <div class="form-group">
-            <input type="text" id="blockTitle" placeholder="Block Title">
+  <div class="box">
+    <h3>Edit Block</h3>
+    <div class="form-group"><input type="text" id="blockTitle" placeholder="Block Title"></div>
+    <div class="form-group"><textarea id="blockContent" rows="3" placeholder="Content"></textarea></div>
+    <div class="flex">
+      <div>
+        <label>Background</label>
+        <div class="color-row">
+          <div id="bgBox" class="color-box" onclick="bgColor.click()"></div>
+          <input type="color" id="bgColor" value="#ffffff">
         </div>
-        <div class="form-group">
-            <textarea id="blockContent" rows="3" placeholder="Content"></textarea>
+      </div>
+      <div>
+        <label>Text Color</label>
+        <div class="color-row">
+          <div id="textColorBox" class="color-box" onclick="textColor.click()"></div>
+          <input type="color" id="textColor" value="#000000">
         </div>
-        <div class="flex">
-            <div>
-                <label>Background</label>
-                <div class="color-row">
-                    <div id="bgBox" class="color-box" onclick="bgColor.click()"></div>
-                    <input type="color" id="bgColor" value="#ffffff">
-                </div>
-            </div>
-            <div>
-                <label>Text Color</label>
-                <div class="color-row">
-                    <div id="textColorBox" class="color-box" onclick="textColor.click()"></div>
-                    <input type="color" id="textColor" value="#000000">
-                </div>
-            </div>
-        </div>
-        <button class="btn-blue" onclick="updateBlock()">Save Block</button>
+      </div>
     </div>
+    <button class="btn-blue" onclick="updateBlock()">Save Block</button>
+  </div>
 
-    <div class="box">
-        <h3>Layout Preview (Drag & Resize Blocks)</h3>
-        <div class="preview">
-            <div id="stage" class="preview-stage"></div>
-        </div>
-        <button class="btn-blue" onclick="saveLayout()">Save Layout</button>
-    </div>
+  <div class="box">
+    <h3>Layout Preview (Drag & Resize)</h3>
+    <div class="preview"><div id="stage" class="preview-stage"></div></div>
+    <button class="btn-blue" onclick="saveLayout()">Save Layout</button>
+  </div>
 </div>
 
 <script>
 const API_URL = "/api";
-let currentUser = null;
-let isSuperAdmin = false;
-let programs = [];
-let selectedProgram = null;
-let blocks = [];
-let selectedBlock = null;
-let news = [];
-let selectedNews = null;
+let currentUser, isSuperAdmin, programs, selectedProgram, blocks, selectedBlock, news, selectedNews;
 
-// ------------------------------
-// LOGIN
-// ------------------------------
-async function login() {
-    const username = document.getElementById("username").value.trim();
-    const password = document.getElementById("password").value.trim();
-    try {
-        const res = await fetch(`${API_URL}/login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, password })
-        });
-        if (!res.ok) throw new Error((await res.json()).error);
-        const data = await res.json();
-        currentUser = data.user.username;
-        isSuperAdmin = data.user.role === "master";
-
-        document.getElementById("loginPanel").classList.add("hidden");
-        document.getElementById("dashboard").classList.remove("hidden");
-        document.getElementById("userRoleDisplay").innerText =
-            isSuperAdmin ? "Master Admin" : "Teacher";
-
-        if (!isSuperAdmin) document.getElementById("teacherManagementSection").style.display = "none";
-        else loadTeachers();
-
-        loadPrograms();
-        syncColorBoxes();
-    } catch (err) {
-        alert(err.message);
-    }
-}
-
-function logout() { location.reload(); }
-
-// ------------------------------
-// TEACHERS
-// ------------------------------
-async function loadTeachers() {
-    const res = await fetch(`${API_URL}/teachers`);
-    const teachers = await res.json();
-    const list = document.getElementById("teacherList");
-    list.innerHTML = "";
-    teachers.forEach(t => {
-        const div = document.createElement("div");
-        div.className = "account-item";
-        div.innerHTML = `<span>${t.username}</span>`;
-        const btn = document.createElement("button");
-        btn.className = "btn-red";
-        btn.innerText = "Delete";
-        btn.onclick = async () => {
-            if (!confirm("Delete?")) return;
-            await fetch(`${API_URL}/teachers/${t.id}`, { method: "DELETE" });
-            loadTeachers();
-        };
-        div.appendChild(btn);
-        list.appendChild(div);
-    });
-}
-
-async function createTeacher() {
-    const u = document.getElementById("newTeacherUser").value.trim();
-    const p = document.getElementById("newTeacherPass").value.trim();
-    if (!u || !p) return alert("Fill all fields");
-    await fetch(`${API_URL}/teachers`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: u, password: p })
-    });
-    document.getElementById("newTeacherUser").value = "";
-    document.getElementById("newTeacherPass").value = "";
-    loadTeachers();
-    alert("Created!");
-}
-
-// ------------------------------
-// PROGRAMS
-// ------------------------------
-async function loadPrograms() {
-    const res = await fetch(`${API_URL}/programs?user=${currentUser}&admin=${isSuperAdmin}`);
-    programs = await res.json();
-    const sel = document.getElementById("programSelect");
-    sel.innerHTML = "";
-    programs.forEach(p => {
-        const opt = document.createElement("option");
-        opt.value = p.id;
-        opt.innerText = p.name;
-        sel.appendChild(opt);
-    });
-    if (programs.length) selectProgram(programs[0].id);
-}
-
-async function selectProgram(id) {
-    selectedProgram = programs.find(p => p.id == id);
-    blocks = JSON.parse(selectedProgram.blocks || "[]");
-    news = JSON.parse(selectedProgram.news || "[]");
-    renderStage();
-    renderNewsList();
-    resetNewsForm();
-}
-
-async function createProgram() {
-    const name = document.getElementById("newProgName").value.trim() || "New Program";
-    const defaultBlocks = JSON.stringify([
-        { id: "b1", title: "Title", content: "Content here", x:5,y:5,w:40,h:25, bg:"#ffffff", text:"#000000", border:"1px solid #3498db" },
-        { id: "b2", title: "Info", content: "Details here", x:50,y:5,w:40,h:25, bg:"#ffffff", text:"#000000", border:"1px solid #3498db" }
-    ]);
-    await fetch(`${API_URL}/programs`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, createdBy: currentUser, blocks: defaultBlocks, news: "[]" })
-    });
+// 登录
+async function login(){
+  const username=document.getElementById("username").value.trim();
+  const password=document.getElementById("password").value.trim();
+  try{
+    const r=await fetch(API_URL+"/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username,password})});
+    if(!r.ok)throw new Error((await r.json()).error);
+    const d=await r.json();
+    currentUser=d.user.username;
+    isSuperAdmin=d.user.role==="master";
+    document.getElementById("loginPanel").classList.add("hidden");
+    document.getElementById("dashboard").classList.remove("hidden");
+    document.getElementById("userRoleDisplay").innerText=isSuperAdmin?"Master Admin":"Teacher";
+    if(!isSuperAdmin)document.getElementById("teacherManagementSection").style.display="none";
+    else loadTeachers();
     loadPrograms();
+    syncColorBoxes();
+  }catch(e){alert(e.message)}
+}
+function logout(){location.reload()}
+
+// 教师
+async function loadTeachers(){
+  const t=await(await fetch(API_URL+"/teachers")).json();
+  const l=document.getElementById("teacherList");l.innerHTML="";
+  t.forEach(i=>{
+    const d=document.createElement("div");d.className="account-item";
+    d.innerHTML=`<span>${i.username}</span>`;
+    const b=document.createElement("button");b.className="btn-red";b.innerText="Delete";
+    b.onclick=async()=>{if(!confirm("Delete?"))return;await fetch(API_URL+"/teachers/"+i.id,{method:"DELETE"});loadTeachers()};
+    d.appendChild(b);l.appendChild(d);
+  })
+}
+async function createTeacher(){
+  const u=document.getElementById("newTeacherUser").value.trim();
+  const p=document.getElementById("newTeacherPass").value.trim();
+  if(!u||!p)return alert("Fill all");
+  await fetch(API_URL+"/teachers",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:u,password:p})});
+  document.getElementById("newTeacherUser").value="";document.getElementById("newTeacherPass").value="";loadTeachers();alert("Created")
 }
 
-async function deleteProgram() {
-    if (!selectedProgram) return;
-    if (!confirm("Delete permanently?")) return;
-    await fetch(`${API_URL}/programs/${selectedProgram.id}`, { method: "DELETE" });
-    loadPrograms();
+// 项目
+async function loadPrograms(){
+  programs=await(await fetch(API_URL+"/programs?user="+currentUser+"&admin="+isSuperAdmin)).json();
+  const s=document.getElementById("programSelect");s.innerHTML="";
+  programs.forEach(p=>{const o=document.createElement("option");o.value=p.id;o.innerText=p.name;s.appendChild(o)});
+  if(programs.length)selectProgram(programs[0].id)
+}
+async function selectProgram(id){
+  selectedProgram=programs.find(p=>p.id==id);
+  blocks=JSON.parse(selectedProgram.blocks||"[]");
+  news=JSON.parse(selectedProgram.news||"[]");
+  renderStage();renderNewsList();resetNewsForm()
+}
+async function createProgram(){
+  const n=document.getElementById("newProgName").value.trim()||"New Program";
+  const b=JSON.stringify([
+    {id:"b1",title:"Block 1",content:"Content",x:5,y:5,w:40,h:25,bg:"#fff",text:"#000",border:"1px solid #3498db"},
+    {id:"b2",title:"Block 2",content:"Content",x:50,y:5,w:40,h:25,bg:"#fff",text:"#000",border:"1px solid #3498db"}
+  ]);
+  await fetch(API_URL+"/programs",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:n,createdBy:currentUser,blocks:b,news:"[]"})});
+  loadPrograms()
+}
+async function deleteProgram(){
+  if(!selectedProgram)return;if(!confirm("Delete?"))return;
+  await fetch(API_URL+"/programs/"+selectedProgram.id,{method:"DELETE"});loadPrograms()
 }
 
-// ------------------------------
-// NEWS
-// ------------------------------
-function renderNewsList() {
-    const list = document.getElementById("newsList");
-    list.innerHTML = "";
-    news.forEach(n => {
-        const div = document.createElement("div");
-        div.className = "news-item";
-        div.innerText = n.title;
-        div.onclick = () => {
-            selectedNews = n;
-            document.getElementById("newsTitle").value = n.title;
-            document.getElementById("newsOverview").value = n.overview;
-            document.getElementById("newsContent").value = n.content;
-            document.getElementById("previewImg").src = n.image || "";
-            document.getElementById("previewImg").style.display = n.image ? "block" : "none";
-            document.getElementById("deleteNewsBtn").style.display = "inline-block";
-        };
-        list.appendChild(div);
-    });
-}
-
-function resetNewsForm() {
-    document.getElementById("newsTitle").value = "";
-    document.getElementById("newsOverview").value = "";
-    document.getElementById("newsContent").value = "";
-    document.getElementById("newsImage").value = "";
-    document.getElementById("previewImg").src = "";
-    document.getElementById("previewImg").style.display = "none";
-    selectedNews = null;
-    document.getElementById("deleteNewsBtn").style.display = "none";
-}
-
-async function saveNews() {
-    const title = document.getElementById("newsTitle").value.trim();
-    const overview = document.getElementById("newsOverview").value.trim();
-    const content = document.getElementById("newsContent").value.trim();
-    const image = document.getElementById("previewImg").src || "";
-    if (!title || !overview || !content) return alert("Fill all fields");
-
-    const item = { id: Date.now(), title, overview, content, image };
-    if (selectedNews) news = news.map(n => n.id === selectedNews.id ? item : n);
-    else news.unshift(item);
-
-    await fetch(`${API_URL}/programs/${selectedProgram.id}/news`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ news: JSON.stringify(news) })
-    });
-    renderNewsList();
-    resetNewsForm();
-}
-
-async function removeSelectedNews() {
-    if (!selectedNews) return;
-    news = news.filter(n => n.id !== selectedNews.id);
-    await fetch(`${API_URL}/programs/${selectedProgram.id}/news`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ news: JSON.stringify(news) })
-    });
-    renderNewsList();
-    resetNewsForm();
-}
-
-document.getElementById("newsImage").addEventListener("change", e => {
-    const f = e.target.files[0];
-    if (!f) return;
-    const r = new FileReader();
-    r.onload = ev => {
-        document.getElementById("previewImg").src = ev.target.result;
-        document.getElementById("previewImg").style.display = "block";
+// 新闻
+function renderNewsList(){
+  const l=document.getElementById("newsList");l.innerHTML="";
+  news.forEach(n=>{
+    const d=document.createElement("div");d.className="news-item";d.innerText=n.title;
+    d.onclick=()=>{
+      selectedNews=n;
+      document.getElementById("newsTitle").value=n.title;
+      document.getElementById("newsOverview").value=n.overview;
+      document.getElementById("newsContent").value=n.content;
+      document.getElementById("previewImg").src=n.image||"";
+      document.getElementById("previewImg").style.display=n.image?"block":"none";
+      document.getElementById("deleteNewsBtn").style.display="inline-block"
     };
-    r.readAsDataURL(f);
+    l.appendChild(d)
+  })
+}
+function resetNewsForm(){
+  document.getElementById("newsTitle").value="";
+  document.getElementById("newsOverview").value="";
+  document.getElementById("newsContent").value="";
+  document.getElementById("newsImage").value="";
+  document.getElementById("previewImg").src="";
+  document.getElementById("previewImg").style.display="none";
+  selectedNews=null;
+  document.getElementById("deleteNewsBtn").style.display="none"
+}
+async function saveNews(){
+  const t=document.getElementById("newsTitle").value.trim();
+  const o=document.getElementById("newsOverview").value.trim();
+  const c=document.getElementById("newsContent").value.trim();
+  const i=document.getElementById("previewImg").src||"";
+  if(!t||!o||!c)return alert("Fill all");
+  const item={id:Date.now(),title:t,overview:o,content:c,image:i};
+  if(selectedNews)news=news.map(n=>n.id===selectedNews.id?item:n);else news.unshift(item);
+  await fetch(API_URL+"/programs/"+selectedProgram.id+"/news",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({news:JSON.stringify(news)})});
+  renderNewsList();resetNewsForm()
+}
+async function removeSelectedNews(){
+  if(!selectedNews)return;news=news.filter(n=>n.id!==selectedNews.id);
+  await fetch(API_URL+"/programs/"+selectedProgram.id+"/news",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({news:JSON.stringify(news)})});
+  renderNewsList();resetNewsForm()
+}
+document.getElementById("newsImage").addEventListener("change",e=>{
+  const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=ev=>{document.getElementById("previewImg").src=ev.target.result;document.getElementById("previewImg").style.display="block"};
+  r.readAsDataURL(f)
 });
 
-// ------------------------------
-// LAYOUT / DRAG / RESIZE BLOCKS (FULLY RESTORED)
-// ------------------------------
-const bgBox = document.getElementById("bgBox");
-const textColorBox = document.getElementById("textColorBox");
-const bgColor = document.getElementById("bgColor");
-const textColor = document.getElementById("textColor");
+// 颜色同步
+const bgBox=document.getElementById("bgBox");
+const textColorBox=document.getElementById("textColorBox");
+const bgColor=document.getElementById("bgColor");
+const textColor=document.getElementById("textColor");
+bgColor.addEventListener("input",()=>{bgBox.style.background=bgColor.value});
+textColor.addEventListener("input",()=>{textColorBox.style.background=textColor.value});
+function syncColorBoxes(){bgBox.style.background=bgColor.value;textColorBox.style.background=textColor.value}
 
-bgColor.addEventListener("input", () => bgBox.style.background = bgColor.value);
-textColor.addEventListener("input", () => textColorBox.style.background = textColor.value);
+// ==============================
+// 布局拖拽 + 缩放（完全修复版）
+// ==============================
+function renderStage(){
+  const stage=document.getElementById("stage");stage.innerHTML="";
+  blocks.forEach(b=>{
+    const el=document.createElement("div");
+    el.className="block";
+    el.dataset.id=b.id;
+    el.style.left=b.x+"%";
+    el.style.top=b.y+"%";
+    el.style.width=b.w+"%";
+    el.style.height=b.h+"%";
+    el.style.background=b.bg;
+    el.style.color=b.text;
+    el.style.border=b.border;
+    el.innerHTML=`<strong>${b.title}</strong><br>${b.content}`;
 
-function syncColorBoxes() {
-    bgBox.style.background = bgColor.value;
-    textColorBox.style.background = textColor.value;
+    const rh=document.createElement("div");rh.className="resize-handle";
+    el.appendChild(rh);
+
+    el.onclick=()=>{
+      selectedBlock=b;
+      document.getElementById("blockTitle").value=b.title;
+      document.getElementById("blockContent").value=b.content;
+      bgColor.value=b.bg;textColor.value=b.text;syncColorBoxes()
+    };
+
+    // 拖拽
+    let drag=false,ox,oy,sx,sy;
+    el.addEventListener("mousedown",e=>{
+      if(e.target===rh)return;e.preventDefault();
+      drag=true;sx=e.clientX;sy=e.clientY;
+      ox=parseFloat(el.style.left);oy=parseFloat(el.style.top);
+    });
+
+    // 缩放
+    let resize=false,wx,wy,sw,sh;
+    rh.addEventListener("mousedown",e=>{
+      e.preventDefault();resize=true;sx=e.clientX;sy=e.clientY;
+      sw=parseFloat(el.style.width);sh=parseFloat(el.style.height);
+    });
+
+    document.addEventListener("mousemove",e=>{
+      const r=stage.getBoundingClientRect();
+      if(drag){
+        const dx=(e.clientX-sx)/r.width*100;
+        const dy=(e.clientY-sy)/r.height*100;
+        el.style.left=Math.max(0,Math.min(100,ox+dx))+"%";
+        el.style.top=Math.max(0,Math.min(100,oy+dy))+"%";
+      }
+      if(resize){
+        const dx=(e.clientX-sx)/r.width*100;
+        const dy=(e.clientY-sy)/r.height*100;
+        el.style.width=Math.max(5,Math.min(100,sw+dx))+"%";
+        el.style.height=Math.max(5,Math.min(100,sh+dy))+"%";
+      }
+    });
+
+    document.addEventListener("mouseup",()=>{drag=false;resize=false});
+    stage.appendChild(el);
+  })
 }
 
-function renderStage() {
-    const stage = document.getElementById("stage");
-    stage.innerHTML = "";
-
-    blocks.forEach(block => {
-        const el = document.createElement("div");
-        el.className = "block";
-        el.dataset.id = block.id;
-        el.style.left = block.x + "%";
-        el.style.top = block.y + "%";
-        el.style.width = block.w + "%";
-        el.style.height = block.h + "%";
-        el.style.backgroundColor = block.bg;
-        el.style.color = block.text;
-        el.style.border = block.border || "1px solid #3498db";
-        el.innerHTML = `<strong>${block.title}</strong><br>${block.content}`;
-
-        const resize = document.createElement("div");
-        resize.className = "resize-handle";
-        el.appendChild(resize);
-
-        el.onclick = () => {
-            selectedBlock = block;
-            document.getElementById("blockTitle").value = block.title;
-            document.getElementById("blockContent").value = block.content;
-            bgColor.value = block.bg;
-            textColor.value = block.text;
-            syncColorBoxes();
-        };
-
-        // DRAG FUNCTION
-        let drag = false;
-        let startX, startY, origX, origY;
-
-        el.onmousedown = (e) => {
-            if (e.target === resize) return;
-            e.preventDefault();
-            drag = true;
-            startX = e.clientX;
-            startY = e.clientY;
-            origX = parseFloat(el.style.left);
-            origY = parseFloat(el.style.top);
-        };
-
-        document.onmousemove = (e) => {
-            if (!drag) return;
-            const rect = stage.getBoundingClientRect();
-            const dx = (e.clientX - startX) / rect.width * 100;
-            const dy = (e.clientY - startY) / rect.height * 100;
-            el.style.left = Math.max(0, Math.min(100, origX + dx)) + "%";
-            el.style.top = Math.max(0, Math.min(100, origY + dy)) + "%";
-        };
-
-        document.onmouseup = () => {
-            drag = false;
-        };
-
-        // RESIZE FUNCTION
-        let resizing = false;
-        let startW, startH;
-
-        resize.onmousedown = (e) => {
-            e.preventDefault();
-            resizing = true;
-            startX = e.clientX;
-            startY = e.clientY;
-            startW = parseFloat(el.style.width);
-            startH = parseFloat(el.style.height);
-        };
-
-        document.onmousemove = (e) => {
-            if (resizing) {
-                const rect = stage.getBoundingClientRect();
-                const dx = (e.clientX - startX) / rect.width * 100;
-                const dy = (e.clientY - startY) / rect.height * 100;
-                el.style.width = Math.max(5, Math.min(100, startW + dx)) + "%";
-                el.style.height = Math.max(5, Math.min(100, startH + dy)) + "%";
-            }
-        };
-
-        document.onmouseup = () => {
-            resizing = false;
-        };
-
-        stage.appendChild(el);
-    });
+async function updateBlock(){
+  if(!selectedBlock)return;
+  selectedBlock.title=document.getElementById("blockTitle").value;
+  selectedBlock.content=document.getElementById("blockContent").value;
+  selectedBlock.bg=bgColor.value;
+  selectedBlock.text=textColor.value;
+  renderStage();
+  await fetch(API_URL+"/programs/"+selectedProgram.id+"/blocks",{
+    method:"PATCH",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({blocks:JSON.stringify(blocks)})
+  })
 }
 
-async function updateBlock() {
-    if (!selectedBlock) return;
-    selectedBlock.title = document.getElementById("blockTitle").value;
-    selectedBlock.content = document.getElementById("blockContent").value;
-    selectedBlock.bg = bgColor.value;
-    selectedBlock.text = textColor.value;
-    renderStage();
-
-    await fetch(`${API_URL}/programs/${selectedProgram.id}/blocks`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ blocks: JSON.stringify(blocks) })
-    });
-}
-
-async function saveLayout() {
-    blocks.forEach(b => {
-        const el = document.querySelector(`[data-id="${b.id}"]`);
-        b.x = parseFloat(el.style.left);
-        b.y = parseFloat(el.style.top);
-        b.w = parseFloat(el.style.width);
-        b.h = parseFloat(el.style.height);
-    });
-
-    await fetch(`${API_URL}/programs/${selectedProgram.id}/blocks`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ blocks: JSON.stringify(blocks) })
-    });
-
-    alert("Layout saved successfully!");
+async function saveLayout(){
+  blocks.forEach(b=>{
+    const el=document.querySelector(`[data-id="${b.id}"]`);
+    b.x=parseFloat(el.style.left);
+    b.y=parseFloat(el.style.top);
+    b.w=parseFloat(el.style.width);
+    b.h=parseFloat(el.style.height);
+  });
+  await fetch(API_URL+"/programs/"+selectedProgram.id+"/blocks",{
+    method:"PATCH",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({blocks:JSON.stringify(blocks)})
+  });
+  alert("Layout saved!")
 }
 </script>
 </body>
