@@ -53,7 +53,6 @@
         .btn-orange { background: #ff9900; color: white; }
         .hidden { display: none; }
 
-        /* Project Top Bar (ORIGINAL STYLE - PROJECT NAMES) */
         #projectTabs {
             display: flex;
             gap: 5px;
@@ -72,7 +71,6 @@
             color: white;
         }
 
-        /* Layout Preview */
         .preview {
             position: relative;
             width: 100%;
@@ -94,6 +92,10 @@
             border: 1px solid #ccc;
             cursor: move;
             font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
         }
         .resize-handle {
             position: absolute;
@@ -118,7 +120,6 @@
 </head>
 <body>
 
-<!-- LOGIN -->
 <div class="box" id="loginPanel">
     <h2>Admin Login</h2>
     <div class="form-group">
@@ -130,7 +131,6 @@
     <button class="btn-blue" onclick="login()">Login</button>
 </div>
 
-<!-- MAIN DASHBOARD -->
 <div id="dashboard" class="hidden">
     <div class="box">
         <h2>Service Learning Admin
@@ -138,14 +138,12 @@
         </h2>
     </div>
 
-    <!-- TOP BAR: PROJECT NAMES (ORIGINAL STYLE - NO CHANGES) -->
     <div class="box">
         <h3>My Projects</h3>
         <div id="projectTabs"></div>
         <button class="btn-green" onclick="createProject()">Add New Project</button>
     </div>
 
-    <!-- PROJECT EDITOR -->
     <div class="box">
         <h3>Edit Project Content</h3>
         <div class="form-group">
@@ -154,7 +152,6 @@
         <button class="btn-green" onclick="saveProjectName()">Save Name</button>
     </div>
 
-    <!-- BLOCK EDITOR -->
     <div class="box">
         <h3>Edit Text & Colors</h3>
         <div class="form-group">
@@ -166,7 +163,6 @@
         <button class="btn-blue" onclick="updateBlock()">Save Changes</button>
     </div>
 
-    <!-- LAYOUT + YOUR 2-BOX TEMPLATE BUTTON -->
     <div class="box">
         <h3>Page Layout</h3>
         <button class="btn-orange" onclick="generateTwoBoxTemplate()">Generate Info + Contact Template</button>
@@ -185,9 +181,6 @@ let currentProjectId = null;
 let blocks = [];
 let selectedBlock = null;
 
-// ------------------------------
-// LOGIN (DATABASE)
-// ------------------------------
 async function login() {
     const username = document.getElementById("username").value;
     const password = document.getElementById("password").value;
@@ -211,9 +204,6 @@ function logout() {
     location.reload();
 }
 
-// ------------------------------
-// PROJECT TOP BAR (ORIGINAL STYLE)
-// ------------------------------
 async function loadProjects() {
     const res = await fetch(`${API_URL}/projects?user=${currentUser.id}`);
     projects = await res.json();
@@ -268,22 +258,22 @@ async function saveProjectName() {
     loadProjects();
 }
 
-// ------------------------------
-// DRAG & RESIZE BLOCKS
-// ------------------------------
 function renderBlocks() {
     const stage = document.getElementById("stage");
     stage.innerHTML = "";
-    blocks.forEach(b => {
+    blocks.forEach(block => {
         const el = document.createElement("div");
         el.className = "block";
-        el.dataset.id = b.id;
-        el.style.left = b.x + "%";
-        el.style.top = b.y + "%";
-        el.style.width = b.w + "%";
-        el.style.height = b.h + "%";
-        el.style.background = b.bg;
-        el.innerText = b.title + "\n" + b.content;
+        el.dataset.id = block.id;
+        el.style.left = block.x + "%";
+        el.style.top = block.y + "%";
+        el.style.width = block.w + "%";
+        el.style.height = block.h + "%";
+        el.style.background = block.bg;
+        el.style.color = block.text || "#000";
+        el.style.border = block.border || "1px solid #ccc";
+        
+        el.innerText = block.content;
 
         const rh = document.createElement("div");
         rh.className = "resize-handle";
@@ -291,18 +281,18 @@ function renderBlocks() {
 
         el.onclick = (e) => {
             if (e.target === rh) return;
-            selectedBlock = b;
-            document.getElementById("blockTitle").value = b.title;
-            document.getElementById("blockContent").value = b.content;
+            selectedBlock = block;
+            document.getElementById("blockTitle").value = block.title;
+            document.getElementById("blockContent").value = block.content;
         };
 
-        let drag = false, ox, oy, lx, ly;
-        let resize = false, w, h;
+        let drag = false, ox = 0, oy = 0, lx = 0, ly = 0;
+        let resizing = false, w = 0, h = 0;
 
         el.onmousedown = (e) => {
             e.preventDefault();
             if (e.target === rh) {
-                resize = true;
+                resizing = true;
                 ox = e.x; oy = e.y;
                 w = parseFloat(el.style.width);
                 h = parseFloat(el.style.height);
@@ -322,7 +312,7 @@ function renderBlocks() {
                 el.style.left = Math.max(0, lx + dx) + "%";
                 el.style.top = Math.max(0, ly + dy) + "%";
             }
-            if (resize) {
+            if (resizing) {
                 const dx = (e.x - ox) / r.width * 100;
                 const dy = (e.y - oy) / r.height * 100;
                 el.style.width = Math.max(10, w + dx) + "%";
@@ -332,7 +322,7 @@ function renderBlocks() {
 
         document.onmouseup = () => {
             drag = false;
-            resize = false;
+            resizing = false;
         };
 
         stage.appendChild(el);
@@ -362,24 +352,25 @@ async function saveLayout() {
     alert("Layout saved");
 }
 
-// ------------------------------
-// YOUR TEMPLATE: 2 BOXES (LEFT INFO + RIGHT CONTACT)
-// ------------------------------
 function generateTwoBoxTemplate() {
     blocks = [
         {
             id: "info",
             title: "Basic Information",
-            content: "Project details, goals, description",
+            content: "Basic Information",
             x: 2, y: 5, w: 46, h: 90,
-            bg: "#ffffff"
+            bg: "#ffffff",
+            text: "#000000",
+            border: "1px solid #ccc"
         },
         {
             id: "contact",
             title: "Contact Information",
-            content: "Teacher, email, location, schedule",
+            content: "Contact Information",
             x: 52, y: 5, w: 46, h: 90,
-            bg: "#ffffff"
+            bg: "#ffffff",
+            text: "#000000",
+            border: "1px solid #ccc"
         }
     ];
     renderBlocks();
