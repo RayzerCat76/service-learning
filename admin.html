@@ -45,7 +45,7 @@
             border-radius: 6px;
             border: none;
             cursor: pointer;
-            margin-right: 6px;
+            margin-right: 8px;
         }
         .btn-blue { background: #3498db; color: white; }
         .btn-red  { background: #e74c3c; color: white; }
@@ -58,7 +58,6 @@
             gap: 12px;
             flex-wrap: wrap;
         }
-
         .account-item {
             padding: 12px;
             border: 1px solid #eee;
@@ -68,7 +67,6 @@
             justify-content: space-between;
             align-items: center;
         }
-
         .color-box {
             width: 44px;
             height: 44px;
@@ -84,33 +82,31 @@
         input[type="color"] {
             display: none;
         }
-
         .preview {
             position: relative;
             width: 100%;
-            height: 400px;
-            background: white;
+            height: 420px;
+            background: #ffffff;
             border: 1px solid #ddd;
             border-radius: 10px;
             overflow: hidden;
-            margin-top: 10px;
+            margin-top: 16px;
         }
         .preview-stage {
             position: relative;
             width: 100%;
             height: 100%;
-            padding: 10px;
         }
-
         .block {
             position: absolute;
-            padding: 14px;
-            border-radius: 8px;
+            padding: 12px;
             background: white;
-            border: 1px solid #ddd;
+            border: 1px solid #3498db;
             cursor: move;
-            overflow: hidden;
-            line-height: 1.5;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .resize-handle {
             position: absolute;
@@ -121,11 +117,10 @@
             background: #3498db;
             cursor: se-resize;
         }
-
         .news-list {
             max-height: 300px;
             overflow-y: auto;
-            margin-top: 10px;
+            margin-top: 12px;
         }
         .news-item {
             padding: 12px;
@@ -139,7 +134,7 @@
         }
         .bg-preview {
             width: 100%;
-            max-height: 150px;
+            max-height: 160px;
             object-fit: cover;
             border-radius: 6px;
             margin: 10px 0;
@@ -149,82 +144,79 @@
 </head>
 <body>
 
-<!-- LOGIN PANEL -->
+<!-- LOGIN -->
 <div class="box" id="loginPanel">
     <h2>Admin Login</h2>
     <div class="form-group">
-        <input type="text" id="username" placeholder="Username" value="superadmin">
+        <input type="text" id="username" placeholder="Username" value="master">
     </div>
     <div class="form-group">
-        <input type="password" id="password" placeholder="Password" value="super123">
+        <input type="password" id="password" placeholder="Password" value="master123">
     </div>
     <button class="btn-blue" onclick="login()">Login</button>
 </div>
 
-<!-- MAIN DASHBOARD -->
+<!-- DASHBOARD -->
 <div id="dashboard" class="hidden">
     <div class="box">
         <h2>Service Learning Admin
             <button class="btn-red" style="float:right" onclick="logout()">Logout</button>
         </h2>
-        <p id="userRoleDisplay" style="margin-top:8px;"></p>
+        <p id="userRoleDisplay"></p>
     </div>
 
-    <!-- TEACHER MANAGEMENT -->
-    <div class="box" id="teacherManagementSection" class="hidden">
-        <h3>Teacher Account Management</h3>
+    <!-- TEACHER MANAGEMENT (DATABASE) -->
+    <div class="box" id="teacherManagementSection">
+        <h3>Teacher Management</h3>
         <div class="form-group">
-            <input type="text" id="newTeacherUser" placeholder="New Teacher Username">
+            <input type="text" id="newTeacherUser" placeholder="Username">
         </div>
         <div class="form-group">
-            <input type="password" id="newTeacherPass" placeholder="New Teacher Password">
+            <input type="password" id="newTeacherPass" placeholder="Password">
         </div>
-        <button class="btn-green" onclick="createTeacherAccount()">Create Teacher Account</button>
-
-        <h3 style="margin-top:24px;">Existing Teacher Accounts</h3>
-        <div id="accountsList"></div>
+        <button class="btn-green" onclick="createTeacher()">Create Teacher</button>
+        <div id="teacherList"></div>
     </div>
 
-    <!-- PROGRAM MANAGER -->
+    <!-- PROGRAMS (DATABASE) -->
     <div class="box">
-        <h3>My Service Learning Programs</h3>
+        <h3>Programs</h3>
         <div class="form-group">
-            <input type="text" id="newProgName" placeholder="Program name">
-            <button class="btn-green" onclick="createProgramWithTemplate()">Create with Template</button>
+            <input type="text" id="newProgName" placeholder="Program Name">
+            <button class="btn-green" onclick="createProgram()">Create Program</button>
         </div>
         <div class="form-group">
             <select id="programSelect" onchange="selectProgram(this.value)"></select>
         </div>
-        <button class="btn-red" onclick="deleteCurrentProgram()">Delete This Program</button>
+        <button class="btn-red" onclick="deleteProgram()">Delete Program</button>
     </div>
 
-    <!-- NEWS -->
+    <!-- NEWS (DATABASE) -->
     <div class="box">
-        <h3>News for This Program</h3>
+        <h3>News</h3>
         <div class="form-group">
-            <input type="text" id="newsTitle" placeholder="News Title">
+            <input type="text" id="newsTitle" placeholder="Title">
         </div>
         <div class="form-group">
-            <input type="text" id="newsOverview" placeholder="Short Overview">
+            <input type="text" id="newsOverview" placeholder="Overview">
         </div>
         <div class="form-group">
-            <label>Background Image</label>
-            <input type="file" id="newsBgImage" accept="image/*">
-            <img id="bgPreview" class="bg-preview">
+            <input type="file" id="newsImage" accept="image/*">
+            <img id="previewImg" class="bg-preview">
         </div>
         <div class="form-group">
-            <textarea id="newsContent" rows="4" placeholder="Full news content"></textarea>
+            <textarea id="newsContent" rows="4" placeholder="Content"></textarea>
         </div>
-        <button class="btn-purple" onclick="saveProgramNews()">Save News</button>
-        <button class="btn-red" id="delNewsBtn" onclick="deleteSelectedNews()" style="display:none">Delete This News</button>
-        <div class="news-list" id="programNewsList"></div>
+        <button class="btn-purple" onclick="saveNews()">Save News</button>
+        <button class="btn-red" id="deleteNewsBtn" style="display:none;" onclick="removeSelectedNews()">Delete News</button>
+        <div class="news-list" id="newsList"></div>
     </div>
 
     <!-- BLOCK EDITOR -->
     <div class="box">
-        <h3>Edit Program Blocks</h3>
+        <h3>Edit Block</h3>
         <div class="form-group">
-            <input type="text" id="blockTitle" placeholder="Block Title">
+            <input type="text" id="blockTitle" placeholder="Title">
         </div>
         <div class="form-group">
             <textarea id="blockContent" rows="3" placeholder="Content"></textarea>
@@ -233,27 +225,26 @@
             <div>
                 <label>Background</label>
                 <div class="color-row">
-                    <div id="bgBox" class="color-box" onclick="bgColor.click()"></div>
+                    <div id="bgBox" class="color-box"></div>
                     <input type="color" id="bgColor" value="#ffffff">
                 </div>
             </div>
             <div>
                 <label>Text Color</label>
                 <div class="color-row">
-                    <div id="textColorBox" class="color-box" onclick="textColor.click()"></div>
+                    <div id="textColorBox" class="color-box"></div>
                     <input type="color" id="textColor" value="#000000">
                 </div>
             </div>
         </div>
-        <button class="btn-blue" onclick="saveBlock()">Save Block</button>
+        <button class="btn-blue" onclick="updateBlock()">Save Block</button>
     </div>
 
-    <!-- PREVIEW + TAB BUTTON -->
+    <!-- LAYOUT + TAB BUTTON -->
     <div class="box">
-        <h3>Program Preview</h3>
-        <button class="btn-orange" onclick="generateTabTemplate()">Generate Tab Template</button>
-        <button class="btn-blue" onclick="savePositions()">Save Positions & Sizes</button>
-
+        <h3>Layout Preview</h3>
+        <button class="btn-orange" onclick="generateTabTemplate()">Generate Original Tab Template</button>
+        <button class="btn-blue" onclick="saveLayout()">Save Layout</button>
         <div class="preview">
             <div id="stage" class="preview-stage"></div>
         </div>
@@ -261,289 +252,324 @@
 </div>
 
 <script>
-// ACCOUNT SYSTEM
-let currentUser = null;
-let isSuperAdmin = false;
-let userAccounts = [];
+const API_URL = "/api";
+let currentUser, isSuperAdmin;
+let programs, selectedProgram;
+let blocks = [], selectedBlock = null;
+let news = [], selectedNews = null;
 
-function loadAccounts() {
-    let saved = localStorage.getItem('sl_accounts');
-    if (!saved) {
-        userAccounts = [
-            { username: 'superadmin', password: 'super123', role: 'superadmin' }
-        ];
-        localStorage.setItem('sl_accounts', JSON.stringify(userAccounts));
-    } else {
-        userAccounts = JSON.parse(saved);
+// COLOR SYNC
+const bgColor = document.getElementById("bgColor");
+const textColor = document.getElementById("textColor");
+const bgBox = document.getElementById("bgBox");
+const textColorBox = document.getElementById("textColorBox");
+
+bgColor.addEventListener("input", syncColors);
+textColor.addEventListener("input", syncColors);
+
+function syncColors() {
+    bgBox.style.backgroundColor = bgColor.value;
+    textColorBox.style.backgroundColor = textColor.value;
+}
+
+// ------------------------------
+// LOGIN & USERS (DATABASE)
+// ------------------------------
+async function login() {
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+    try {
+        const res = await fetch(`${API_URL}/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Login failed");
+
+        currentUser = data.user.username;
+        isSuperAdmin = data.user.role === "master";
+
+        document.getElementById("loginPanel").classList.add("hidden");
+        document.getElementById("dashboard").classList.remove("hidden");
+        document.getElementById("userRoleDisplay").innerText = isSuperAdmin ? "Master Admin" : "Teacher";
+
+        if (!isSuperAdmin) {
+            document.getElementById("teacherManagementSection").style.display = "none";
+        } else {
+            loadTeachers();
+        }
+
+        loadPrograms();
+        syncColors();
+    } catch (err) {
+        alert(err.message);
     }
 }
 
-function login() {
-    loadAccounts();
-    let user = document.getElementById('username').value;
-    let pass = document.getElementById('password').value;
-    let account = userAccounts.find(a => a.username === user && a.password === pass);
-    if (!account) { alert('Invalid login'); return; }
-
-    currentUser = user;
-    isSuperAdmin = account.role === 'superadmin';
-    document.getElementById('loginPanel').classList.add('hidden');
-    document.getElementById('dashboard').classList.remove('hidden');
-    document.getElementById('userRoleDisplay').innerText = isSuperAdmin ? 'Super Admin' : 'Teacher';
-
-    if (isSuperAdmin) {
-        document.getElementById('teacherManagementSection').style.display = 'block';
-        loadAllAccountsForAdmin();
-    }
-    loadPrograms();
-    syncColors();
+function logout() {
+    location.reload();
 }
 
-function logout() { location.reload(); }
-
-function createTeacherAccount() {
-    if (!isSuperAdmin) return;
-    let user = document.getElementById('newTeacherUser').value.trim();
-    let pass = document.getElementById('newTeacherPass').value.trim();
-    if (!user || !pass) { alert('Fill fields'); return; }
-    if (userAccounts.some(a => a.username === user)) { alert('Exists'); return; }
-    userAccounts.push({ username: user, password: pass, role: 'teacher' });
-    localStorage.setItem('sl_accounts', JSON.stringify(userAccounts));
-    loadAllAccountsForAdmin();
-    document.getElementById('newTeacherUser').value = '';
-    document.getElementById('newTeacherPass').value = '';
-}
-
-function loadAllAccountsForAdmin() {
-    let list = document.getElementById('accountsList');
-    list.innerHTML = '';
-    userAccounts.forEach(acc => {
-        if (acc.role === 'superadmin') return;
-        let div = document.createElement('div');
-        div.className = 'account-item';
-        div.innerHTML = `<strong>${acc.username}</strong> (Teacher)`;
-        let delBtn = document.createElement('button');
-        delBtn.className = 'btn-red';
-        delBtn.innerText = 'Delete';
-        delBtn.onclick = () => deleteTeacherAccount(acc.username);
-        div.appendChild(delBtn);
+async function loadTeachers() {
+    const res = await fetch(`${API_URL}/teachers`);
+    const teachers = await res.json();
+    const list = document.getElementById("teacherList");
+    list.innerHTML = "";
+    teachers.forEach(t => {
+        const div = document.createElement("div");
+        div.className = "account-item";
+        div.innerHTML = `<span>${t.username}</span>`;
+        const btn = document.createElement("button");
+        btn.className = "btn-red";
+        btn.innerText = "Delete";
+        btn.onclick = async () => {
+            await fetch(`${API_URL}/teachers/${t.id}`, { method: "DELETE" });
+            loadTeachers();
+        };
+        div.appendChild(btn);
         list.appendChild(div);
     });
 }
 
-function deleteTeacherAccount(username) {
-    if (!confirm('Delete?')) return;
-    userAccounts = userAccounts.filter(a => a.username !== username);
-    localStorage.setItem('sl_accounts', JSON.stringify(userAccounts));
-    loadAllAccountsForAdmin();
+async function createTeacher() {
+    const u = document.getElementById("newTeacherUser").value.trim();
+    const p = document.getElementById("newTeacherPass").value.trim();
+    if (!u || !p) return alert("Fill all fields");
+    await fetch(`${API_URL}/teachers`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: u, password: p })
+    });
+    document.getElementById("newTeacherUser").value = "";
+    document.getElementById("newTeacherPass").value = "";
+    loadTeachers();
 }
 
-// COLOR SYNC
-const bgBox = document.getElementById('bgBox');
-const textColorBox = document.getElementById('textColorBox');
-const bgColor = document.getElementById('bgColor');
-const textColor = document.getElementById('textColor');
-
-bgColor.addEventListener('input', () => bgBox.style.background = bgColor.value);
-textColor.addEventListener('input', () => textColorBox.style.background = textColor.value);
-function syncColors() { bgBox.style.background = bgColor.value; textColorBox.style.background = textColor.value; }
-
-// BACKGROUND IMAGE
-const bgInput = document.getElementById('newsBgImage');
-const bgPreview = document.getElementById('bgPreview');
-bgInput.addEventListener('change', () => {
-    const f = bgInput.files[0];
-    if (!f) return;
-    const r = new FileReader();
-    r.onload = e => { bgPreview.src = e.target.result; bgPreview.style.display = 'block'; };
-    r.readAsDataURL(f);
-});
-
-// PROGRAM SYSTEM
-let programs = [], selectedProgram;
-let blocks = [], selectedBlock;
-let programNews = [], selectedNews;
-
-function loadPrograms() {
-    programs = JSON.parse(localStorage.getItem('sl_programs') || '[]');
-    if (!isSuperAdmin) programs = programs.filter(p => p.createdBy === currentUser);
-    const sel = document.getElementById('programSelect');
-    sel.innerHTML = '';
+// ------------------------------
+// PROGRAMS (DATABASE)
+// ------------------------------
+async function loadPrograms() {
+    const res = await fetch(`${API_URL}/programs?user=${currentUser}&admin=${isSuperAdmin}`);
+    programs = await res.json();
+    const sel = document.getElementById("programSelect");
+    sel.innerHTML = "";
     programs.forEach(p => {
-        const opt = document.createElement('option');
-        opt.value = p.id; opt.innerText = p.name;
+        const opt = document.createElement("option");
+        opt.value = p.id;
+        opt.innerText = p.name;
         sel.appendChild(opt);
     });
     if (programs.length) selectProgram(programs[0].id);
 }
 
-function selectProgram(id) {
-    selectedProgram = programs.find(p => p.id === id);
-    blocks = [...selectedProgram.blocks];
-    programNews = selectedProgram.news || [];
-    renderStage();
-    loadProgramNewsList();
-    syncColors();
+async function selectProgram(id) {
+    selectedProgram = programs.find(p => p.id == id);
+    blocks = JSON.parse(selectedProgram.blocks || "[]");
+    news = JSON.parse(selectedProgram.news || "[]");
+    renderBlocks();
+    renderNews();
     resetNewsForm();
 }
 
-function createProgramWithTemplate() {
-    const name = document.getElementById('newProgName').value || 'New Program';
-    const p = {
-        id: 'p'+Date.now(), name, createdBy: currentUser,
-        blocks: [
-            { id:'b1', title:'Info', content:'Content', x:5,y:5,w:42,h:25, bg:'#fff', text:'#000', border:'1px solid #3498db' }
-        ],
-        news: []
-    };
-    programs.push(p);
-    localStorage.setItem('sl_programs', JSON.stringify(programs));
+async function createProgram() {
+    const name = document.getElementById("newProgName").value.trim() || "New Program";
+    const defaultBlocks = JSON.stringify([
+        { id: "b1", title: "Block", content: "Content", x:5,y:5,w:40,h:30, bg:"#fff", text:"#000", border:"1px solid #3498db" }
+    ]);
+    await fetch(`${API_URL}/programs`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            name,
+            createdBy: currentUser,
+            blocks: defaultBlocks,
+            news: "[]"
+        })
+    });
     loadPrograms();
 }
 
-function deleteCurrentProgram() {
+async function deleteProgram() {
     if (!selectedProgram) return;
-    if (selectedProgram.createdBy !== currentUser && !isSuperAdmin) return alert('No permission');
-    if (!confirm('Delete?')) return;
-    programs = programs.filter(p => p.id !== selectedProgram.id);
-    localStorage.setItem('sl_programs', JSON.stringify(programs));
+    if (!confirm("Delete permanently?")) return;
+    await fetch(`${API_URL}/programs/${selectedProgram.id}`, { method: "DELETE" });
     loadPrograms();
 }
 
-// NEWS
-function loadProgramNewsList() {
-    const list = document.getElementById('programNewsList');
-    list.innerHTML = '';
-    programNews.forEach(n => {
-        const div = document.createElement('div');
-        div.className = 'news-item';
+// ------------------------------
+// NEWS (DATABASE)
+// ------------------------------
+function renderNews() {
+    const list = document.getElementById("newsList");
+    list.innerHTML = "";
+    news.forEach(n => {
+        const div = document.createElement("div");
+        div.className = "news-item";
         div.innerText = n.title;
         div.onclick = () => {
             selectedNews = n;
-            document.getElementById('newsTitle').value = n.title;
-            document.getElementById('newsOverview').value = n.overview;
-            document.getElementById('newsContent').value = n.content;
-            bgPreview.src = n.bgImage || '';
-            bgPreview.style.display = n.bgImage ? 'block' : 'none';
-            document.getElementById('delNewsBtn').style.display = 'inline-block';
+            document.getElementById("newsTitle").value = n.title;
+            document.getElementById("newsOverview").value = n.overview;
+            document.getElementById("newsContent").value = n.content;
+            document.getElementById("previewImg").src = n.image || "";
+            document.getElementById("previewImg").style.display = n.image ? "block" : "none";
+            document.getElementById("deleteNewsBtn").style.display = "inline-block";
         };
         list.appendChild(div);
     });
 }
 
 function resetNewsForm() {
-    document.getElementById('newsTitle').value = '';
-    document.getElementById('newsOverview').value = '';
-    document.getElementById('newsContent').value = '';
-    bgInput.value = '';
-    bgPreview.style.display = 'none';
+    document.getElementById("newsTitle").value = "";
+    document.getElementById("newsOverview").value = "";
+    document.getElementById("newsContent").value = "";
+    document.getElementById("newsImage").value = "";
+    document.getElementById("previewImg").style.display = "none";
     selectedNews = null;
-    document.getElementById('delNewsBtn').style.display = 'none';
+    document.getElementById("deleteNewsBtn").style.display = "none";
 }
 
-function saveProgramNews() {
-    const title = document.getElementById('newsTitle').value;
-    const overview = document.getElementById('newsOverview').value;
-    const content = document.getElementById('newsContent').value;
-    const bgImage = bgPreview.src || '';
-    if (!title || !overview || !content) return alert('Fill all');
-    const item = { id:'n'+Date.now(), title, overview, content, bgImage };
+async function saveNews() {
+    const title = document.getElementById("newsTitle").value.trim();
+    const overview = document.getElementById("newsOverview").value.trim();
+    const content = document.getElementById("newsContent").value.trim();
+    const image = document.getElementById("previewImg").src || "";
+    if (!title || !overview || !content) return alert("Fill all fields");
+
+    const item = { id: Date.now(), title, overview, content, image };
     if (selectedNews) {
-        const i = programNews.findIndex(x => x.id === selectedNews.id);
-        programNews[i] = { ...selectedNews, ...item };
+        news = news.map(n => n.id === selectedNews.id ? item : n);
     } else {
-        programNews.unshift(item);
+        news.unshift(item);
     }
-    selectedProgram.news = programNews;
-    localStorage.setItem('sl_programs', JSON.stringify(programs));
-    loadProgramNewsList();
+
+    await fetch(`${API_URL}/programs/${selectedProgram.id}/news`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ news: JSON.stringify(news) })
+    });
+    renderNews();
     resetNewsForm();
 }
 
-function deleteSelectedNews() {
+async function removeSelectedNews() {
     if (!selectedNews) return;
-    programNews = programNews.filter(n => n.id !== selectedNews.id);
-    selectedProgram.news = programNews;
-    localStorage.setItem('sl_programs', JSON.stringify(programs));
-    loadProgramNewsList();
+    news = news.filter(n => n.id !== selectedNews.id);
+    await fetch(`${API_URL}/programs/${selectedProgram.id}/news`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ news: JSON.stringify(news) })
+    });
+    renderNews();
     resetNewsForm();
 }
 
-// DRAG & RESIZE BLOCKS
-function renderStage() {
-    const stage = document.getElementById('stage');
-    stage.innerHTML = '';
-    blocks.forEach(b => {
-        const el = document.createElement('div');
-        el.className = 'block';
-        el.dataset.id = b.id;
-        el.style.left = b.x+'%';
-        el.style.top = b.y+'%';
-        el.style.width = b.w+'%';
-        el.style.height = b.h+'%';
-        el.style.background = b.bg;
-        el.style.color = b.text;
-        el.style.border = b.border;
-        el.innerHTML = `<strong>${b.title}</strong><br>${b.content}`;
+document.getElementById("newsImage").addEventListener("change", e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+        document.getElementById("previewImg").src = ev.target.result;
+        document.getElementById("previewImg").style.display = "block";
+    };
+    reader.readAsDataURL(file);
+});
 
-        const rh = document.createElement('div');
-        rh.className = 'resize-handle';
-        el.appendChild(rh);
+// ------------------------------
+// DRAG & RESIZE
+// ------------------------------
+function renderBlocks() {
+    const stage = document.getElementById("stage");
+    stage.innerHTML = "";
+    blocks.forEach(block => {
+        const el = document.createElement("div");
+        el.className = "block";
+        el.dataset.id = block.id;
+        el.style.left = block.x + "%";
+        el.style.top = block.y + "%";
+        el.style.width = block.w + "%";
+        el.style.height = block.h + "%";
+        el.style.backgroundColor = block.bg;
+        el.style.color = block.text;
+        el.style.border = block.border;
+        el.innerHTML = `<strong>${block.title}</strong><br>${block.content}`;
+
+        const resize = document.createElement("div");
+        resize.className = "resize-handle";
+        el.appendChild(resize);
 
         el.onclick = () => {
-            selectedBlock = b;
-            document.getElementById('blockTitle').value = b.title;
-            document.getElementById('blockContent').value = b.content;
-            bgColor.value = b.bg;
-            textColor.value = b.text;
+            selectedBlock = block;
+            document.getElementById("blockTitle").value = block.title;
+            document.getElementById("blockContent").value = block.content;
+            bgColor.value = block.bg;
+            textColor.value = block.text;
             syncColors();
         };
 
-        let drag = null, resize = null;
-        let sx, sy, l, t, w, h;
-
-        el.onmousedown = e => {
+        let drag = false, startX, startY, origX, origY;
+        el.addEventListener("mousedown", e => {
+            if (e.target === resize) return;
             e.preventDefault();
-            if (e.target === rh) {
-                resize = el; sx = e.x; sy = e.y;
-                w = parseFloat(el.style.width); h = parseFloat(el.style.height);
-                return;
-            }
-            drag = el; sx = e.x; sy = e.y;
-            l = parseFloat(el.style.left); t = parseFloat(el.style.top);
-        };
+            drag = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            origX = parseFloat(el.style.left);
+            origY = parseFloat(el.style.top);
+        });
 
-        document.onmousemove = e => {
-            const r = stage.getBoundingClientRect();
+        let resizing = false, startW, startH;
+        resize.addEventListener("mousedown", e => {
+            e.preventDefault();
+            resizing = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            startW = parseFloat(el.style.width);
+            startH = parseFloat(el.style.height);
+        });
+
+        document.addEventListener("mousemove", e => {
+            const rect = stage.getBoundingClientRect();
             if (drag) {
-                const dx = (e.x-sx)/r.width*100;
-                const dy = (e.y-sy)/r.height*100;
-                el.style.left = Math.max(0, Math.min(100, l+dx))+'%';
-                el.style.top = Math.max(0, Math.min(100, t+dy))+'%';
+                const dx = (e.clientX - startX) / rect.width * 100;
+                const dy = (e.clientY - startY) / rect.height * 100;
+                el.style.left = Math.max(0, Math.min(100, origX + dx)) + "%";
+                el.style.top = Math.max(0, Math.min(100, origY + dy)) + "%";
             }
-            if (resize) {
-                const dx = (e.x-sx)/r.width*100;
-                const dy = (e.y-sy)/r.height*100;
-                el.style.width = Math.max(5, Math.min(100, w+dx))+'%';
-                el.style.height = Math.max(5, Math.min(100, h+dy))+'%';
+            if (resizing) {
+                const dx = (e.clientX - startX) / rect.width * 100;
+                const dy = (e.clientY - startY) / rect.height * 100;
+                el.style.width = Math.max(5, Math.min(100, startW + dx)) + "%";
+                el.style.height = Math.max(5, Math.min(100, startH + dy)) + "%";
             }
-        };
-        document.onmouseup = () => { drag=resize=null; };
+        });
+
+        document.addEventListener("mouseup", () => {
+            drag = false;
+            resizing = false;
+        });
+
         stage.appendChild(el);
     });
 }
 
-function saveBlock() {
+async function updateBlock() {
     if (!selectedBlock) return;
-    selectedBlock.title = document.getElementById('blockTitle').value;
-    selectedBlock.content = document.getElementById('blockContent').value;
+    selectedBlock.title = document.getElementById("blockTitle").value;
+    selectedBlock.content = document.getElementById("blockContent").value;
     selectedBlock.bg = bgColor.value;
     selectedBlock.text = textColor.value;
-    renderStage();
-    localStorage.setItem('sl_programs', JSON.stringify(programs));
+    renderBlocks();
+
+    await fetch(`${API_URL}/programs/${selectedProgram.id}/blocks`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ blocks: JSON.stringify(blocks) })
+    });
 }
 
-function savePositions() {
+async function saveLayout() {
     blocks.forEach(b => {
         const el = document.querySelector(`[data-id="${b.id}"]`);
         b.x = parseFloat(el.style.left);
@@ -551,24 +577,43 @@ function savePositions() {
         b.w = parseFloat(el.style.width);
         b.h = parseFloat(el.style.height);
     });
-    localStorage.setItem('sl_programs', JSON.stringify(programs));
-    alert('Saved!');
+
+    await fetch(`${API_URL}/programs/${selectedProgram.id}/blocks`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ blocks: JSON.stringify(blocks) })
+    });
+
+    alert("Layout saved!");
 }
 
-// ✨ NEW TAB TEMPLATE GENERATOR
+// ------------------------------
+// ORIGINAL TAB TEMPLATE
+// ------------------------------
 function generateTabTemplate() {
     blocks = [
-        { id: "tab1", title: "Tab 1", content: "Home", x:2,y:2,w:23,h:10, bg:"#eef5ff", text:"#000", border:"1px solid #3498db" },
-        { id: "tab2", title: "Tab 2", content: "Programs", x:26,y:2,w:23,h:10, bg:"#eef5ff", text:"#000", border:"1px solid #3498db" },
-        { id: "tab3", title: "Tab 3", content: "News", x:50,y:2,w:23,h:10, bg:"#eef5ff", text:"#000", border:"1px solid #3498db" },
-        { id: "tab4", title: "Tab 4", content: "Info", x:74,y:2,w:24,h:10, bg:"#eef5ff", text:"#000", border:"1px solid #3498db" },
-        { id: "contentArea", title: "Content", content: "Main content here", x:2,y:14,w:96,h:82, bg:"#fff", text:"#000", border:"1px solid #ccc" }
+        {
+            id: "tabBar",
+            title: "Tab Bar",
+            content: "HOME | PROGRAMS | NEWS | CONTACT",
+            x: 0, y: 0, w: 100, h: 10,
+            bg: "#3498db",
+            text: "#ffffff",
+            border: "none"
+        },
+        {
+            id: "mainContent",
+            title: "Main Content",
+            content: "Your page content here",
+            x: 0, y: 10, w: 100, h: 90,
+            bg: "#ffffff",
+            text: "#000000",
+            border: "1px solid #ddd"
+        }
     ];
-    renderStage();
-    alert("Tab template generated!");
+    renderBlocks();
+    alert("Original tab template generated!");
 }
-
-loadAccounts();
 </script>
 </body>
 </html>
