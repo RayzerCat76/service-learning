@@ -5,145 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Learning Admin</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-        }
-        body {
-            background: #f5f7fa;
-            padding: 20px;
-            max-width: 1200px;
-            margin: auto;
-        }
-        .box {
-            background: white;
-            padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-            margin-bottom: 20px;
-        }
-        h2, h3 {
-            margin-bottom: 16px;
-            color: #2d3748;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 8px;
-        }
-        .form-group {
-            margin-bottom: 14px;
-        }
-        input, textarea, select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-        button {
-            padding: 10px 16px;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            margin-right: 6px;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+        body { background: #f5f7fa; padding: 20px; max-width: 1200px; margin: auto; }
+        .box { background: white; padding: 24px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-bottom: 20px; }
+        h2, h3 { margin-bottom: 16px; color: #2d3748; border-bottom: 1px solid #eee; padding-bottom: 8px; }
+        .form-group { margin-bottom: 14px; }
+        input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+        button { padding: 10px 16px; border-radius: 6px; border: none; cursor: pointer; margin-right: 6px; }
         .btn-blue { background: #3498db; color: white; }
         .btn-red  { background: #e74c3c; color: white; }
         .btn-green{ background: #2ecc71; color: white; }
         .btn-purple{ background: #9b59b6; color: white; }
         .hidden { display: none; }
-        .flex {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        .account-item {
-            padding: 12px;
-            border: 1px solid #eee;
-            border-radius: 6px;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .color-box {
-            width: 44px;
-            height: 44px;
-            border-radius: 6px;
-            border: 2px solid #ddd;
-            cursor: pointer;
-        }
-        .color-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+        .flex { display: flex; gap: 12px; flex-wrap: wrap; }
+        .account-item { padding: 12px; border: 1px solid #eee; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .color-box { width: 44px; height: 44px; border-radius: 6px; border: 2px solid #ddd; cursor: pointer; }
+        .color-row { display: flex; align-items: center; gap: 10px; }
         input[type="color"] { display: none; }
-
-        .preview {
-            position: relative;
-            width: 100%;
-            height: 400px;
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        .preview-stage {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            padding: 10px;
-        }
-
-        .block {
-            position: absolute;
-            padding: 14px;
-            border-radius: 8px;
-            background: white;
-            border: 1px solid #ddd;
-            cursor: move;
-            overflow: hidden;
-            line-height: 1.5;
-        }
-        .resize-handle {
-            position: absolute;
-            right: 0;
-            bottom: 0;
-            width: 16px;
-            height: 16px;
-            background: #3498db;
-            cursor: se-resize;
-        }
-
-        .news-list {
-            max-height: 300px;
-            overflow-y: auto;
-            margin-top: 10px;
-        }
-        .news-item {
-            padding: 12px;
-            border: 1px solid #eee;
-            border-radius: 6px;
-            margin-bottom: 8px;
-            cursor: pointer;
-        }
+        .preview { position: relative; width: 100%; height: 400px; background: white; border: 1px solid #ddd; border-radius: 10px; overflow: hidden; }
+        .preview-stage { position: relative; width: 100%; height: 100%; padding: 10px; }
+        .block { position: absolute; padding: 14px; border-radius: 8px; background: white; border: 1px solid #ddd; cursor: move; overflow: hidden; line-height: 1.5; }
+        .resize-handle { position: absolute; right: 0; bottom: 0; width: 16px; height: 16px; background: #3498db; cursor: se-resize; }
+        .news-list { max-height: 300px; overflow-y: auto; margin-top: 10px; }
+        .news-item { padding: 12px; border: 1px solid #eee; border-radius: 6px; margin-bottom: 8px; cursor: pointer; }
         .news-item:hover { background: #f8f9fa; }
-        .bg-preview {
-            width: 100%;
-            max-height: 150px;
-            object-fit: cover;
-            border-radius: 6px;
-            margin: 10px 0;
-            display: none;
-        }
-
-        @media (max-width: 768px) {
-            .preview { height: 320px; }
-            .flex { gap: 8px; }
-        }
+        .bg-preview { width: 100%; max-height: 150px; object-fit: cover; border-radius: 6px; margin: 10px 0; display: none; }
+        @media (max-width: 768px) { .preview { height: 320px; } .flex { gap: 8px; } }
     </style>
 </head>
 <body>
@@ -152,10 +39,10 @@
 <div class="box" id="loginPanel">
     <h2>Admin Login</h2>
     <div class="form-group">
-        <input type="text" id="username" placeholder="Username">
+        <input type="text" id="username" placeholder="Username" value="master">
     </div>
     <div class="form-group">
-        <input type="password" id="password" placeholder="Password">
+        <input type="password" id="password" placeholder="Password" value="master123">
     </div>
     <button class="btn-blue" onclick="login()">Login</button>
 </div>
@@ -169,7 +56,7 @@
         <p id="userRoleDisplay"></p>
     </div>
 
-    <!-- TEACHER MANAGEMENT (MASTER ADMIN ONLY) -->
+    <!-- TEACHER MANAGEMENT -->
     <div class="box" id="teacherManagementSection">
         <h3>Teacher Account Management</h3>
         <div class="form-group">
@@ -179,7 +66,6 @@
             <input type="password" id="newTeacherPass" placeholder="New Teacher Password">
         </div>
         <button class="btn-green" onclick="createTeacher()">Create Teacher</button>
-
         <h3 style="margin-top:24px;">Registered Teachers</h3>
         <div id="teacherList"></div>
     </div>
@@ -187,438 +73,4 @@
     <!-- PROGRAMS -->
     <div class="box">
         <h3>My Programs</h3>
-        <div class="form-group">
-            <input type="text" id="newProgName" placeholder="Program Name">
-            <button class="btn-green" onclick="createProgram()">Create Program</button>
-        </div>
-        <div class="form-group">
-            <select id="programSelect" onchange="selectProgram(this.value)"></select>
-        </div>
-        <button class="btn-red" onclick="deleteProgram()">Delete Program</button>
-    </div>
-
-    <!-- NEWS -->
-    <div class="box">
-        <h3>Program News</h3>
-        <div class="form-group">
-            <input type="text" id="newsTitle" placeholder="News Title">
-        </div>
-        <div class="form-group">
-            <input type="text" id="newsOverview" placeholder="Short Overview">
-        </div>
-        <div class="form-group">
-            <label>Background Image</label>
-            <input type="file" id="newsImage" accept="image/*">
-            <img id="previewImg" class="bg-preview">
-        </div>
-        <div class="form-group">
-            <textarea id="newsContent" rows="4" placeholder="Full Content"></textarea>
-        </div>
-        <button class="btn-purple" onclick="saveNews()">Save News</button>
-        <button class="btn-red" id="deleteNewsBtn" style="display:none" onclick="removeSelectedNews()">Delete News</button>
-        <div class="news-list" id="newsList"></div>
-    </div>
-
-    <!-- BLOCKS -->
-    <div class="box">
-        <h3>Edit Content Blocks</h3>
-        <div class="form-group">
-            <input type="text" id="blockTitle" placeholder="Block Title">
-        </div>
-        <div class="form-group">
-            <textarea id="blockContent" rows="3" placeholder="Content"></textarea>
-        </div>
-        <div class="flex">
-            <div>
-                <label>Background Color</label>
-                <div class="color-row">
-                    <div id="bgBox" class="color-box" onclick="bgColor.click()"></div>
-                    <input type="color" id="bgColor" value="#ffffff">
-                </div>
-            </div>
-            <div>
-                <label>Text Color</label>
-                <div class="color-row">
-                    <div id="textColorBox" class="color-box" onclick="textColor.click()"></div>
-                    <input type="color" id="textColor" value="#000000">
-                </div>
-            </div>
-        </div>
-        <button class="btn-blue" onclick="updateBlock()">Save Block</button>
-    </div>
-
-    <!-- PREVIEW -->
-    <div class="box">
-        <h3>Program Preview</h3>
-        <div class="preview">
-            <div id="stage" class="preview-stage"></div>
-        </div>
-        <button class="btn-blue" onclick="saveLayout()">Save Positions & Sizes</button>
-    </div>
-</div>
-
-<script>
-// ==============================
-// API CONFIG (CONNECTS TO NEON DB)
-// ==============================
-const API_URL = "/api";
-
-let currentUser = null;
-let isSuperAdmin = false;
-let programs = [];
-let selectedProgram = null;
-let blocks = [];
-let selectedBlock = null;
-let news = [];
-let selectedNews = null;
-
-// ==============================
-// LOGIN (DATABASE VALIDATION)
-// ==============================
-async function login() {
-    const username = document.getElementById("username").value.trim();
-    const password = document.getElementById("password").value.trim();
-
-    try {
-        const res = await fetch(`${API_URL}/login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, password })
-        });
-
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Invalid Login");
-
-        currentUser = data.user.username;
-        isSuperAdmin = data.user.role === "master";
-
-        document.getElementById("loginPanel").classList.add("hidden");
-        document.getElementById("dashboard").classList.remove("hidden");
-        document.getElementById("userRoleDisplay").innerText =
-            isSuperAdmin ? "Role: Master Admin" : "Role: Teacher";
-
-        if (!isSuperAdmin) {
-            document.getElementById("teacherManagementSection").style.display = "none";
-        } else {
-            loadTeachers();
-        }
-
-        loadPrograms();
-        syncColorBoxes();
-    } catch (err) {
-        alert(err.message);
-    }
-}
-
-function logout() {
-    location.reload();
-}
-
-// ==============================
-// MASTER ADMIN: TEACHER MANAGEMENT
-// ==============================
-async function loadTeachers() {
-    const res = await fetch(`${API_URL}/teachers`);
-    const teachers = await res.json();
-    const list = document.getElementById("teacherList");
-    list.innerHTML = "";
-
-    teachers.forEach(t => {
-        const div = document.createElement("div");
-        div.className = "account-item";
-        div.innerHTML = `<span>${t.username}</span>`;
-
-        const delBtn = document.createElement("button");
-        delBtn.className = "btn-red";
-        delBtn.innerText = "Delete";
-        delBtn.onclick = async () => {
-            if (!confirm("Delete this teacher?")) return;
-            await fetch(`${API_URL}/teachers/${t.id}`, { method: "DELETE" });
-            loadTeachers();
-        };
-        div.appendChild(delBtn);
-        list.appendChild(div);
-    });
-}
-
-async function createTeacher() {
-    const username = document.getElementById("newTeacherUser").value.trim();
-    const password = document.getElementById("newTeacherPass").value.trim();
-    if (!username || !password) return alert("Fill all fields");
-
-    await fetch(`${API_URL}/teachers`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password })
-    });
-
-    document.getElementById("newTeacherUser").value = "";
-    document.getElementById("newTeacherPass").value = "";
-    loadTeachers();
-    alert("Teacher created in database!");
-}
-
-// ==============================
-// PROGRAMS (DATABASE)
-// ==============================
-async function loadPrograms() {
-    const res = await fetch(`${API_URL}/programs?user=${currentUser}&admin=${isSuperAdmin}`);
-    programs = await res.json();
-    const sel = document.getElementById("programSelect");
-    sel.innerHTML = "";
-
-    programs.forEach(p => {
-        const opt = document.createElement("option");
-        opt.value = p.id;
-        opt.innerText = p.name;
-        sel.appendChild(opt);
-    });
-
-    if (programs.length) selectProgram(programs[0].id);
-}
-
-async function selectProgram(id) {
-    selectedProgram = programs.find(p => p.id == id);
-    blocks = JSON.parse(selectedProgram.blocks || "[]");
-    news = JSON.parse(selectedProgram.news || "[]");
-    renderStage();
-    renderNewsList();
-    resetNewsForm();
-}
-
-async function createProgram() {
-    const name = document.getElementById("newProgName").value.trim() || "New Program";
-    const defaultBlocks = [
-        { id: "b1", title: "Info", content: "Content", x:5,y:5,w:40,h:25, bg:"#fff", text:"#000", border:"1px solid #3498db" },
-        { id: "b2", title: "Details", content: "Content", x:50,y:5,w:40,h:25, bg:"#fff", text:"#000", border:"1px solid #3498db" }
-    ];
-
-    await fetch(`${API_URL}/programs`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            name, createdBy: currentUser,
-            blocks: JSON.stringify(defaultBlocks),
-            news: "[]"
-        })
-    });
-
-    loadPrograms();
-}
-
-async function deleteProgram() {
-    if (!selectedProgram) return;
-    if (!confirm("Delete permanently?")) return;
-
-    await fetch(`${API_URL}/programs/${selectedProgram.id}`, { method: "DELETE" });
-    loadPrograms();
-}
-
-// ==============================
-// NEWS (DATABASE)
-// ==============================
-function renderNewsList() {
-    const list = document.getElementById("newsList");
-    list.innerHTML = "";
-    news.forEach(n => {
-        const div = document.createElement("div");
-        div.className = "news-item";
-        div.innerText = n.title;
-        div.onclick = () => {
-            selectedNews = n;
-            document.getElementById("newsTitle").value = n.title;
-            document.getElementById("newsOverview").value = n.overview;
-            document.getElementById("newsContent").value = n.content;
-            document.getElementById("previewImg").src = n.image || "";
-            document.getElementById("previewImg").style.display = n.image ? "block" : "none";
-            document.getElementById("deleteNewsBtn").style.display = "inline-block";
-        };
-        list.appendChild(div);
-    });
-}
-
-function resetNewsForm() {
-    document.getElementById("newsTitle").value = "";
-    document.getElementById("newsOverview").value = "";
-    document.getElementById("newsContent").value = "";
-    document.getElementById("newsImage").value = "";
-    document.getElementById("previewImg").src = "";
-    document.getElementById("previewImg").style.display = "none";
-    selectedNews = null;
-    document.getElementById("deleteNewsBtn").style.display = "none";
-}
-
-async function saveNews() {
-    const title = document.getElementById("newsTitle").value.trim();
-    const overview = document.getElementById("newsOverview").value.trim();
-    const content = document.getElementById("newsContent").value.trim();
-    const image = document.getElementById("previewImg").src || "";
-    if (!title || !overview || !content) return alert("Fill all fields");
-
-    const newNews = {
-        id: Date.now(), title, overview, content, image,
-        date: new Date().toLocaleString()
-    };
-
-    if (selectedNews) {
-        news = news.map(n => n.id === selectedNews.id ? newNews : n);
-    } else {
-        news.unshift(newNews);
-    }
-
-    await fetch(`${API_URL}/programs/${selectedProgram.id}/news`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ news: JSON.stringify(news) })
-    });
-
-    renderNewsList();
-    resetNewsForm();
-}
-
-async function removeSelectedNews() {
-    if (!selectedNews) return;
-    news = news.filter(n => n.id !== selectedNews.id);
-
-    await fetch(`${API_URL}/programs/${selectedProgram.id}/news`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ news: JSON.stringify(news) })
-    });
-
-    renderNewsList();
-    resetNewsForm();
-}
-
-// ==============================
-// IMAGE PREVIEW
-// ==============================
-document.getElementById("newsImage").addEventListener("change", (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-        document.getElementById("previewImg").src = ev.target.result;
-        document.getElementById("previewImg").style.display = "block";
-    };
-    reader.readAsDataURL(file);
-});
-
-// ==============================
-// COLOR & DRAG BLOCKS
-// ==============================
-const bgBox = document.getElementById("bgBox");
-const textColorBox = document.getElementById("textColorBox");
-const bgColor = document.getElementById("bgColor");
-const textColor = document.getElementById("textColor");
-
-bgColor.addEventListener("input", () => bgBox.style.background = bgColor.value);
-textColor.addEventListener("input", () => textColorBox.style.background = textColor.value);
-
-function syncColorBoxes() {
-    bgBox.style.background = bgColor.value;
-    textColorBox.style.background = textColor.value;
-}
-
-function renderStage() {
-    const stage = document.getElementById("stage");
-    stage.innerHTML = "";
-    blocks.forEach(b => {
-        const el = document.createElement("div");
-        el.className = "block";
-        el.dataset.id = b.id;
-        el.style.left = b.x + "%";
-        el.style.top = b.y + "%";
-        el.style.width = b.w + "%";
-        el.style.height = b.h + "%";
-        el.style.background = b.bg;
-        el.style.color = b.text;
-        el.style.border = b.border;
-        el.innerHTML = `<strong>${b.title}</strong><br>${b.content}`;
-
-        const rh = document.createElement("div");
-        rh.className = "resize-handle";
-        el.appendChild(rh);
-
-        el.onclick = () => {
-            selectedBlock = b;
-            document.getElementById("blockTitle").value = b.title;
-            document.getElementById("blockContent").value = b.content;
-            bgColor.value = b.bg;
-            textColor.value = b.text;
-            syncColorBoxes();
-        };
-
-        let drag = null, resize = null;
-        let sx, sy, l, t, w, h;
-
-        el.onmousedown = e => {
-            e.preventDefault();
-            if (e.target === rh) {
-                resize = el;
-                sx = e.x; sy = e.y;
-                w = parseFloat(el.style.width);
-                h = parseFloat(el.style.height);
-                return;
-            }
-            drag = el;
-            sx = e.x; sy = e.y;
-            l = parseFloat(el.style.left);
-            t = parseFloat(el.style.top);
-        };
-
-        document.onmousemove = e => {
-            const r = stage.getBoundingClientRect();
-            if (drag) {
-                const dx = (e.x - sx) / r.width * 100;
-                const dy = (e.y - sy) / r.height * 100;
-                el.style.left = Math.max(0, Math.min(100, l + dx)) + "%";
-                el.style.top = Math.max(0, Math.min(100, t + dy)) + "%";
-            }
-            if (resize) {
-                const dx = (e.x - sx) / r.width * 100;
-                const dy = (e.y - sy) / r.height * 100;
-                el.style.width = Math.max(5, Math.min(100, w + dx)) + "%";
-                el.style.height = Math.max(5, Math.min(100, h + dy)) + "%";
-            }
-        };
-        document.onmouseup = () => { drag = resize = null; };
-        stage.appendChild(el);
-    });
-}
-
-async function updateBlock() {
-    if (!selectedBlock) return;
-    selectedBlock.title = document.getElementById("blockTitle").value;
-    selectedBlock.content = document.getElementById("blockContent").value;
-    selectedBlock.bg = bgColor.value;
-    selectedBlock.text = textColor.value;
-    renderStage();
-
-    await fetch(`${API_URL}/programs/${selectedProgram.id}/blocks`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ blocks: JSON.stringify(blocks) })
-    });
-}
-
-async function saveLayout() {
-    blocks.forEach(b => {
-        const el = document.querySelector(`[data-id="${b.id}"]`);
-        b.x = parseFloat(el.style.left);
-        b.y = parseFloat(el.style.top);
-        b.w = parseFloat(el.style.width);
-        b.h = parseFloat(el.style.height);
-    });
-
-    await fetch(`${API_URL}/programs/${selectedProgram.id}/blocks`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ blocks: JSON.stringify(blocks) })
-    });
-
-    alert("Layout saved to database!");
-}
-</script>
-</body>
-</html>
+        <div class="form-group
