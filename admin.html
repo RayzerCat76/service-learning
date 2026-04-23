@@ -148,19 +148,19 @@
 </head>
 <body>
 
-<!-- Login -->
+<!-- LOGIN -->
 <div class="box" id="loginPanel">
     <h2>Admin Login</h2>
     <div class="form-group">
-        <input type="text" id="username" placeholder="Username" value="superadmin">
+        <input type="text" id="username" placeholder="Username">
     </div>
     <div class="form-group">
-        <input type="password" id="password" placeholder="Password" value="super123">
+        <input type="password" id="password" placeholder="Password">
     </div>
     <button class="btn-blue" onclick="login()">Login</button>
 </div>
 
-<!-- Dashboard -->
+<!-- DASHBOARD -->
 <div id="dashboard" class="hidden">
     <div class="box">
         <h2>Service Learning Admin
@@ -169,7 +169,7 @@
         <p id="userRoleDisplay"></p>
     </div>
 
-    <!-- Teacher Management (Super Admin Only) -->
+    <!-- TEACHER MANAGEMENT (MASTER ADMIN ONLY) -->
     <div class="box" id="teacherManagementSection">
         <h3>Teacher Account Management</h3>
         <div class="form-group">
@@ -184,27 +184,27 @@
         <div id="teacherList"></div>
     </div>
 
-    <!-- Programs -->
+    <!-- PROGRAMS -->
     <div class="box">
         <h3>My Programs</h3>
         <div class="form-group">
-            <input type="text" id="newProgName" placeholder="Program name">
+            <input type="text" id="newProgName" placeholder="Program Name">
             <button class="btn-green" onclick="createProgram()">Create Program</button>
         </div>
         <div class="form-group">
             <select id="programSelect" onchange="selectProgram(this.value)"></select>
         </div>
-        <button class="btn-red" onclick="deleteProgram()">Delete This Program</button>
+        <button class="btn-red" onclick="deleteProgram()">Delete Program</button>
     </div>
 
-    <!-- News -->
+    <!-- NEWS -->
     <div class="box">
         <h3>Program News</h3>
         <div class="form-group">
-            <input type="text" id="newsTitle" placeholder="Title">
+            <input type="text" id="newsTitle" placeholder="News Title">
         </div>
         <div class="form-group">
-            <input type="text" id="newsOverview" placeholder="Short overview">
+            <input type="text" id="newsOverview" placeholder="Short Overview">
         </div>
         <div class="form-group">
             <label>Background Image</label>
@@ -212,14 +212,14 @@
             <img id="previewImg" class="bg-preview">
         </div>
         <div class="form-group">
-            <textarea id="newsContent" rows="4" placeholder="Full content"></textarea>
+            <textarea id="newsContent" rows="4" placeholder="Full Content"></textarea>
         </div>
         <button class="btn-purple" onclick="saveNews()">Save News</button>
         <button class="btn-red" id="deleteNewsBtn" style="display:none" onclick="removeSelectedNews()">Delete News</button>
         <div class="news-list" id="newsList"></div>
     </div>
 
-    <!-- Blocks -->
+    <!-- BLOCKS -->
     <div class="box">
         <h3>Edit Content Blocks</h3>
         <div class="form-group">
@@ -230,7 +230,7 @@
         </div>
         <div class="flex">
             <div>
-                <label>Background</label>
+                <label>Background Color</label>
                 <div class="color-row">
                     <div id="bgBox" class="color-box" onclick="bgColor.click()"></div>
                     <input type="color" id="bgColor" value="#ffffff">
@@ -247,9 +247,9 @@
         <button class="btn-blue" onclick="updateBlock()">Save Block</button>
     </div>
 
-    <!-- Preview -->
+    <!-- PREVIEW -->
     <div class="box">
-        <h3>Preview</h3>
+        <h3>Program Preview</h3>
         <div class="preview">
             <div id="stage" class="preview-stage"></div>
         </div>
@@ -259,304 +259,299 @@
 
 <script>
 // ==============================
-// STORAGE KEYS (DATABASE)
+// API CONFIG (CONNECTS TO NEON DB)
 // ==============================
-const USER_DB = 'sl_users';
-const PROGRAM_DB = 'sl_programs';
+const API_URL = "/api";
 
-// ==============================
-// USER MANAGEMENT
-// ==============================
-let currentUser;
+let currentUser = null;
 let isSuperAdmin = false;
-let users = [];
+let programs = [];
+let selectedProgram = null;
+let blocks = [];
+let selectedBlock = null;
+let news = [];
+let selectedNews = null;
 
-// Load users from database
-function loadUsers() {
-    const saved = localStorage.getItem(USER_DB);
-    if (saved) {
-        users = JSON.parse(saved);
-    } else {
-        // Default super admin
-        users = [
-            { username: 'superadmin', password: 'super123', role: 'superadmin' }
-        ];
-        saveUsersToDB();
+// ==============================
+// LOGIN (DATABASE VALIDATION)
+// ==============================
+async function login() {
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+
+    try {
+        const res = await fetch(`${API_URL}/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Invalid Login");
+
+        currentUser = data.user.username;
+        isSuperAdmin = data.user.role === "master";
+
+        document.getElementById("loginPanel").classList.add("hidden");
+        document.getElementById("dashboard").classList.remove("hidden");
+        document.getElementById("userRoleDisplay").innerText =
+            isSuperAdmin ? "Role: Master Admin" : "Role: Teacher";
+
+        if (!isSuperAdmin) {
+            document.getElementById("teacherManagementSection").style.display = "none";
+        } else {
+            loadTeachers();
+        }
+
+        loadPrograms();
+        syncColorBoxes();
+    } catch (err) {
+        alert(err.message);
     }
 }
 
-// Save users to database
-function saveUsersToDB() {
-    localStorage.setItem(USER_DB, JSON.stringify(users));
+function logout() {
+    location.reload();
 }
 
-// Create teacher (saved permanently)
-function createTeacher() {
-    const user = document.getElementById('newTeacherUser').value.trim();
-    const pass = document.getElementById('newTeacherPass').value.trim();
-    if (!user || !pass) return alert('Fill all fields');
-    if (users.some(u => u.username === user)) return alert('Username exists');
+// ==============================
+// MASTER ADMIN: TEACHER MANAGEMENT
+// ==============================
+async function loadTeachers() {
+    const res = await fetch(`${API_URL}/teachers`);
+    const teachers = await res.json();
+    const list = document.getElementById("teacherList");
+    list.innerHTML = "";
 
-    users.push({ username: user, password: pass, role: 'teacher' });
-    saveUsersToDB();
-    renderTeacherList();
-    document.getElementById('newTeacherUser').value = '';
-    document.getElementById('newTeacherPass').value = '';
-    alert('Teacher created and saved to database!');
-}
+    teachers.forEach(t => {
+        const div = document.createElement("div");
+        div.className = "account-item";
+        div.innerHTML = `<span>${t.username}</span>`;
 
-// Show teacher list
-function renderTeacherList() {
-    const el = document.getElementById('teacherList');
-    el.innerHTML = '';
-    users.forEach(u => {
-        if (u.role === 'superadmin') return;
-        const div = document.createElement('div');
-        div.className = 'account-item';
-        div.innerHTML = `<span>${u.username}</span>`;
-        const btn = document.createElement('button');
-        btn.className = 'btn-red';
-        btn.innerText = 'Delete';
-        btn.onclick = () => {
-            if (!confirm('Delete?')) return;
-            users = users.filter(x => x.username !== u.username);
-            saveUsersToDB();
-            renderTeacherList();
+        const delBtn = document.createElement("button");
+        delBtn.className = "btn-red";
+        delBtn.innerText = "Delete";
+        delBtn.onclick = async () => {
+            if (!confirm("Delete this teacher?")) return;
+            await fetch(`${API_URL}/teachers/${t.id}`, { method: "DELETE" });
+            loadTeachers();
         };
-        div.appendChild(btn);
-        el.appendChild(div);
+        div.appendChild(delBtn);
+        list.appendChild(div);
     });
 }
 
-// Login
-function login() {
-    loadUsers();
-    const user = document.getElementById('username').value.trim();
-    const pass = document.getElementById('password').value.trim();
-    const found = users.find(u => u.username === user && u.password === pass);
-    if (!found) return alert('Invalid login');
+async function createTeacher() {
+    const username = document.getElementById("newTeacherUser").value.trim();
+    const password = document.getElementById("newTeacherPass").value.trim();
+    if (!username || !password) return alert("Fill all fields");
 
-    currentUser = user;
-    isSuperAdmin = found.role === 'superadmin';
-    document.getElementById('loginPanel').classList.add('hidden');
-    document.getElementById('dashboard').classList.remove('hidden');
-    document.getElementById('userRoleDisplay').innerText =
-        isSuperAdmin ? 'Logged in as Super Admin' : 'Logged in as Teacher';
+    await fetch(`${API_URL}/teachers`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+    });
 
-    if (!isSuperAdmin) {
-        document.getElementById('teacherManagementSection').style.display = 'none';
-    } else {
-        renderTeacherList();
-    }
-
-    loadPrograms();
-    syncColors();
+    document.getElementById("newTeacherUser").value = "";
+    document.getElementById("newTeacherPass").value = "";
+    loadTeachers();
+    alert("Teacher created in database!");
 }
 
-function logout() { location.reload(); }
-
 // ==============================
-// PROGRAM & NEWS (PERMANENT DB)
+// PROGRAMS (DATABASE)
 // ==============================
-let programs = [];
-let selectedProgram;
-let blocks = [];
-let selectedBlock;
-let news = [];
-let selectedNews;
+async function loadPrograms() {
+    const res = await fetch(`${API_URL}/programs?user=${currentUser}&admin=${isSuperAdmin}`);
+    programs = await res.json();
+    const sel = document.getElementById("programSelect");
+    sel.innerHTML = "";
 
-// Color sync
-const bgBox = document.getElementById('bgBox');
-const textColorBox = document.getElementById('textColorBox');
-const bgColor = document.getElementById('bgColor');
-const textColor = document.getElementById('textColor');
-
-bgColor.addEventListener('input', () => bgBox.style.background = bgColor.value);
-textColor.addEventListener('input', () => textColorBox.style.background = textColor.value);
-
-function syncColors() {
-    bgBox.style.background = bgColor.value;
-    textColorBox.style.background = textColor.value;
-}
-
-// Image preview
-const imgInput = document.getElementById('newsImage');
-const previewImg = document.getElementById('previewImg');
-imgInput.addEventListener('change', () => {
-    const f = imgInput.files[0];
-    if (!f) return;
-    const r = new FileReader();
-    r.onload = e => {
-        previewImg.src = e.target.result;
-        previewImg.style.display = 'block';
-    };
-    r.readAsDataURL(f);
-});
-
-// Load programs from DB
-function loadPrograms() {
-    const data = localStorage.getItem(PROGRAM_DB);
-    programs = data ? JSON.parse(data) : [];
-    if (!isSuperAdmin) {
-        programs = programs.filter(p => p.createdBy === currentUser);
-    }
-
-    const sel = document.getElementById('programSelect');
-    sel.innerHTML = '';
     programs.forEach(p => {
-        const opt = document.createElement('option');
+        const opt = document.createElement("option");
         opt.value = p.id;
         opt.innerText = p.name;
         sel.appendChild(opt);
     });
+
     if (programs.length) selectProgram(programs[0].id);
 }
 
-// Save programs to DB
-function saveProgramsToDB() {
-    localStorage.setItem(PROGRAM_DB, JSON.stringify(programs));
-}
-
-// Select program
-function selectProgram(id) {
-    selectedProgram = programs.find(p => p.id === id);
-    blocks = [...selectedProgram.blocks];
-    news = selectedProgram.news || [];
+async function selectProgram(id) {
+    selectedProgram = programs.find(p => p.id == id);
+    blocks = JSON.parse(selectedProgram.blocks || "[]");
+    news = JSON.parse(selectedProgram.news || "[]");
     renderStage();
     renderNewsList();
     resetNewsForm();
 }
 
-// Create program
-function createProgram() {
-    const name = document.getElementById('newProgName').value.trim() || 'New Program';
-    const p = {
-        id: 'p' + Date.now(),
-        name,
-        createdBy: currentUser,
-        blocks: [
-            { id: 'b1', title: 'Info', content: 'Content', x:5,y:5,w:40,h:25, bg:'#fff', text:'#000', border:'1px solid #3498db' },
-            { id: 'b2', title: 'Details', content: 'Content', x:50,y:5,w:40,h:25, bg:'#fff', text:'#000', border:'1px solid #3498db' }
-        ],
-        news: []
-    };
-    programs.push(p);
-    saveProgramsToDB();
+async function createProgram() {
+    const name = document.getElementById("newProgName").value.trim() || "New Program";
+    const defaultBlocks = [
+        { id: "b1", title: "Info", content: "Content", x:5,y:5,w:40,h:25, bg:"#fff", text:"#000", border:"1px solid #3498db" },
+        { id: "b2", title: "Details", content: "Content", x:50,y:5,w:40,h:25, bg:"#fff", text:"#000", border:"1px solid #3498db" }
+    ];
+
+    await fetch(`${API_URL}/programs`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            name, createdBy: currentUser,
+            blocks: JSON.stringify(defaultBlocks),
+            news: "[]"
+        })
+    });
+
     loadPrograms();
 }
 
-// Delete program
-function deleteProgram() {
+async function deleteProgram() {
     if (!selectedProgram) return;
-    if (selectedProgram.createdBy !== currentUser && !isSuperAdmin) return alert('No permission');
-    if (!confirm('Delete?')) return;
-    programs = programs.filter(p => p.id !== selectedProgram.id);
-    saveProgramsToDB();
+    if (!confirm("Delete permanently?")) return;
+
+    await fetch(`${API_URL}/programs/${selectedProgram.id}`, { method: "DELETE" });
     loadPrograms();
 }
 
 // ==============================
-// NEWS
+// NEWS (DATABASE)
 // ==============================
 function renderNewsList() {
-    const list = document.getElementById('newsList');
-    list.innerHTML = '';
+    const list = document.getElementById("newsList");
+    list.innerHTML = "";
     news.forEach(n => {
-        const div = document.createElement('div');
-        div.className = 'news-item';
+        const div = document.createElement("div");
+        div.className = "news-item";
         div.innerText = n.title;
         div.onclick = () => {
             selectedNews = n;
-            document.getElementById('newsTitle').value = n.title;
-            document.getElementById('newsOverview').value = n.overview;
-            document.getElementById('newsContent').value = n.content;
-            previewImg.src = n.image || '';
-            previewImg.style.display = n.image ? 'block' : 'none';
-            document.getElementById('deleteNewsBtn').style.display = 'inline-block';
+            document.getElementById("newsTitle").value = n.title;
+            document.getElementById("newsOverview").value = n.overview;
+            document.getElementById("newsContent").value = n.content;
+            document.getElementById("previewImg").src = n.image || "";
+            document.getElementById("previewImg").style.display = n.image ? "block" : "none";
+            document.getElementById("deleteNewsBtn").style.display = "inline-block";
         };
         list.appendChild(div);
     });
 }
 
 function resetNewsForm() {
-    document.getElementById('newsTitle').value = '';
-    document.getElementById('newsOverview').value = '';
-    document.getElementById('newsContent').value = '';
-    imgInput.value = '';
-    previewImg.src = '';
-    previewImg.style.display = 'none';
+    document.getElementById("newsTitle").value = "";
+    document.getElementById("newsOverview").value = "";
+    document.getElementById("newsContent").value = "";
+    document.getElementById("newsImage").value = "";
+    document.getElementById("previewImg").src = "";
+    document.getElementById("previewImg").style.display = "none";
     selectedNews = null;
-    document.getElementById('deleteNewsBtn').style.display = 'none';
+    document.getElementById("deleteNewsBtn").style.display = "none";
 }
 
-function saveNews() {
-    const title = document.getElementById('newsTitle').value.trim();
-    const overview = document.getElementById('newsOverview').value.trim();
-    const content = document.getElementById('newsContent').value.trim();
-    const image = previewImg.src || '';
-    if (!title || !overview || !content) return alert('Fill all fields');
+async function saveNews() {
+    const title = document.getElementById("newsTitle").value.trim();
+    const overview = document.getElementById("newsOverview").value.trim();
+    const content = document.getElementById("newsContent").value.trim();
+    const image = document.getElementById("previewImg").src || "";
+    if (!title || !overview || !content) return alert("Fill all fields");
 
-    const item = {
-        id: 'n' + Date.now(),
-        title, overview, content, image,
+    const newNews = {
+        id: Date.now(), title, overview, content, image,
         date: new Date().toLocaleString()
     };
 
     if (selectedNews) {
-        const i = news.findIndex(x => x.id === selectedNews.id);
-        news[i] = item;
+        news = news.map(n => n.id === selectedNews.id ? newNews : n);
     } else {
-        news.unshift(item);
+        news.unshift(newNews);
     }
 
-    selectedProgram.news = news;
-    saveProgramsToDB();
+    await fetch(`${API_URL}/programs/${selectedProgram.id}/news`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ news: JSON.stringify(news) })
+    });
+
     renderNewsList();
     resetNewsForm();
 }
 
-function removeSelectedNews() {
+async function removeSelectedNews() {
     if (!selectedNews) return;
     news = news.filter(n => n.id !== selectedNews.id);
-    selectedProgram.news = news;
-    saveProgramsToDB();
+
+    await fetch(`${API_URL}/programs/${selectedProgram.id}/news`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ news: JSON.stringify(news) })
+    });
+
     renderNewsList();
     resetNewsForm();
 }
 
 // ==============================
-// DRAG BLOCKS
+// IMAGE PREVIEW
 // ==============================
+document.getElementById("newsImage").addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+        document.getElementById("previewImg").src = ev.target.result;
+        document.getElementById("previewImg").style.display = "block";
+    };
+    reader.readAsDataURL(file);
+});
+
+// ==============================
+// COLOR & DRAG BLOCKS
+// ==============================
+const bgBox = document.getElementById("bgBox");
+const textColorBox = document.getElementById("textColorBox");
+const bgColor = document.getElementById("bgColor");
+const textColor = document.getElementById("textColor");
+
+bgColor.addEventListener("input", () => bgBox.style.background = bgColor.value);
+textColor.addEventListener("input", () => textColorBox.style.background = textColor.value);
+
+function syncColorBoxes() {
+    bgBox.style.background = bgColor.value;
+    textColorBox.style.background = textColor.value;
+}
+
 function renderStage() {
-    const stage = document.getElementById('stage');
-    stage.innerHTML = '';
+    const stage = document.getElementById("stage");
+    stage.innerHTML = "";
     blocks.forEach(b => {
-        const el = document.createElement('div');
-        el.className = 'block';
+        const el = document.createElement("div");
+        el.className = "block";
         el.dataset.id = b.id;
-        el.style.left = b.x + '%';
-        el.style.top = b.y + '%';
-        el.style.width = b.w + '%';
-        el.style.height = b.h + '%';
+        el.style.left = b.x + "%";
+        el.style.top = b.y + "%";
+        el.style.width = b.w + "%";
+        el.style.height = b.h + "%";
         el.style.background = b.bg;
         el.style.color = b.text;
         el.style.border = b.border;
         el.innerHTML = `<strong>${b.title}</strong><br>${b.content}`;
 
-        const rh = document.createElement('div');
-        rh.className = 'resize-handle';
+        const rh = document.createElement("div");
+        rh.className = "resize-handle";
         el.appendChild(rh);
 
         el.onclick = () => {
             selectedBlock = b;
-            document.getElementById('blockTitle').value = b.title;
-            document.getElementById('blockContent').value = b.content;
+            document.getElementById("blockTitle").value = b.title;
+            document.getElementById("blockContent").value = b.content;
             bgColor.value = b.bg;
             textColor.value = b.text;
-            syncColors();
+            syncColorBoxes();
         };
 
-        let drag, resize, sx, sy, l, t, w, h;
+        let drag = null, resize = null;
+        let sx, sy, l, t, w, h;
+
         el.onmousedown = e => {
             e.preventDefault();
             if (e.target === rh) {
@@ -577,32 +572,37 @@ function renderStage() {
             if (drag) {
                 const dx = (e.x - sx) / r.width * 100;
                 const dy = (e.y - sy) / r.height * 100;
-                el.style.left = Math.max(0, Math.min(100, l + dx)) + '%';
-                el.style.top = Math.max(0, Math.min(100, t + dy)) + '%';
+                el.style.left = Math.max(0, Math.min(100, l + dx)) + "%";
+                el.style.top = Math.max(0, Math.min(100, t + dy)) + "%";
             }
             if (resize) {
                 const dx = (e.x - sx) / r.width * 100;
                 const dy = (e.y - sy) / r.height * 100;
-                el.style.width = Math.max(5, Math.min(100, w + dx)) + '%';
-                el.style.height = Math.max(5, Math.min(100, h + dy)) + '%';
+                el.style.width = Math.max(5, Math.min(100, w + dx)) + "%";
+                el.style.height = Math.max(5, Math.min(100, h + dy)) + "%";
             }
         };
-        document.onmouseup = () => drag = resize = null;
+        document.onmouseup = () => { drag = resize = null; };
         stage.appendChild(el);
     });
 }
 
-function updateBlock() {
+async function updateBlock() {
     if (!selectedBlock) return;
-    selectedBlock.title = document.getElementById('blockTitle').value;
-    selectedBlock.content = document.getElementById('blockContent').value;
+    selectedBlock.title = document.getElementById("blockTitle").value;
+    selectedBlock.content = document.getElementById("blockContent").value;
     selectedBlock.bg = bgColor.value;
     selectedBlock.text = textColor.value;
     renderStage();
-    saveProgramsToDB();
+
+    await fetch(`${API_URL}/programs/${selectedProgram.id}/blocks`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ blocks: JSON.stringify(blocks) })
+    });
 }
 
-function saveLayout() {
+async function saveLayout() {
     blocks.forEach(b => {
         const el = document.querySelector(`[data-id="${b.id}"]`);
         b.x = parseFloat(el.style.left);
@@ -610,12 +610,15 @@ function saveLayout() {
         b.w = parseFloat(el.style.width);
         b.h = parseFloat(el.style.height);
     });
-    saveProgramsToDB();
-    alert('Layout saved to database');
-}
 
-// Init
-loadUsers();
+    await fetch(`${API_URL}/programs/${selectedProgram.id}/blocks`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ blocks: JSON.stringify(blocks) })
+    });
+
+    alert("Layout saved to database!");
+}
 </script>
 </body>
 </html>
