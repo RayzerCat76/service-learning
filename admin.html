@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel</title>
+    <title>Service Learning Admin</title>
     <style>
         * {
             box-sizing: border-box;
@@ -45,7 +45,8 @@
             border-radius: 6px;
             border: none;
             cursor: pointer;
-            margin-right: 6px;
+            margin-right: 8px;
+            font-size: 14px;
         }
         .btn-blue { background: #3498db; color: white; }
         .btn-red  { background: #e74c3c; color: white; }
@@ -79,15 +80,18 @@
             align-items: center;
             gap: 10px;
         }
-        input[type="color"] { display: none; }
+        input[type="color"] {
+            display: none;
+        }
         .preview {
             position: relative;
             width: 100%;
-            height: 400px;
+            height: 420px;
             background: #fafafa;
             border: 1px solid #ddd;
             border-radius: 10px;
             overflow: hidden;
+            margin-top: 16px;
         }
         .preview-stage {
             position: relative;
@@ -96,14 +100,15 @@
         }
         .block {
             position: absolute;
-            padding: 14px;
+            padding: 12px;
             border-radius: 8px;
             background: white;
             border: 1px solid #3498db;
             cursor: move;
             overflow: hidden;
-            line-height: 1.5;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-size: 13px;
+            line-height: 1.4;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
         }
         .resize-handle {
             position: absolute;
@@ -118,7 +123,7 @@
         .news-list {
             max-height: 300px;
             overflow-y: auto;
-            margin-top: 10px;
+            margin-top: 12px;
         }
         .news-item {
             padding: 12px;
@@ -127,10 +132,12 @@
             margin-bottom: 8px;
             cursor: pointer;
         }
-        .news-item:hover { background: #f8f9fa; }
+        .news-item:hover {
+            background: #f8f9fa;
+        }
         .bg-preview {
             width: 100%;
-            max-height: 150px;
+            max-height: 160px;
             object-fit: cover;
             border-radius: 6px;
             margin: 10px 0;
@@ -140,7 +147,7 @@
 </head>
 <body>
 
-<!-- Login -->
+<!-- Login Panel -->
 <div class="box" id="loginPanel">
     <h2>Admin Login</h2>
     <div class="form-group">
@@ -152,23 +159,31 @@
     <button class="btn-blue" onclick="login()">Login</button>
 </div>
 
-<!-- Dashboard -->
+<!-- Main Dashboard -->
 <div id="dashboard" class="hidden">
     <div class="box">
-        <h2>Admin Panel
+        <h2>
+            Service Learning Admin
             <button class="btn-red" style="float:right" onclick="logout()">Logout</button>
         </h2>
         <p id="userRoleDisplay"></p>
     </div>
 
+    <!-- Teacher Management -->
     <div class="box" id="teacherManagementSection">
         <h3>Teacher Management</h3>
-        <div class="form-group"><input type="text" id="newTeacherUser" placeholder="Username"></div>
-        <div class="form-group"><input type="password" id="newTeacherPass" placeholder="Password"></div>
+        <div class="form-group">
+            <input type="text" id="newTeacherUser" placeholder="Username">
+        </div>
+        <div class="form-group">
+            <input type="password" id="newTeacherPass" placeholder="Password">
+        </div>
         <button class="btn-green" onclick="createTeacher()">Create Teacher</button>
+        <h4 style="margin-top:20px;">Teacher List</h4>
         <div id="teacherList"></div>
     </div>
 
+    <!-- Programs -->
     <div class="box">
         <h3>Programs</h3>
         <div class="form-group">
@@ -181,50 +196,65 @@
         <button class="btn-red" onclick="deleteProgram()">Delete Program</button>
     </div>
 
+    <!-- News -->
     <div class="box">
-        <h3>News</h3>
-        <div class="form-group"><input type="text" id="newsTitle" placeholder="Title"></div>
-        <div class="form-group"><input type="text" id="newsOverview" placeholder="Overview"></div>
+        <h3>News Management</h3>
         <div class="form-group">
+            <input type="text" id="newsTitle" placeholder="Title">
+        </div>
+        <div class="form-group">
+            <input type="text" id="newsOverview" placeholder="Overview">
+        </div>
+        <div class="form-group">
+            <label>Image</label>
             <input type="file" id="newsImage" accept="image/*">
             <img id="previewImg" class="bg-preview">
         </div>
-        <div class="form-group"><textarea id="newsContent" rows="4" placeholder="Content"></textarea></div>
+        <div class="form-group">
+            <textarea id="newsContent" rows="4" placeholder="Full content"></textarea>
+        </div>
         <button class="btn-purple" onclick="saveNews()">Save News</button>
-        <button class="btn-red" id="deleteNewsBtn" style="display:none" onclick="removeSelectedNews()">Delete News</button>
+        <button class="btn-red" id="deleteNewsBtn" style="display:none;" onclick="removeSelectedNews()">Delete News</button>
         <div class="news-list" id="newsList"></div>
     </div>
 
+    <!-- Block Editor -->
     <div class="box">
-        <h3>Edit Block</h3>
-        <div class="form-group"><input type="text" id="blockTitle" placeholder="Title"></div>
-        <div class="form-group"><textarea id="blockContent" rows="3" placeholder="Content"></textarea></div>
+        <h3>Edit Selected Block</h3>
+        <div class="form-group">
+            <input type="text" id="blockTitle" placeholder="Block Title">
+        </div>
+        <div class="form-group">
+            <textarea id="blockContent" rows="3" placeholder="Block Content"></textarea>
+        </div>
         <div class="flex">
             <div>
-                <label>Background</label>
+                <label>Background Color</label>
                 <div class="color-row">
-                    <div id="bgBox" class="color-box"></div>
+                    <div id="bgBox" class="color-box" onclick="bgColor.click()"></div>
                     <input type="color" id="bgColor" value="#ffffff">
                 </div>
             </div>
             <div>
                 <label>Text Color</label>
                 <div class="color-row">
-                    <div id="textColorBox" class="color-box"></div>
+                    <div id="textColorBox" class="color-box" onclick="textColor.click()"></div>
                     <input type="color" id="textColor" value="#000000">
                 </div>
             </div>
         </div>
-        <button class="btn-blue" onclick="updateBlock()">Save Block</button>
+        <button class="btn-blue" onclick="updateBlock()">Save Block Changes</button>
     </div>
 
-    <!-- Layout + TAB TEMPLATE BUTTON -->
+    <!-- Layout Preview WITH TAB BUTTON -->
     <div class="box">
-        <h3>Layout Preview</h3>
-        <button class="btn-orange" onclick="generateTabTemplate()">Generate Tab Template</button>
-        <button class="btn-blue" onclick="saveLayout()" style="margin-left:10px;">Save Layout</button>
+        <h3>Layout Preview (Drag & Resize)</h3>
 
-        <div class="preview" style="margin-top:15px;">
+        <!-- YOUR BUTTON IS HERE -->
+        <button class="btn-orange" onclick="generateTabTemplate()">Generate Tab Template</button>
+        <button class="btn-blue" onclick="saveLayout()">Save Layout</button>
+
+        <div class="preview">
             <div id="stage" class="preview-stage"></div>
         </div>
     </div>
@@ -237,8 +267,22 @@ let programs, selectedProgram;
 let blocks = [], selectedBlock = null;
 let news = [], selectedNews = null;
 
+// Color elements
+const bgColor = document.getElementById("bgColor");
+const textColor = document.getElementById("textColor");
+const bgBox = document.getElementById("bgBox");
+const textColorBox = document.getElementById("textColorBox");
+
+bgColor.addEventListener("input", syncColors);
+textColor.addEventListener("input", syncColors);
+
+function syncColors() {
+    bgBox.style.backgroundColor = bgColor.value;
+    textColorBox.style.backgroundColor = textColor.value;
+}
+
 // ------------------------------
-// Login
+// Login / Logout
 // ------------------------------
 async function login() {
     const username = document.getElementById("username").value.trim();
@@ -259,8 +303,11 @@ async function login() {
         document.getElementById("dashboard").classList.remove("hidden");
         document.getElementById("userRoleDisplay").innerText = isSuperAdmin ? "Master Admin" : "Teacher";
 
-        if (!isSuperAdmin) document.getElementById("teacherManagementSection").style.display = "none";
-        else loadTeachers();
+        if (!isSuperAdmin) {
+            document.getElementById("teacherManagementSection").style.display = "none";
+        } else {
+            loadTeachers();
+        }
 
         loadPrograms();
         syncColors();
@@ -274,10 +321,11 @@ function logout() {
 }
 
 // ------------------------------
-// Teachers
+// Teacher Management
 // ------------------------------
 async function loadTeachers() {
-    const teachers = await (await fetch(`${API_URL}/teachers`)).json();
+    const res = await fetch(`${API_URL}/teachers`);
+    const teachers = await res.json();
     const list = document.getElementById("teacherList");
     list.innerHTML = "";
     teachers.forEach(t => {
@@ -288,6 +336,7 @@ async function loadTeachers() {
         btn.className = "btn-red";
         btn.innerText = "Delete";
         btn.onclick = async () => {
+            if (!confirm("Delete this teacher?")) return;
             await fetch(`${API_URL}/teachers/${t.id}`, { method: "DELETE" });
             loadTeachers();
         };
@@ -299,7 +348,7 @@ async function loadTeachers() {
 async function createTeacher() {
     const u = document.getElementById("newTeacherUser").value.trim();
     const p = document.getElementById("newTeacherPass").value.trim();
-    if (!u || !p) return alert("Please fill all fields");
+    if (!u || !p) return alert("Please fill username and password");
     await fetch(`${API_URL}/teachers`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -308,13 +357,15 @@ async function createTeacher() {
     document.getElementById("newTeacherUser").value = "";
     document.getElementById("newTeacherPass").value = "";
     loadTeachers();
+    alert("Teacher created");
 }
 
 // ------------------------------
 // Programs
 // ------------------------------
 async function loadPrograms() {
-    programs = await (await fetch(`${API_URL}/programs?user=${currentUser}&admin=${isSuperAdmin}`)).json();
+    const res = await fetch(`${API_URL}/programs?user=${currentUser}&admin=${isSuperAdmin}`);
+    programs = await res.json();
     const sel = document.getElementById("programSelect");
     sel.innerHTML = "";
     programs.forEach(p => {
@@ -323,7 +374,9 @@ async function loadPrograms() {
         opt.innerText = p.name;
         sel.appendChild(opt);
     });
-    if (programs.length) selectProgram(programs[0].id);
+    if (programs.length > 0) {
+        selectProgram(programs[0].id);
+    }
 }
 
 async function selectProgram(id) {
@@ -331,26 +384,31 @@ async function selectProgram(id) {
     blocks = JSON.parse(selectedProgram.blocks || "[]");
     news = JSON.parse(selectedProgram.news || "[]");
     renderBlocks();
-    renderNews();
+    renderNewsList();
     resetNewsForm();
 }
 
 async function createProgram() {
     const name = document.getElementById("newProgName").value.trim() || "New Program";
     const defaultBlocks = JSON.stringify([
-        { id: "b1", title: "Block 1", content: "Content", x:5,y:5,w:40,h:25, bg:"#fff", text:"#000", border:"1px solid #3498db" }
+        { id: "b1", title: "Block", content: "Content", x: 5, y: 5, w: 40, h: 30, bg: "#fff", text: "#000", border: "1px solid #3498db" }
     ]);
     await fetch(`${API_URL}/programs`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, createdBy: currentUser, blocks: defaultBlocks, news: "[]" })
+        body: JSON.stringify({
+            name,
+            createdBy: currentUser,
+            blocks: defaultBlocks,
+            news: "[]"
+        })
     });
     loadPrograms();
 }
 
 async function deleteProgram() {
     if (!selectedProgram) return;
-    if (!confirm("Delete this program?")) return;
+    if (!confirm("Delete this program permanently?")) return;
     await fetch(`${API_URL}/programs/${selectedProgram.id}`, { method: "DELETE" });
     loadPrograms();
 }
@@ -358,7 +416,7 @@ async function deleteProgram() {
 // ------------------------------
 // News
 // ------------------------------
-function renderNews() {
+function renderNewsList() {
     const list = document.getElementById("newsList");
     list.innerHTML = "";
     news.forEach(n => {
@@ -393,18 +451,21 @@ async function saveNews() {
     const overview = document.getElementById("newsOverview").value.trim();
     const content = document.getElementById("newsContent").value.trim();
     const image = document.getElementById("previewImg").src || "";
-    if (!title || !overview || !content) return alert("Fill all fields");
+    if (!title || !overview || !content) return alert("Fill title, overview, content");
 
     const item = { id: Date.now(), title, overview, content, image };
-    if (selectedNews) news = news.map(n => n.id === selectedNews.id ? item : n);
-    else news.unshift(item);
+    if (selectedNews) {
+        news = news.map(n => n.id === selectedNews.id ? item : n);
+    } else {
+        news.unshift(item);
+    }
 
     await fetch(`${API_URL}/programs/${selectedProgram.id}/news`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ news: JSON.stringify(news) })
     });
-    renderNews();
+    renderNewsList();
     resetNewsForm();
 }
 
@@ -416,7 +477,7 @@ async function removeSelectedNews() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ news: JSON.stringify(news) })
     });
-    renderNews();
+    renderNewsList();
     resetNewsForm();
 }
 
@@ -430,22 +491,6 @@ document.getElementById("newsImage").addEventListener("change", e => {
     };
     reader.readAsDataURL(file);
 });
-
-// ------------------------------
-// Color Sync
-// ------------------------------
-const bgColor = document.getElementById("bgColor");
-const textColor = document.getElementById("textColor");
-const bgBox = document.getElementById("bgBox");
-const textColorBox = document.getElementById("textColorBox");
-
-bgColor.addEventListener("input", syncColors);
-textColor.addEventListener("input", syncColors);
-
-function syncColors() {
-    bgBox.style.backgroundColor = bgColor.value;
-    textColorBox.style.backgroundColor = textColor.value;
-}
 
 // ------------------------------
 // Drag & Resize Blocks
@@ -471,7 +516,8 @@ function renderBlocks() {
         resize.className = "resize-handle";
         el.appendChild(resize);
 
-        el.onclick = () => {
+        el.onclick = (e) => {
+            if (e.target === resize) return;
             selectedBlock = block;
             document.getElementById("blockTitle").value = block.title;
             document.getElementById("blockContent").value = block.content;
@@ -558,18 +604,18 @@ async function saveLayout() {
         body: JSON.stringify({ blocks: JSON.stringify(blocks) })
     });
 
-    alert("Layout saved!");
+    alert("Layout saved successfully!");
 }
 
 // ------------------------------
-// ✨ ONE-CLICK TAB TEMPLATE GENERATOR
+// TAB TEMPLATE GENERATOR BUTTON FUNCTION
 // ------------------------------
 function generateTabTemplate() {
     blocks = [
         {
             id: "tab1",
             title: "Tab 1",
-            content: "Home / Info",
+            content: "Home",
             x: 2, y: 2, w: 23, h: 10,
             bg: "#eef5ff",
             text: "#2d3748",
@@ -605,11 +651,11 @@ function generateTabTemplate() {
         {
             id: "contentArea",
             title: "Content Area",
-            content: "Main page content shows here",
+            content: "Main content displays here",
             x: 2, y: 14, w: 96, h: 82,
             bg: "#ffffff",
             text: "#000000",
-            border: "1px solid #ccc"
+            border: "1px solid #cccccc"
         }
     ];
 
