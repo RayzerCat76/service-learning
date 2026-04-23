@@ -85,21 +85,25 @@
 </div>
 
 <script>
-const API = "/api";
+// Copy your database connection logic from admin.html here
+const DB_URL = "YOUR_NEON_DATABASE_CONNECTION_STRING"; // Replace this with your actual Neon connection string
+
 let programs = [];
 let currentProgram;
 
-console.log("Loading index.html...");
-
-// 1. Load programs from API
-fetch(`${API}/programs`)
-    .then(res => {
-        console.log("API response status:", res.status);
-        return res.json();
-    })
-    .then(data => {
-        console.log("API returned data:", data);
-        programs = data;
+// Fetch programs directly from the database (no API needed)
+async function loadPrograms() {
+    try {
+        // This uses the same query as your admin page
+        const response = await fetch(DB_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                query: "SELECT id, name, blocks, news FROM programs"
+            })
+        });
+        const data = await response.json();
+        programs = data.rows;
 
         if (programs.length > 0) {
             currentProgram = programs[0];
@@ -109,15 +113,15 @@ fetch(`${API}/programs`)
             document.getElementById("content").innerHTML = "<p>No content to display.</p>";
             document.getElementById("news-container").innerHTML = "<p>No news yet.</p>";
         }
-    })
-    .catch(err => {
-        console.error("API Error:", err);
+    } catch (err) {
+        console.error("Database error:", err);
         document.getElementById("tabs").innerHTML = "<p>Failed to load programs.</p>";
         document.getElementById("content").innerHTML = "<p>Failed to load content.</p>";
         document.getElementById("news-container").innerHTML = "<p>Failed to load news.</p>";
-    });
+    }
+}
 
-// 2. Render everything
+// Render everything
 function renderAll() {
     renderTabs();
     renderInfoCards();
@@ -200,6 +204,9 @@ function renderNews() {
         newsDiv.appendChild(p);
     });
 }
+
+// Start loading when the page opens
+loadPrograms();
 </script>
 </body>
 </html>
