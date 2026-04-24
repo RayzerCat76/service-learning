@@ -1,15 +1,10 @@
 {
   "version": 2,
   "builds": [
-    {
-      "src": "api/programs.js",
-      "use": "@vercel/node"
-    }
+    { "src": "api/programs.js", "use": "@vercel/node" }
   ],
   "routes": [
-    {
-      "src": "/api/programs",
-      "dest": "/api/programs.js"
-    }
+    { "src": "/api/programs", "dest": "/api/programs.js" },
+    { "src": "/", "dest": "/index.html", "dest": "/admin.html" }
   ]
 }
