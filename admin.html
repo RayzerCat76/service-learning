@@ -238,36 +238,36 @@
         </div>
 
         <div class="box">
-            <h3>Edit News</h3>
+            <h3>Edit News Metadata</h3>
             <div class="form-group">
-                <label>Title</label>
-                <input type="text" id="newsTitle" placeholder="News Title">
+                <label>News Title</label>
+                <input type="text" id="newsTitle" placeholder="Enter news title">
             </div>
             <div class="form-group">
-                <label>Overview</label>
-                <textarea id="newsOverview" rows="2"></textarea>
+                <label>Short Overview</label>
+                <textarea id="newsOverview" rows="2" placeholder="Short summary preview"></textarea>
             </div>
             <div class="form-group">
                 <label>Full Content</label>
-                <textarea id="newsFullContent" rows="4"></textarea>
+                <textarea id="newsFullContent" rows="4" placeholder="Main news content"></textarea>
             </div>
-            <button class="btn-blue" onclick="saveNewsMeta()">Save News</button>
-            <button class="btn-red" onclick="deleteSelectedNews()">Delete News</button>
+            <button class="btn-blue" onclick="saveNewsMeta()">Save Title / Overview / Content</button>
+            <button class="btn-red" onclick="deleteSelectedNews()">Delete This News</button>
         </div>
 
         <div class="box">
             <h3>News Images</h3>
             <div class="form-group">
-                <input type="text" id="newsImageUrl" placeholder="Image URL">
+                <input type="text" id="newsImageUrl" placeholder="Paste image URL here">
             </div>
-            <button class="btn-purple" onclick="addNewsImage()">Add Image</button>
+            <button class="btn-purple" onclick="addNewsImage()">Add Image to News</button>
             <div id="newsImagePreviewRow"></div>
         </div>
 
         <div class="box">
-            <h3>News Layout</h3>
-            <button class="btn-purple" onclick="addNewsTextBox()">Add Text Box</button>
-            <button class="btn-blue" onclick="saveNewsLayout()">Save News Layout</button>
+            <h3>News Page Visual Editor</h3>
+            <button class="btn-purple" onclick="addNewsTextBox()">Add Movable Text Box</button>
+            <button class="btn-blue" onclick="saveNewsLayout()">Save News Page Layout</button>
             <div class="preview">
                 <div id="newsStage"></div>
             </div>
@@ -316,73 +316,75 @@ function login(){
 function logout(){ location.reload(); }
 
 async function loadPrograms(){
-    try {
+    try{
         const res = await fetch(API_URL, { cache: "no-store" });
         programs = await res.json();
         const sel = document.getElementById("programSelect");
         sel.innerHTML = "";
-        programs.forEach(p => {
+        programs.forEach(p=>{
             const opt = document.createElement("option");
             opt.value = p.id;
             opt.innerText = p.name;
             sel.appendChild(opt);
         });
-        if (programs.length) selectProgram(programs[0].id);
-    } catch(e) {}
+        if(programs.length) selectProgram(programs[0].id);
+    }catch(e){console.error(e);}
 }
 
 function selectProgram(id){
-    selectedProgram = programs.find(p => p.id == id);
+    selectedProgram = programs.find(p=>p.id == id);
     selectedNewsId = null;
 
-    try {
-        blocks = Array.isArray(selectedProgram.blocks)
-            ? [...selectedProgram.blocks]
-            : JSON.parse(selectedProgram.blocks || "[]");
-    } catch(e) { blocks = []; }
+    try{
+        blocks = Array.isArray(selectedProgram.blocks) ? selectedProgram.blocks : JSON.parse(selectedProgram.blocks||"[]");
+    }catch(e){blocks=[];}
 
-    try {
-        allNews = Array.isArray(selectedProgram.news)
-            ? [...selectedProgram.news]
-            : JSON.parse(selectedProgram.news || "[]");
-    } catch(e) { allNews = []; }
+    try{
+        allNews = Array.isArray(selectedProgram.news) ? selectedProgram.news : JSON.parse(selectedProgram.news||"[]");
+    }catch(e){allNews=[];}
 
     renderBlocks();
     renderNewsList();
 }
 
 async function createProgram(){
-    const name = document.getElementById("newProgName").value.trim() || "New Program";
-    await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, created_by: currentUser, blocks: [], news: [] })
+    const name = document.getElementById("newProgName").value.trim()||"New Program";
+    await fetch(API_URL,{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({name, created_by:currentUser, blocks:[], news:[]})
     });
     loadPrograms();
 }
 
 async function deleteProgram(){
-    if (!selectedProgram || !confirm("Delete program?")) return;
-    await fetch(`${API_URL}/${selectedProgram.id}`, { method: "DELETE" });
+    if(!selectedProgram||!confirm("Delete program?"))return;
+    await fetch(`${API_URL}/${selectedProgram.id}`,{method:"DELETE"});
     loadPrograms();
 }
 
-// ----------------------------
-// FIXED: Layout Saves to DB
-// ----------------------------
+// ✅ CORE FIX: Save entire program object instead of using /blocks endpoint
+async function saveProgramToDB(){
+    await fetch(`${API_URL}/${selectedProgram.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            name: selectedProgram.name,
+            created_by: selectedProgram.created_by,
+            blocks: blocks,
+            news: allNews
+        })
+    });
+}
+
 async function updateBlock(){
-    if (!selectedBlock || !selectedProgram) return;
+    if(!selectedBlock) return;
     selectedBlock.title = document.getElementById("blockTitle").value;
     selectedBlock.content = document.getElementById("blockContent").value;
     selectedBlock.bg = bgColor.value;
     selectedBlock.text = textColor.value;
     renderBlocks();
-
-    await fetch(`${API_URL}/${selectedProgram.id}/blocks`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ blocks: blocks })
-    });
+    await saveProgramToDB();
     alert("✅ Block saved to database");
 }
 
@@ -396,12 +398,7 @@ async function saveLayout(){
             b.h = parseFloat(el.style.height);
         }
     });
-
-    await fetch(`${API_URL}/${selectedProgram.id}/blocks`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ blocks: blocks })
-    });
+    await saveProgramToDB();
     alert("✅ Layout saved to database");
     renderBlocks();
 }
@@ -409,8 +406,8 @@ async function saveLayout(){
 function renderBlocks(){
     const stage = document.getElementById("stage");
     stage.innerHTML = "";
-    if (!Array.isArray(blocks)) return;
-    blocks.forEach(block => {
+    if(!Array.isArray(blocks))return;
+    blocks.forEach(block=>{
         const el = document.createElement("div");
         el.className = "block";
         el.dataset.id = block.id;
@@ -425,7 +422,7 @@ function renderBlocks(){
         const rh = document.createElement("div");
         rh.className = "resize-handle";
         el.appendChild(rh);
-        el.onclick = () => {
+        el.onclick = ()=>{
             selectedBlock = block;
             document.getElementById("blockTitle").value = block.title;
             document.getElementById("blockContent").value = block.content;
@@ -445,26 +442,26 @@ function generateTemplate(){
     renderBlocks();
 }
 
-// ----------------------------
-// FIXED: NEWS FULLY SAVES TO DB
-// ----------------------------
+// -------------------
+// News Functions
+// -------------------
 function renderNewsList(){
     const wrap = document.getElementById("newsItemList");
     wrap.innerHTML = "";
-    allNews.forEach(item => {
+    allNews.forEach(item=>{
         const card = document.createElement("div");
         card.className = "news-item-card"+(item.id===selectedNewsId?" active":"");
         card.innerText = item.title || "Untitled News";
         card.onclick = () => selectNewsItem(item.id);
         wrap.appendChild(card);
     });
+    clearNewsEditorFields();
 }
 
 function createNewNews(){
-    if (!selectedProgram) return;
     const newNews = {
         id: "news_"+Date.now(),
-        title: "New Article",
+        title: "New News Article",
         overview: "",
         content: "",
         imageUrls: [],
@@ -472,7 +469,7 @@ function createNewNews(){
     };
     allNews.push(newNews);
     selectedNewsId = newNews.id;
-    syncNewsToDB();
+    saveProgramToDB();
     renderNewsList();
     loadSelectedNewsData();
 }
@@ -484,8 +481,8 @@ function selectNewsItem(newsId){
 }
 
 function loadSelectedNewsData(){
-    const news = allNews.find(n => n.id === selectedNewsId);
-    if (!news) return;
+    const news = allNews.find(n=>n.id===selectedNewsId);
+    if(!news) return;
     document.getElementById("newsTitle").value = news.title;
     document.getElementById("newsOverview").value = news.overview;
     document.getElementById("newsFullContent").value = news.content;
@@ -494,93 +491,117 @@ function loadSelectedNewsData(){
     renderNewsLayout();
 }
 
+function clearNewsEditorFields(){
+    document.getElementById("newsTitle").value = "";
+    document.getElementById("newsOverview").value = "";
+    document.getElementById("newsFullContent").value = "";
+    document.getElementById("newsImageUrl").value = "";
+    document.getElementById("newsImagePreviewRow").innerHTML = "";
+    document.getElementById("newsStage").innerHTML = "";
+    newsLayoutBlocks = [];
+}
+
 async function saveNewsMeta(){
-    const news = allNews.find(n => n.id === selectedNewsId);
-    if (!news) return;
+    const news = allNews.find(n=>n.id===selectedNewsId);
+    if(!news) return;
     news.title = document.getElementById("newsTitle").value;
     news.overview = document.getElementById("newsOverview").value;
     news.content = document.getElementById("newsFullContent").value;
-    await syncNewsToDB();
-    alert("✅ News saved to database");
+    await saveProgramToDB();
+    alert("✅ News metadata saved to database");
+    renderNewsList();
 }
 
 async function deleteSelectedNews(){
-    if (!selectedNewsId || !confirm("Delete news?")) return;
-    allNews = allNews.filter(n => n.id !== selectedNewsId);
+    if(!selectedNewsId||!confirm("Delete this news article?"))return;
+    allNews = allNews.filter(n=>n.id!==selectedNewsId);
     selectedNewsId = null;
-    await syncNewsToDB();
+    await saveProgramToDB();
     renderNewsList();
 }
 
 function addNewsImage(){
     const url = document.getElementById("newsImageUrl").value.trim();
-    if (!url) return;
-    const news = allNews.find(n => n.id === selectedNewsId);
-    if (!news) return;
-    news.imageUrls = news.imageUrls || [];
+    if(!url) return;
+    const news = allNews.find(n=>n.id===selectedNewsId);
+    if(!news) return;
+    if(!news.imageUrls) news.imageUrls = [];
     news.imageUrls.push(url);
     document.getElementById("newsImageUrl").value = "";
     renderNewsImages();
-    syncNewsToDB();
+    saveProgramToDB();
 }
 
 function renderNewsImages(){
     const row = document.getElementById("newsImagePreviewRow");
     row.innerHTML = "";
-    const news = allNews.find(n => n.id === selectedNewsId);
-    if (!news || !news.imageUrls) return;
-    news.imageUrls.forEach((img, i) => {
-        const div = document.createElement("div");
-        div.style.display="inline-block";
-        div.innerHTML = `<img src="${img}" class="image-preview-small"><br><button class='btn-red' onclick="removeNewsImage(${i})">Remove</button>`;
-        row.appendChild(div);
+    const news = allNews.find(n=>n.id===selectedNewsId);
+    if(!news||!news.imageUrls)return;
+    news.imageUrls.forEach((img,idx)=>{
+        const wrap = document.createElement("div");
+        wrap.style.display="inline-block";
+        const imgEl = document.createElement("img");
+        imgEl.src = img;
+        imgEl.className = "image-preview-small";
+        const delBtn = document.createElement("button");
+        delBtn.className="btn-red";
+        delBtn.style.fontSize="12px";
+        delBtn.innerText="Remove";
+        delBtn.onclick = ()=>{
+            news.imageUrls.splice(idx,1);
+            renderNewsImages();
+            saveProgramToDB();
+        };
+        wrap.appendChild(imgEl);
+        wrap.appendChild(delBtn);
+        row.appendChild(wrap);
     });
-}
-
-function removeNewsImage(index){
-    const news = allNews.find(n => n.id === selectedNewsId);
-    news.imageUrls.splice(index, 1);
-    renderNewsImages();
-    syncNewsToDB();
 }
 
 function addNewsTextBox(){
-    if (!selectedNewsId) return;
-    newsLayoutBlocks.push({
-        id: "txt_"+Date.now(),
-        text: "Edit me",
-        x:10,y:10,w:30,h:20,
-        bg:"#fff", color:"#000", border:"2px solid #9b59b6"
-    });
+    if(!selectedNewsId){
+        alert("Select or create a news article first");
+        return;
+    }
+    const newBox = {
+        id: "news_txt_"+Date.now(),
+        type:"text",
+        text:"New Text Box",
+        x:10, y:10, w:30, h:20,
+        bg:"#ffffff",
+        color:"#222",
+        border:"2px solid #9b59b6"
+    };
+    newsLayoutBlocks.push(newBox);
     renderNewsLayout();
 }
 
 function renderNewsLayout(){
     const stage = document.getElementById("newsStage");
     stage.innerHTML = "";
-    newsLayoutBlocks.forEach(bl => {
+    newsLayoutBlocks.forEach(block=>{
         const el = document.createElement("div");
         el.className = "block news-block";
-        el.dataset.id = bl.id;
-        el.style.left = bl.x+"%";
-        el.style.top = bl.y+"%";
-        el.style.width = bl.w+"%";
-        el.style.height = bl.h+"%";
-        el.style.background = bl.bg;
-        el.style.color = bl.color;
-        el.style.border = bl.border;
+        el.dataset.id = block.id;
+        el.style.left = block.x+"%";
+        el.style.top = block.y+"%";
+        el.style.width = block.w+"%";
+        el.style.height = block.h+"%";
+        el.style.background = block.bg;
+        el.style.color = block.color;
+        el.style.border = block.border;
         el.contentEditable = true;
-        el.innerText = bl.text;
+        el.innerText = block.text;
         stage.appendChild(el);
     });
 }
 
 async function saveNewsLayout(){
-    const news = allNews.find(n => n.id === selectedNewsId);
-    if (!news) return;
-    newsLayoutBlocks.forEach(b => {
+    const news = allNews.find(n=>n.id===selectedNewsId);
+    if(!news)return;
+    newsLayoutBlocks.forEach(b=>{
         const el = document.querySelector(`#newsStage [data-id="${b.id}"]`);
-        if (el) {
+        if(el){
             b.x = parseFloat(el.style.left);
             b.y = parseFloat(el.style.top);
             b.w = parseFloat(el.style.width);
@@ -589,18 +610,8 @@ async function saveNewsLayout(){
         }
     });
     news.layoutBlocks = newsLayoutBlocks;
-    await syncNewsToDB();
-    alert("✅ News layout saved to database");
-}
-
-// ✅ CORE FIX: ALL news changes saved to DB
-async function syncNewsToDB(){
-    if (!selectedProgram) return;
-    await fetch(`${API_URL}/${selectedProgram.id}/news`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ news: allNews })
-    });
+    await saveProgramToDB();
+    alert("✅ News page layout saved to database");
 }
 </script>
 </body>
