@@ -7,12 +7,9 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // 1. Debug: Check if the variable exists
+  // Debug: Check environment variable
   if (!process.env.DATABASE_URL) {
-    return res.status(500).json({
-      error: 'DATABASE_URL is missing',
-      availableVars: Object.keys(process.env)
-    });
+    return res.status(500).json({ error: 'DATABASE_URL missing' });
   }
 
   const pool = new Pool({
@@ -21,17 +18,13 @@ module.exports = async (req, res) => {
   });
 
   try {
-    // 2. Test the connection and query
-    const { rows } = await pool.query('SELECT id, name, blocks, news FROM programs');
+    // Use explicit schema to match your database
+    const { rows } = await pool.query('SELECT id, name, blocks, news FROM public.programs');
     return res.status(200).json({
-      message: 'Success',
       count: rows.length,
       data: rows
     });
   } catch (err) {
-    return res.status(500).json({
-      error: 'Database query failed',
-      details: err.message
-    });
+    return res.status(500).json({ error: err.message });
   }
 };
