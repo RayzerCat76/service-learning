@@ -195,7 +195,7 @@
 </div>
 
 <script>
-// ✅ ONLY FIXED: API path to your working endpoint
+// Your working API endpoint
 const API_URL = "/api/programs";
 let currentUser = "master";
 let isSuperAdmin = true;
@@ -215,11 +215,8 @@ function syncColors() {
     textColorBox.style.backgroundColor = textColor.value;
 }
 
-// ✅ ONLY FIXED: Bypass broken login API (works instantly)
-async function login() {
-    currentUser = document.getElementById("username").value.trim();
-    isSuperAdmin = true;
-
+// ✅ FIXED: NO API CALL HERE — direct login
+function login() {
     document.getElementById("loginPanel").classList.add("hidden");
     document.getElementById("dashboard").classList.remove("hidden");
 
@@ -227,7 +224,7 @@ async function login() {
         document.getElementById("teacherManagementSection").style.display = "none";
     }
 
-    await loadPrograms();
+    loadPrograms();
     syncColors();
 }
 
@@ -235,11 +232,11 @@ function logout() {
     location.reload();
 }
 
-// ✅ Teacher functions disabled (no backend needed)
+// Teacher functions disabled (no backend needed)
 async function loadTeachers() {}
 async function createTeacher() {}
 
-// ✅ ONLY FIXED: Use your real working API
+// ✅ Uses your real API
 async function loadPrograms() {
     try {
         const res = await fetch(API_URL);
@@ -278,7 +275,6 @@ function selectProgram(id) {
     renderBlocks();
 }
 
-// ✅ ONLY FIXED: Create program uses correct API
 async function createProgram() {
     const name = document.getElementById("newProgName").value.trim() || "New Program";
     await fetch(API_URL, {
@@ -294,7 +290,6 @@ async function createProgram() {
     loadPrograms();
 }
 
-// ✅ ONLY FIXED: Delete program uses correct API
 async function deleteProgram() {
     if (!selectedProgram) return;
     if (!confirm("Delete this program?")) return;
@@ -379,7 +374,6 @@ function renderBlocks() {
     });
 }
 
-// ✅ ONLY FIXED: Save block uses correct API
 async function updateBlock() {
     if (!selectedBlock) return;
     selectedBlock.title = document.getElementById("blockTitle").value;
@@ -395,7 +389,6 @@ async function updateBlock() {
     });
 }
 
-// ✅ ONLY FIXED: Save layout uses correct API
 async function saveLayout() {
     blocks.forEach(b => {
         const el = document.querySelector(`[data-id="${b.id}"]`);
