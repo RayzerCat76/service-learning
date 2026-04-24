@@ -1,30 +1,45 @@
 const { Pool } = require('pg');
 
-module.exports = async (req, res) => {
-  res.setHeader('Content-Type', 'application/json');
+module.exports = async (req, res) =>
+{
+  try
+  {
+    // FORCE PRINT THE CONNECTION STRING (for debug only)
+    const conString = process.env.DATABASE_URL;
+    let masked = conString ? conString.substring(0,30)+"..." : "NOT SET";
 
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  // Debug: Check environment variable
-  if (!process.env.DATABASE_URL) {
-    return res.status(500).json({ error: 'DATABASE_URL missing' });
-  }
-
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
-  });
-
-  try {
-    // Use explicit schema to match your database
-    const { rows } = await pool.query('SELECT id, name, blocks, news FROM public.programs');
-    return res.status(200).json({
-      count: rows.length,
-      data: rows
+    // CONNECT
+    const pool = new Pool({
+      connectionString: conString,
+      ssl: { rejectUnauthorized: false }
     });
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
+
+    // CHECK WHAT TABLES EXIST
+    const tables = await pool.query(`
+      SELECT table_name
+      FROM information_schema.tables
+      WHERE table_schema = 'public'
+      ORDER BY table_name;
+    `);
+
+    // CHECK ROWS IN programs
+    const data = await pool.query("SELECT * FROM programs");
+
+    // RETURN EVERYTHING
+    res.status(200).json({
+      envWorking: !!conString,
+      connectionPreview: masked,
+      tablesInDatabase: tables.rows.map(t => t.table_name),
+      programCount: data.rows.length,
+      programs: data.rows
+    });
+  }
+  catch (err)
+  {
+    res.status(500).json({
+      error: "FULL DEBUG ERROR",
+      details: err.message,
+      stack: err.stack
+    });
   }
 };
