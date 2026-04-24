@@ -13,7 +13,7 @@ module.exports = async (req, res) => {
   }
 
   const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: process.env.DATABASE_URL, // ✅ Fixed the typo
     ssl: { rejectUnauthorized: false }
   });
 
