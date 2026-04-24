@@ -328,64 +328,67 @@ async function loadPrograms(){
             sel.appendChild(opt);
         });
         if(programs.length) selectProgram(programs[0].id);
-    }catch(e){console.error(e);}
+    } catch(e) { console.error(e); }
 }
 
 function selectProgram(id){
-    selectedProgram = programs.find(p=>p.id == id);
+    selectedProgram = programs.find(p => p.id == id);
     selectedNewsId = null;
 
-    try{
-        blocks = Array.isArray(selectedProgram.blocks) ? selectedProgram.blocks : JSON.parse(selectedProgram.blocks||"[]");
-    }catch(e){blocks=[];}
+    try {
+        blocks = Array.isArray(selectedProgram.blocks) ? selectedProgram.blocks : JSON.parse(selectedProgram.blocks || "[]");
+    } catch(e) { blocks = []; }
 
-    try{
-        allNews = Array.isArray(selectedProgram.news) ? selectedProgram.news : JSON.parse(selectedProgram.news||"[]");
-    }catch(e){allNews=[];}
+    try {
+        allNews = Array.isArray(selectedProgram.news) ? selectedProgram.news : JSON.parse(selectedProgram.news || "[]");
+    } catch(e) { allNews = []; }
 
     renderBlocks();
     renderNewsList();
 }
 
 async function createProgram(){
-    const name = document.getElementById("newProgName").value.trim()||"New Program";
-    await fetch(API_URL,{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({name, created_by:currentUser, blocks:[], news:[]})
+    const name = document.getElementById("newProgName").value.trim() || "New Program";
+    await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, created_by: currentUser, blocks: [], news: [] })
     });
     loadPrograms();
 }
 
 async function deleteProgram(){
-    if(!selectedProgram||!confirm("Delete program?"))return;
-    await fetch(`${API_URL}/${selectedProgram.id}`,{method:"DELETE"});
+    if (!selectedProgram || !confirm("Delete program?")) return;
+    await fetch(`${API_URL}/${selectedProgram.id}`, { method: "DELETE" });
     loadPrograms();
 }
 
-// ✅ CORE FIX: Save entire program object instead of using /blocks endpoint
+// ✅ Core Fix: Use PATCH instead of PUT
 async function saveProgramToDB(){
-    await fetch(`${API_URL}/${selectedProgram.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            name: selectedProgram.name,
-            created_by: selectedProgram.created_by,
-            blocks: blocks,
-            news: allNews
-        })
-    });
+    try {
+        const res = await fetch(`${API_URL}/${selectedProgram.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ blocks: blocks, news: allNews })
+        });
+        if (!res.ok) throw new Error("Request failed");
+        return true;
+    } catch (e) {
+        alert("❌ Failed to save to database. The API endpoint is not working.");
+        console.error(e);
+        return false;
+    }
 }
 
 async function updateBlock(){
-    if(!selectedBlock) return;
+    if (!selectedBlock) return;
     selectedBlock.title = document.getElementById("blockTitle").value;
     selectedBlock.content = document.getElementById("blockContent").value;
     selectedBlock.bg = bgColor.value;
     selectedBlock.text = textColor.value;
     renderBlocks();
-    await saveProgramToDB();
-    alert("✅ Block saved to database");
+    const success = await saveProgramToDB();
+    if (success) alert("✅ Block saved to database");
 }
 
 async function saveLayout(){
@@ -398,23 +401,23 @@ async function saveLayout(){
             b.h = parseFloat(el.style.height);
         }
     });
-    await saveProgramToDB();
-    alert("✅ Layout saved to database");
+    const success = await saveProgramToDB();
+    if (success) alert("✅ Layout saved to database");
     renderBlocks();
 }
 
 function renderBlocks(){
     const stage = document.getElementById("stage");
     stage.innerHTML = "";
-    if(!Array.isArray(blocks))return;
-    blocks.forEach(block=>{
+    if (!Array.isArray(blocks)) return;
+    blocks.forEach(block => {
         const el = document.createElement("div");
         el.className = "block";
         el.dataset.id = block.id;
-        el.style.left = block.x+"%";
-        el.style.top = block.y+"%";
-        el.style.width = block.w+"%";
-        el.style.height = block.h+"%";
+        el.style.left = block.x + "%";
+        el.style.top = block.y + "%";
+        el.style.width = block.w + "%";
+        el.style.height = block.h + "%";
         el.style.backgroundColor = block.bg;
         el.style.color = block.text;
         el.style.border = block.border;
@@ -422,7 +425,7 @@ function renderBlocks(){
         const rh = document.createElement("div");
         rh.className = "resize-handle";
         el.appendChild(rh);
-        el.onclick = ()=>{
+        el.onclick = () => {
             selectedBlock = block;
             document.getElementById("blockTitle").value = block.title;
             document.getElementById("blockContent").value = block.content;
@@ -436,21 +439,19 @@ function renderBlocks(){
 
 function generateTemplate(){
     blocks = [
-        {id:"info",title:"Basic Information",content:"",x:2,y:5,w:46,h:90,bg:"#fff",text:"#000",border:"2px solid #ccc"},
-        {id:"contact",title:"Contact Information",content:"",x:52,y:5,w:46,h:90,bg:"#fff",text:"#000",border:"2px solid #ccc"}
+        { id:"info", title:"Basic Information", content:"", x:2, y:5, w:46, h:90, bg:"#fff", text:"#000", border:"2px solid #ccc" },
+        { id:"contact", title:"Contact Information", content:"", x:52, y:5, w:46, h:90, bg:"#fff", text:"#000", border:"2px solid #ccc" }
     ];
     renderBlocks();
 }
 
-// -------------------
 // News Functions
-// -------------------
 function renderNewsList(){
     const wrap = document.getElementById("newsItemList");
     wrap.innerHTML = "";
-    allNews.forEach(item=>{
+    allNews.forEach(item => {
         const card = document.createElement("div");
-        card.className = "news-item-card"+(item.id===selectedNewsId?" active":"");
+        card.className = "news-item-card" + (item.id === selectedNewsId ? " active" : "");
         card.innerText = item.title || "Untitled News";
         card.onclick = () => selectNewsItem(item.id);
         wrap.appendChild(card);
@@ -460,7 +461,7 @@ function renderNewsList(){
 
 function createNewNews(){
     const newNews = {
-        id: "news_"+Date.now(),
+        id: "news_" + Date.now(),
         title: "New News Article",
         overview: "",
         content: "",
@@ -469,9 +470,10 @@ function createNewNews(){
     };
     allNews.push(newNews);
     selectedNewsId = newNews.id;
-    saveProgramToDB();
-    renderNewsList();
-    loadSelectedNewsData();
+    saveProgramToDB().then(() => {
+        renderNewsList();
+        loadSelectedNewsData();
+    });
 }
 
 function selectNewsItem(newsId){
@@ -481,8 +483,8 @@ function selectNewsItem(newsId){
 }
 
 function loadSelectedNewsData(){
-    const news = allNews.find(n=>n.id===selectedNewsId);
-    if(!news) return;
+    const news = allNews.find(n => n.id === selectedNewsId);
+    if (!news) return;
     document.getElementById("newsTitle").value = news.title;
     document.getElementById("newsOverview").value = news.overview;
     document.getElementById("newsFullContent").value = news.content;
@@ -502,30 +504,32 @@ function clearNewsEditorFields(){
 }
 
 async function saveNewsMeta(){
-    const news = allNews.find(n=>n.id===selectedNewsId);
-    if(!news) return;
+    const news = allNews.find(n => n.id === selectedNewsId);
+    if (!news) return;
     news.title = document.getElementById("newsTitle").value;
     news.overview = document.getElementById("newsOverview").value;
     news.content = document.getElementById("newsFullContent").value;
-    await saveProgramToDB();
-    alert("✅ News metadata saved to database");
-    renderNewsList();
+    const success = await saveProgramToDB();
+    if (success) {
+        alert("✅ News metadata saved to database");
+        renderNewsList();
+    }
 }
 
 async function deleteSelectedNews(){
-    if(!selectedNewsId||!confirm("Delete this news article?"))return;
-    allNews = allNews.filter(n=>n.id!==selectedNewsId);
+    if (!selectedNewsId || !confirm("Delete this news article?")) return;
+    allNews = allNews.filter(n => n.id !== selectedNewsId);
     selectedNewsId = null;
-    await saveProgramToDB();
-    renderNewsList();
+    const success = await saveProgramToDB();
+    if (success) renderNewsList();
 }
 
 function addNewsImage(){
     const url = document.getElementById("newsImageUrl").value.trim();
-    if(!url) return;
-    const news = allNews.find(n=>n.id===selectedNewsId);
-    if(!news) return;
-    if(!news.imageUrls) news.imageUrls = [];
+    if (!url) return;
+    const news = allNews.find(n => n.id === selectedNewsId);
+    if (!news) return;
+    if (!news.imageUrls) news.imageUrls = [];
     news.imageUrls.push(url);
     document.getElementById("newsImageUrl").value = "";
     renderNewsImages();
@@ -535,20 +539,20 @@ function addNewsImage(){
 function renderNewsImages(){
     const row = document.getElementById("newsImagePreviewRow");
     row.innerHTML = "";
-    const news = allNews.find(n=>n.id===selectedNewsId);
-    if(!news||!news.imageUrls)return;
-    news.imageUrls.forEach((img,idx)=>{
+    const news = allNews.find(n => n.id === selectedNewsId);
+    if (!news || !news.imageUrls) return;
+    news.imageUrls.forEach((img, idx) => {
         const wrap = document.createElement("div");
-        wrap.style.display="inline-block";
+        wrap.style.display = "inline-block";
         const imgEl = document.createElement("img");
         imgEl.src = img;
         imgEl.className = "image-preview-small";
         const delBtn = document.createElement("button");
-        delBtn.className="btn-red";
-        delBtn.style.fontSize="12px";
-        delBtn.innerText="Remove";
-        delBtn.onclick = ()=>{
-            news.imageUrls.splice(idx,1);
+        delBtn.className = "btn-red";
+        delBtn.style.fontSize = "12px";
+        delBtn.innerText = "Remove";
+        delBtn.onclick = () => {
+            news.imageUrls.splice(idx, 1);
             renderNewsImages();
             saveProgramToDB();
         };
@@ -559,18 +563,18 @@ function renderNewsImages(){
 }
 
 function addNewsTextBox(){
-    if(!selectedNewsId){
+    if (!selectedNewsId) {
         alert("Select or create a news article first");
         return;
     }
     const newBox = {
-        id: "news_txt_"+Date.now(),
-        type:"text",
-        text:"New Text Box",
-        x:10, y:10, w:30, h:20,
-        bg:"#ffffff",
-        color:"#222",
-        border:"2px solid #9b59b6"
+        id: "news_txt_" + Date.now(),
+        type: "text",
+        text: "New Text Box",
+        x: 10, y: 10, w: 30, h: 20,
+        bg: "#ffffff",
+        color: "#222",
+        border: "2px solid #9b59b6"
     };
     newsLayoutBlocks.push(newBox);
     renderNewsLayout();
@@ -579,14 +583,14 @@ function addNewsTextBox(){
 function renderNewsLayout(){
     const stage = document.getElementById("newsStage");
     stage.innerHTML = "";
-    newsLayoutBlocks.forEach(block=>{
+    newsLayoutBlocks.forEach(block => {
         const el = document.createElement("div");
         el.className = "block news-block";
         el.dataset.id = block.id;
-        el.style.left = block.x+"%";
-        el.style.top = block.y+"%";
-        el.style.width = block.w+"%";
-        el.style.height = block.h+"%";
+        el.style.left = block.x + "%";
+        el.style.top = block.y + "%";
+        el.style.width = block.w + "%";
+        el.style.height = block.h + "%";
         el.style.background = block.bg;
         el.style.color = block.color;
         el.style.border = block.border;
@@ -597,11 +601,11 @@ function renderNewsLayout(){
 }
 
 async function saveNewsLayout(){
-    const news = allNews.find(n=>n.id===selectedNewsId);
-    if(!news)return;
-    newsLayoutBlocks.forEach(b=>{
+    const news = allNews.find(n => n.id === selectedNewsId);
+    if (!news) return;
+    newsLayoutBlocks.forEach(b => {
         const el = document.querySelector(`#newsStage [data-id="${b.id}"]`);
-        if(el){
+        if (el) {
             b.x = parseFloat(el.style.left);
             b.y = parseFloat(el.style.top);
             b.w = parseFloat(el.style.width);
@@ -610,8 +614,8 @@ async function saveNewsLayout(){
         }
     });
     news.layoutBlocks = newsLayoutBlocks;
-    await saveProgramToDB();
-    alert("✅ News page layout saved to database");
+    const success = await saveProgramToDB();
+    if (success) alert("✅ News page layout saved to database");
 }
 </script>
 </body>
