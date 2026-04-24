@@ -135,7 +135,7 @@
         </h2>
     </div>
 
-    <div class="box" id="teacherManagementSection" style="display:none;">
+    <div class="box" id="teacherManagementSection" style="display: none;">
         <h3>Teacher Management</h3>
         <div class="form-group">
             <input type="text" id="newTeacherUser" placeholder="Username">
@@ -195,6 +195,7 @@
 </div>
 
 <script>
+// Your working API endpoint
 const API_URL = "/api/programs";
 let currentUser = "master";
 let programs = [], selectedProgram;
@@ -213,10 +214,13 @@ function syncColors() {
     textColorBox.style.backgroundColor = textColor.value;
 }
 
-// LOGIN IS ONLY UI (SAFE)
+// ✅ FIXED: NO API CALL IN LOGIN FUNCTION
 function login() {
+    // Directly show the dashboard without any API calls
     document.getElementById("loginPanel").classList.add("hidden");
     document.getElementById("dashboard").classList.remove("hidden");
+
+    // Load programs from your database
     loadPrograms();
     syncColors();
 }
@@ -225,11 +229,11 @@ function logout() {
     location.reload();
 }
 
-// UNUSED FUNCTIONS DISABLED
+// Disable unused teacher functions
 async function loadTeachers() {}
 async function createTeacher() {}
 
-// ✅ THESE CALLS TALK TO YOUR DATABASE
+// ✅ Load programs from your database
 async function loadPrograms() {
     try {
         const res = await fetch(API_URL);
@@ -243,7 +247,9 @@ async function loadPrograms() {
             sel.appendChild(opt);
         });
         if (programs.length) selectProgram(programs[0].id);
-    } catch (e) {}
+    } catch (err) {
+        console.error(err);
+    }
 }
 
 function selectProgram(id) {
@@ -267,7 +273,7 @@ async function createProgram() {
 
 async function deleteProgram() {
     if (!selectedProgram) return;
-    if (!confirm("Delete?")) return;
+    if (!confirm("Delete this program?")) return;
     await fetch(`${API_URL}/${selectedProgram.id}`, { method: "DELETE" });
     loadPrograms();
 }
