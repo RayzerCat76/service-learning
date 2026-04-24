@@ -1,24 +1,35 @@
-// api/programs.js
 const { Pool } = require('pg');
 
-// Use the environment variable for your Neon connection string
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
-});
-
 module.exports = async (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // 1. Check if the environment variable exists
+  if (!process.env.DATABASE_URL) {
+    return res.status(500).json({ error: 'DATABASE_URL is not set in Vercel environment variables' });
+  }
+
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+  });
+
   try {
-    // Query the programs table
+    // 2. Test the connection and query
     const { rows } = await pool.query('SELECT id, name, blocks, news FROM programs');
-    console.log('Fetched programs:', rows); // Log the result for debugging
-    res.status(200).json(rows);
+    return res.status(200).json({
+      message: 'Success',
+      count: rows.length,
+      data: rows
+    });
   } catch (err) {
-    console.error('Database error:', err);
-    res.status(500).json({ error: 'Failed to load programs' });
+    // 3. Return the exact error message
+    return res.status(500).json({
+      error: 'Database query failed',
+      details: err.message
+    });
   }
 };
