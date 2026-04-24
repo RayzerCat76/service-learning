@@ -13,16 +13,10 @@ module.exports = async (req, res) => {
       ssl: { rejectUnauthorized: false }
     });
 
-    const client = await pool.connect();
-    const result = await client.query('SELECT id, name, blocks, news FROM programs');
-    client.release();
-
+    const result = await pool.query('SELECT * FROM programs');
     res.status(200).json(result.rows);
   } catch (err) {
-    console.error('Database error:', err);
-    res.status(500).json({
-      error: 'Internal server error',
-      details: err.message
-    });
+    console.error('DB Error:', err);
+    res.status(500).json({ error: err.message });
   }
 };
