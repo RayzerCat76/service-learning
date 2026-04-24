@@ -135,7 +135,7 @@
         </h2>
     </div>
 
-    <div class="box" id="teacherManagementSection">
+    <div class="box" id="teacherManagementSection" style="display:none;">
         <h3>Teacher Management</h3>
         <div class="form-group">
             <input type="text" id="newTeacherUser" placeholder="Username">
@@ -197,7 +197,6 @@
 <script>
 const API_URL = "/api/programs";
 let currentUser = "master";
-let isSuperAdmin = true;
 let programs = [], selectedProgram;
 let blocks = [], selectedBlock;
 
@@ -214,17 +213,10 @@ function syncColors() {
     textColorBox.style.backgroundColor = textColor.value;
 }
 
-// ✅ 100% FIXED: NO API CALLS IN LOGIN
+// LOGIN IS ONLY UI (SAFE)
 function login() {
-    // Skip the API call entirely — just show the dashboard
     document.getElementById("loginPanel").classList.add("hidden");
     document.getElementById("dashboard").classList.remove("hidden");
-
-    if (!isSuperAdmin) {
-        document.getElementById("teacherManagementSection").style.display = "none";
-    }
-
-    // Load programs safely
     loadPrograms();
     syncColors();
 }
@@ -233,19 +225,15 @@ function logout() {
     location.reload();
 }
 
-// Disable unused teacher functions (no backend)
+// UNUSED FUNCTIONS DISABLED
 async function loadTeachers() {}
 async function createTeacher() {}
 
-// ✅ Load programs with full error handling
+// ✅ THESE CALLS TALK TO YOUR DATABASE
 async function loadPrograms() {
     try {
         const res = await fetch(API_URL);
-        if (!res.ok) throw new Error("API error");
-
-        const programsData = await res.json();
-        programs = programsData;
-
+        programs = await res.json();
         const sel = document.getElementById("programSelect");
         sel.innerHTML = "";
         programs.forEach(p => {
@@ -254,30 +242,16 @@ async function loadPrograms() {
             opt.innerText = p.name;
             sel.appendChild(opt);
         });
-
-        if (programs.length) {
-            selectProgram(programs[0].id);
-        }
-    } catch (err) {
-        console.error(err);
-    }
+        if (programs.length) selectProgram(programs[0].id);
+    } catch (e) {}
 }
 
 function selectProgram(id) {
     selectedProgram = programs.find(p => p.id == id);
-
     try {
-        if (Array.isArray(selectedProgram.blocks)) {
-            blocks = selectedProgram.blocks;
-        } else if (typeof selectedProgram.blocks === "string") {
-            blocks = JSON.parse(selectedProgram.blocks || "[]");
-        } else {
-            blocks = [];
-        }
-    } catch (e) {
-        blocks = [];
-    }
-
+        if (Array.isArray(selectedProgram.blocks)) blocks = selectedProgram.blocks;
+        else blocks = JSON.parse(selectedProgram.blocks || "[]");
+    } catch (e) { blocks = []; }
     renderBlocks();
 }
 
@@ -286,19 +260,14 @@ async function createProgram() {
     await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            name,
-            created_by: currentUser,
-            blocks: [],
-            news: []
-        })
+        body: JSON.stringify({ name, created_by: currentUser, blocks: [], news: [] })
     });
     loadPrograms();
 }
 
 async function deleteProgram() {
     if (!selectedProgram) return;
-    if (!confirm("Delete this program?")) return;
+    if (!confirm("Delete?")) return;
     await fetch(`${API_URL}/${selectedProgram.id}`, { method: "DELETE" });
     loadPrograms();
 }
@@ -306,8 +275,7 @@ async function deleteProgram() {
 function renderBlocks() {
     const stage = document.getElementById("stage");
     stage.innerHTML = "";
-    if (!Array.isArray(blocks) || blocks.length === 0) return;
-
+    if (!Array.isArray(blocks)) return;
     blocks.forEach(block => {
         const el = document.createElement("div");
         el.className = "block";
@@ -320,11 +288,9 @@ function renderBlocks() {
         el.style.color = block.text;
         el.style.border = block.border;
         el.innerHTML = `<strong>${block.title}</strong><br>${block.content}`;
-
         const rh = document.createElement("div");
         rh.className = "resize-handle";
         el.appendChild(rh);
-
         el.onclick = () => {
             selectedBlock = block;
             document.getElementById("blockTitle").value = block.title;
@@ -333,49 +299,6 @@ function renderBlocks() {
             textColor.value = block.text;
             syncColors();
         };
-
-        let drag = false, startX, startY, origX, origY;
-        el.addEventListener("mousedown", e => {
-            if (e.target === rh) return;
-            e.preventDefault();
-            drag = true;
-            startX = e.clientX;
-            startY = e.clientY;
-            origX = parseFloat(el.style.left);
-            origY = parseFloat(el.style.top);
-        });
-
-        let resize = false;
-        rh.addEventListener("mousedown", e => {
-            e.preventDefault();
-            resize = true;
-            startX = e.clientX;
-            startY = e.clientY;
-            origX = parseFloat(el.style.width);
-            origY = parseFloat(el.style.height);
-        });
-
-        document.addEventListener("mousemove", e => {
-            const rect = stage.getBoundingClientRect();
-            if (drag) {
-                const dx = (e.clientX - startX) / rect.width * 100;
-                const dy = (e.clientY - startY) / rect.height * 100;
-                el.style.left = Math.max(0, Math.min(100, origX + dx)) + "%";
-                el.style.top = Math.max(0, Math.min(100, origY + dy)) + "%";
-            }
-            if (resize) {
-                const dx = (e.clientX - startX) / rect.width * 100;
-                const dy = (e.clientY - startY) / rect.height * 100;
-                el.style.width = Math.max(5, Math.min(100, origX + dx)) + "%";
-                el.style.height = Math.max(5, Math.min(100, origY + dy)) + "%";
-            }
-        });
-
-        document.addEventListener("mouseup", () => {
-            drag = false;
-            resize = false;
-        });
-
         stage.appendChild(el);
     });
 }
@@ -387,11 +310,10 @@ async function updateBlock() {
     selectedBlock.bg = bgColor.value;
     selectedBlock.text = textColor.value;
     renderBlocks();
-
     await fetch(`${API_URL}/${selectedProgram.id}/blocks`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ blocks: blocks })
+        body: JSON.stringify({ blocks })
     });
 }
 
@@ -403,37 +325,19 @@ async function saveLayout() {
         b.w = parseFloat(el.style.width);
         b.h = parseFloat(el.style.height);
     });
-
     await fetch(`${API_URL}/${selectedProgram.id}/blocks`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ blocks: blocks })
+        body: JSON.stringify({ blocks })
     });
-
-    renderBlocks();
     alert("✅ Layout saved!");
+    renderBlocks();
 }
 
 function generateTemplate() {
     blocks = [
-        {
-            id: "info",
-            title: "Basic Information",
-            content: "",
-            x: 2, y: 5, w: 46, h: 90,
-            bg: "#ffffff",
-            text: "#000000",
-            border: "2px solid #ccc"
-        },
-        {
-            id: "contact",
-            title: "Contact Information",
-            content: "",
-            x: 52, y: 5, w: 46, h: 90,
-            bg: "#ffffff",
-            text: "#000000",
-            border: "2px solid #ccc"
-        }
+        { id:"info", title:"Info", content:"", x:2,y:5,w:46,h:90, bg:"#fff", text:"#000", border:"2px solid #ccc" },
+        { id:"contact", title:"Contact", content:"", x:52,y:5,w:46,h:90, bg:"#fff", text:"#000", border:"2px solid #ccc" }
     ];
     renderBlocks();
 }
