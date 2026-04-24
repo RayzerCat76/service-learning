@@ -46,25 +46,18 @@
             border: none;
             cursor: pointer;
             margin-right: 8px;
+            margin-bottom: 8px;
         }
         .btn-blue { background: #3498db; color: white; }
         .btn-red  { background: #e74c3c; color: white; }
         .btn-green{ background: #2ecc71; color: white; }
         .btn-orange{ background: #f39c12; color: white; }
+        .btn-purple{ background: #9b59b6; color: white; }
         .hidden { display: none; }
         .flex {
             display: flex;
             gap: 12px;
             flex-wrap: wrap;
-        }
-        .account-item {
-            padding: 12px;
-            border: 1px solid #eee;
-            border-radius: 6px;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
         .color-box {
             width: 44px;
@@ -78,9 +71,7 @@
             align-items: center;
             gap: 10px;
         }
-        input[type="color"] {
-            display: none;
-        }
+        input[type="color"] { display: none; }
         .preview {
             position: relative;
             width: 100%;
@@ -91,7 +82,7 @@
             overflow: hidden;
             margin-top: 16px;
         }
-        #stage {
+        #stage, #newsStage {
             position: relative;
             width: 100%;
             height: 100%;
@@ -104,6 +95,11 @@
             cursor: move;
             font-size: 14px;
             line-height: 1.5;
+            min-width: 100px;
+            min-height: 60px;
+        }
+        .news-block {
+            border-color: #9b59b6;
         }
         .resize-handle {
             position: absolute;
@@ -112,6 +108,53 @@
             width: 16px;
             height: 16px;
             background: #3498db;
+        }
+        .news-block .resize-handle {
+            background: #9b59b6;
+        }
+        .tab-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .tab-btn {
+            padding: 8px 14px;
+            border: 1px solid #ddd;
+            background: #eee;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .tab-btn.active {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+        .news-item-select {
+            max-height: 180px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            padding: 8px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+        }
+        .news-item-card {
+            padding: 8px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+        }
+        .news-item-card:hover {
+            background: #f8f8f8;
+        }
+        .news-item-card.active {
+            background: #e8f4fc;
+        }
+        .image-preview-small {
+            max-width: 120px;
+            max-height: 80px;
+            object-fit: cover;
+            margin: 4px;
+            border-radius: 4px;
+            border:1px solid #ddd;
         }
     </style>
 </head>
@@ -133,72 +176,115 @@
         <h2>Admin Panel
             <button class="btn-red" style="float:right" onclick="logout()">Logout</button>
         </h2>
+        <div class="tab-row">
+            <div class="tab-btn active" data-tab="programLayout">Program Layout</div>
+            <div class="tab-btn" data-tab="newsManager">News Manager</div>
+        </div>
     </div>
 
-    <div class="box" id="teacherManagementSection" style="display:none;">
-        <h3>Teacher Management</h3>
-        <div class="form-group">
-            <input type="text" id="newTeacherUser" placeholder="Username">
+    <!-- Program Layout Tab -->
+    <div class="tab-content" id="programLayout">
+        <div class="box" id="teacherManagementSection" style="display:none;">
+            <h3>Teacher Management</h3>
+            <div class="form-group">
+                <input type="text" id="newTeacherUser" placeholder="Username">
+            </div>
+            <div class="form-group">
+                <input type="password" id="newTeacherPass" placeholder="Password">
+            </div>
+            <button class="btn-green" onclick="createTeacher()">Create Teacher</button>
+            <div id="teacherList"></div>
         </div>
-        <div class="form-group">
-            <input type="password" id="newTeacherPass" placeholder="Password">
-        </div>
-        <button class="btn-green" onclick="createTeacher()">Create Teacher</button>
-        <div id="teacherList"></div>
-    </div>
 
-    <div class="box">
-        <h3>Programs</h3>
-        <div class="form-group">
-            <input type="text" id="newProgName" placeholder="Program Name">
-            <button class="btn-green" onclick="createProgram()">Create Program</button>
+        <div class="box">
+            <h3>Programs</h3>
+            <div class="form-group">
+                <input type="text" id="newProgName" placeholder="Program Name">
+                <button class="btn-green" onclick="createProgram()">Create Program</button>
+            </div>
+            <select id="programSelect" onchange="selectProgram(this.value)"></select>
+            <button class="btn-red" onclick="deleteProgram()">Delete Program</button>
         </div>
-        <select id="programSelect" onchange="selectProgram(this.value)"></select>
-        <button class="btn-red" onclick="deleteProgram()">Delete Program</button>
-    </div>
 
-    <!-- ✅ NEWS SECTION FULLY RESTORED -->
-    <div class="box">
-        <h3>News Management</h3>
-        <div class="form-group">
-            <textarea id="newsInput" rows="4" placeholder="One news per line"></textarea>
-        </div>
-        <button class="btn-blue" onclick="saveNews()">Save News</button>
-    </div>
-
-    <div class="box">
-        <h3>Edit Block</h3>
-        <div class="form-group">
-            <input type="text" id="blockTitle" placeholder="Title">
-        </div>
-        <div class="form-group">
-            <textarea id="blockContent" rows="3" placeholder="Content"></textarea>
-        </div>
-        <div class="flex">
-            <div>
-                <label>Background</label>
-                <div class="color-row">
-                    <div id="bgBox" class="color-box"></div>
-                    <input type="color" id="bgColor" value="#ffffff">
+        <div class="box">
+            <h3>Edit Block</h3>
+            <div class="form-group">
+                <input type="text" id="blockTitle" placeholder="Title">
+            </div>
+            <div class="form-group">
+                <textarea id="blockContent" rows="3" placeholder="Content"></textarea>
+            </div>
+            <div class="flex">
+                <div>
+                    <label>Background</label>
+                    <div class="color-row">
+                        <div id="bgBox" class="color-box"></div>
+                        <input type="color" id="bgColor" value="#ffffff">
+                    </div>
+                </div>
+                <div>
+                    <label>Text Color</label>
+                    <div class="color-row">
+                        <div id="textColorBox" class="color-box"></div>
+                        <input type="color" id="textColor" value="#000000">
+                    </div>
                 </div>
             </div>
-            <div>
-                <label>Text Color</label>
-                <div class="color-row">
-                    <div id="textColorBox" class="color-box"></div>
-                    <input type="color" id="textColor" value="#000000">
-                </div>
+            <button class="btn-blue" onclick="updateBlock()">Save Block</button>
+        </div>
+
+        <div class="box">
+            <h3>Layout Preview</h3>
+            <button class="btn-orange" onclick="generateTemplate()">Generate Two-Box Template</button>
+            <button class="btn-blue" onclick="saveLayout()">Save Layout</button>
+            <div class="preview">
+                <div id="stage"></div>
             </div>
         </div>
-        <button class="btn-blue" onclick="updateBlock()">Save Block</button>
     </div>
 
-    <div class="box">
-        <h3>Layout Preview</h3>
-        <button class="btn-orange" onclick="generateTemplate()">Generate Two-Box Template</button>
-        <button class="btn-blue" onclick="saveLayout()">Save Layout</button>
-        <div class="preview">
-            <div id="stage"></div>
+    <!-- Full News Manager Tab (Everything you requested) -->
+    <div class="tab-content hidden" id="newsManager">
+        <div class="box">
+            <h3>News Manager</h3>
+            <button class="btn-green" onclick="createNewNews()">Create New News Article</button>
+            <div class="news-item-select" id="newsItemList"></div>
+        </div>
+
+        <div class="box">
+            <h3>Edit News Metadata</h3>
+            <div class="form-group">
+                <label>News Title</label>
+                <input type="text" id="newsTitle" placeholder="Enter news title">
+            </div>
+            <div class="form-group">
+                <label>Short Overview</label>
+                <textarea id="newsOverview" rows="2" placeholder="Short summary preview"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Full Content</label>
+                <textarea id="newsFullContent" rows="4" placeholder="Main news content"></textarea>
+            </div>
+            <button class="btn-blue" onclick="saveNewsMeta()">Save Title / Overview / Content</button>
+            <button class="btn-red" onclick="deleteSelectedNews()">Delete This News</button>
+        </div>
+
+        <div class="box">
+            <h3>News Image Upload</h3>
+            <div class="form-group">
+                <input type="text" id="newsImageUrl" placeholder="Paste image URL here">
+            </div>
+            <button class="btn-purple" onclick="addNewsImage()">Add Image to News</button>
+            <div id="newsImagePreviewRow"></div>
+        </div>
+
+        <div class="box">
+            <h3>News Page Visual Editor</h3>
+            <button class="btn-purple" onclick="addNewsTextBox()">Add Movable Text Box</button>
+            <button class="btn-blue" onclick="saveNewsLayout()">Save News Page Layout</button>
+            <div class="preview">
+                <div id="newsStage"></div>
+            </div>
         </div>
     </div>
 </div>
@@ -208,119 +294,327 @@ const API_URL = "/api/programs";
 let currentUser = "master";
 let programs = [], selectedProgram;
 let blocks = [], selectedBlock;
-let news = [];
+
+// News Global State
+let allNews = [];
+let selectedNewsId = null;
+let newsLayoutBlocks = [];
 
 const bgColor = document.getElementById("bgColor");
 const textColor = document.getElementById("textColor");
 const bgBox = document.getElementById("bgBox");
 const textColorBox = document.getElementById("textColorBox");
 
+// Tabs Switch Logic
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.onclick = () => {
+        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        const tab = btn.dataset.tab;
+        document.querySelectorAll('.tab-content').forEach(c=>c.classList.add('hidden'));
+        document.getElementById(tab).classList.remove('hidden');
+    };
+});
+
 bgColor.addEventListener("input", syncColors);
 textColor.addEventListener("input", syncColors);
-
-function syncColors() {
+function syncColors(){
     bgBox.style.backgroundColor = bgColor.value;
     textColorBox.style.backgroundColor = textColor.value;
 }
 
-// LOGIN: NO API CALLS
-function login() {
+// Login (No API Call)
+function login(){
     document.getElementById("loginPanel").classList.add("hidden");
     document.getElementById("dashboard").classList.remove("hidden");
     loadPrograms();
     syncColors();
 }
+function logout(){ location.reload(); }
+async function loadTeachers(){}
+async function createTeacher(){}
 
-function logout() {
-    location.reload();
-}
-
-// UNUSED
-async function loadTeachers() {}
-async function createTeacher() {}
-
-// LOAD PROGRAMS + NEWS
-async function loadPrograms() {
-    try {
+// Load Programs + Attach News
+async function loadPrograms(){
+    try{
         const res = await fetch(API_URL);
         programs = await res.json();
         const sel = document.getElementById("programSelect");
         sel.innerHTML = "";
-        programs.forEach(p => {
+        programs.forEach(p=>{
             const opt = document.createElement("option");
             opt.value = p.id;
             opt.innerText = p.name;
             sel.appendChild(opt);
         });
-        if (programs.length) selectProgram(programs[0].id);
-    } catch (e) {}
+        if(programs.length) selectProgram(programs[0].id);
+    }catch(e){console.error(e);}
 }
 
-function selectProgram(id) {
-    selectedProgram = programs.find(p => p.id == id);
-    
-    // Load blocks
-    try {
-        if (Array.isArray(selectedProgram.blocks)) blocks = selectedProgram.blocks;
-        else blocks = JSON.parse(selectedProgram.blocks || "[]");
-    } catch (e) { blocks = []; }
+function selectProgram(id){
+    selectedProgram = programs.find(p=>p.id == id);
+    try{
+        blocks = Array.isArray(selectedProgram.blocks) ? selectedProgram.blocks : JSON.parse(selectedProgram.blocks||"[]");
+    }catch(e){blocks=[];}
 
-    // ✅ Load news
-    try {
-        if (Array.isArray(selectedProgram.news)) news = selectedProgram.news;
-        else news = JSON.parse(selectedProgram.news || "[]");
-    } catch (e) { news = []; }
-    
-    document.getElementById("newsInput").value = news.join("\n");
+    // Load News for this program
+    try{
+        allNews = Array.isArray(selectedProgram.news) ? selectedProgram.news : JSON.parse(selectedProgram.news||"[]");
+    }catch(e){allNews=[];}
+
     renderBlocks();
+    renderNewsList();
 }
 
-// CREATE PROGRAM
-async function createProgram() {
-    const name = document.getElementById("newProgName").value.trim() || "New Program";
-    await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, created_by: currentUser, blocks: [], news: [] })
+// Program CRUD
+async function createProgram(){
+    const name = document.getElementById("newProgName").value.trim()||"New Program";
+    await fetch(API_URL,{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({name, created_by:currentUser, blocks:[], news:[]})
     });
     loadPrograms();
 }
-
-// DELETE
-async function deleteProgram() {
-    if (!selectedProgram) return;
-    if (!confirm("Delete?")) return;
-    await fetch(`${API_URL}/${selectedProgram.id}`, { method: "DELETE" });
+async function deleteProgram(){
+    if(!selectedProgram||!confirm("Delete program?"))return;
+    await fetch(`${API_URL}/${selectedProgram.id}`,{method:"DELETE"});
     loadPrograms();
 }
 
-// ✅ SAVE NEWS
-async function saveNews() {
-    if (!selectedProgram) return;
-    const raw = document.getElementById("newsInput").value;
-    news = raw.split("\n").map(line => line.trim()).filter(Boolean);
-    
-    await fetch(`${API_URL}/${selectedProgram.id}/news`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ news })
+// === NEWS SYSTEM FUNCTIONS ===
+function renderNewsList(){
+    const wrap = document.getElementById("newsItemList");
+    wrap.innerHTML = "";
+    allNews.forEach(item=>{
+        const card = document.createElement("div");
+        card.className = "news-item-card"+(item.id===selectedNewsId?" active":"");
+        card.innerText = item.title || "Untitled News";
+        card.onclick = () => selectNewsItem(item.id);
+        wrap.appendChild(card);
     });
-    alert("News saved!");
+    clearNewsEditorFields();
 }
 
-// RENDER BLOCKS
-function renderBlocks() {
+function createNewNews(){
+    const newNews = {
+        id: "news_"+Date.now(),
+        title: "New News Article",
+        overview: "",
+        content: "",
+        imageUrls: [],
+        layoutBlocks: []
+    };
+    allNews.push(newNews);
+    selectedNewsId = newNews.id;
+    saveAllNewsToDB();
+    renderNewsList();
+    loadSelectedNewsData();
+}
+
+function selectNewsItem(newsId){
+    selectedNewsId = newsId;
+    renderNewsList();
+    loadSelectedNewsData();
+}
+
+function loadSelectedNewsData(){
+    const news = allNews.find(n=>n.id===selectedNewsId);
+    if(!news) return;
+    document.getElementById("newsTitle").value = news.title;
+    document.getElementById("newsOverview").value = news.overview;
+    document.getElementById("newsFullContent").value = news.content;
+    newsLayoutBlocks = news.layoutBlocks || [];
+    renderNewsImages();
+    renderNewsLayout();
+}
+
+function clearNewsEditorFields(){
+    document.getElementById("newsTitle").value = "";
+    document.getElementById("newsOverview").value = "";
+    document.getElementById("newsFullContent").value = "";
+    document.getElementById("newsImageUrl").value = "";
+    document.getElementById("newsImagePreviewRow").innerHTML = "";
+    document.getElementById("newsStage").innerHTML = "";
+    newsLayoutBlocks = [];
+}
+
+async function saveNewsMeta(){
+    const news = allNews.find(n=>n.id===selectedNewsId);
+    if(!news) return;
+    news.title = document.getElementById("newsTitle").value;
+    news.overview = document.getElementById("newsOverview").value;
+    news.content = document.getElementById("newsFullContent").value;
+    await saveAllNewsToDB();
+    alert("News metadata saved");
+    renderNewsList();
+}
+
+async function deleteSelectedNews(){
+    if(!selectedNewsId||!confirm("Delete this news article?"))return;
+    allNews = allNews.filter(n=>n.id!==selectedNewsId);
+    selectedNewsId = null;
+    await saveAllNewsToDB();
+    renderNewsList();
+}
+
+function addNewsImage(){
+    const url = document.getElementById("newsImageUrl").value.trim();
+    if(!url) return;
+    const news = allNews.find(n=>n.id===selectedNewsId);
+    if(!news) return;
+    if(!news.imageUrls) news.imageUrls = [];
+    news.imageUrls.push(url);
+    document.getElementById("newsImageUrl").value = "";
+    renderNewsImages();
+    saveAllNewsToDB();
+}
+
+function renderNewsImages(){
+    const row = document.getElementById("newsImagePreviewRow");
+    row.innerHTML = "";
+    const news = allNews.find(n=>n.id===selectedNewsId);
+    if(!news||!news.imageUrls)return;
+    news.imageUrls.forEach((img,idx)=>{
+        const wrap = document.createElement("div");
+        wrap.style.display="inline-block";
+        const imgEl = document.createElement("img");
+        imgEl.src = img;
+        imgEl.className = "image-preview-small";
+        const delBtn = document.createElement("button");
+        delBtn.className="btn-red";
+        delBtn.style.fontSize="12px";
+        delBtn.innerText="Remove";
+        delBtn.onclick = ()=>{
+            news.imageUrls.splice(idx,1);
+            renderNewsImages();
+            saveAllNewsToDB();
+        };
+        wrap.appendChild(imgEl);
+        wrap.appendChild(delBtn);
+        row.appendChild(wrap);
+    });
+}
+
+// News Visual Layout Editor (Drag/Resize Text Boxes)
+function addNewsTextBox(){
+    if(!selectedNewsId){
+        alert("Select or create a news article first");
+        return;
+    }
+    const newBox = {
+        id: "news_txt_"+Date.now(),
+        type:"text",
+        text:"New Text Box",
+        x:10, y:10, w:30, h:20,
+        bg:"#ffffff",
+        color:"#222",
+        border:"2px solid #9b59b6"
+    };
+    newsLayoutBlocks.push(newBox);
+    renderNewsLayout();
+}
+
+function renderNewsLayout(){
+    const stage = document.getElementById("newsStage");
+    stage.innerHTML = "";
+    newsLayoutBlocks.forEach(block=>{
+        const el = document.createElement("div");
+        el.className = "block news-block";
+        el.dataset.id = block.id;
+        el.style.left = block.x+"%";
+        el.style.top = block.y+"%";
+        el.style.width = block.w+"%";
+        el.style.height = block.h+"%";
+        el.style.background = block.bg;
+        el.style.color = block.color;
+        el.style.border = block.border;
+        el.contentEditable = true;
+        el.innerText = block.text;
+
+        const rh = document.createElement("div");
+        rh.className = "resize-handle";
+        el.appendChild(rh);
+
+        // Drag
+        let drag=false, startX,startY,oX,oY;
+        el.addEventListener("mousedown",e=>{
+            if(e.target===rh)return;
+            e.preventDefault();
+            drag=true;
+            startX=e.clientX; startY=e.clientY;
+            oX=parseFloat(el.style.left); oY=parseFloat(el.style.top);
+        });
+        // Resize
+        let resize=false;
+        rh.addEventListener("mousedown",e=>{
+            e.preventDefault();
+            resize=true;
+            startX=e.clientX; startY=e.clientY;
+            oX=parseFloat(el.style.width); oY=parseFloat(el.style.height);
+        });
+        document.addEventListener("mousemove",e=>{
+            const rect = stage.getBoundingClientRect();
+            if(drag){
+                let dx = (e.clientX - startX)/rect.width*100;
+                let dy = (e.clientY - startY)/rect.height*100;
+                el.style.left = Math.max(0,Math.min(95,oX+dx))+"%";
+                el.style.top = Math.max(0,Math.min(95,oY+dy))+"%";
+            }
+            if(resize){
+                let dx = (e.clientX - startX)/rect.width*100;
+                let dy = (e.clientY - startY)/rect.height*100;
+                el.style.width = Math.max(8,Math.min(60,oX+dx))+"%";
+                el.style.height = Math.max(8,Math.min(60,oY+dy))+"%";
+            }
+        });
+        document.addEventListener("mouseup",()=>{drag=false;resize=false;});
+        stage.appendChild(el);
+    });
+}
+
+async function saveNewsLayout(){
+    const news = allNews.find(n=>n.id===selectedNewsId);
+    if(!news)return;
+    // Save position/size + text content
+    newsLayoutBlocks.forEach(b=>{
+        const el = document.querySelector(`#newsStage [data-id="${b.id}"]`);
+        if(el){
+            b.x = parseFloat(el.style.left);
+            b.y = parseFloat(el.style.top);
+            b.w = parseFloat(el.style.width);
+            b.h = parseFloat(el.style.height);
+            b.text = el.innerText;
+        }
+    });
+    news.layoutBlocks = newsLayoutBlocks;
+    await saveAllNewsToDB();
+    alert("News page layout saved");
+}
+
+async function saveAllNewsToDB(){
+    if(!selectedProgram) return;
+    selectedProgram.news = allNews;
+    await fetch(`${API_URL}/${selectedProgram.id}/news`,{
+        method:"PATCH",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({news: allNews})
+    });
+}
+
+// Original Program Block Editor
+function renderBlocks(){
     const stage = document.getElementById("stage");
     stage.innerHTML = "";
-    if (!Array.isArray(blocks)) return;
-    blocks.forEach(block => {
+    if(!Array.isArray(blocks))return;
+    blocks.forEach(block=>{
         const el = document.createElement("div");
         el.className = "block";
         el.dataset.id = block.id;
-        el.style.left = block.x + "%";
-        el.style.top = block.y + "%";
-        el.style.width = block.w + "%";
-        el.style.height = block.h + "%";
+        el.style.left = block.x+"%";
+        el.style.top = block.y+"%";
+        el.style.width = block.w+"%";
+        el.style.height = block.h+"%";
         el.style.backgroundColor = block.bg;
         el.style.color = block.text;
         el.style.border = block.border;
@@ -328,7 +622,7 @@ function renderBlocks() {
         const rh = document.createElement("div");
         rh.className = "resize-handle";
         el.appendChild(rh);
-        el.onclick = () => {
+        el.onclick = ()=>{
             selectedBlock = block;
             document.getElementById("blockTitle").value = block.title;
             document.getElementById("blockContent").value = block.content;
@@ -336,48 +630,71 @@ function renderBlocks() {
             textColor.value = block.text;
             syncColors();
         };
+        // drag resize logic
+        let drag=false,startX,startY,origX,origY;
+        el.addEventListener("mousedown",e=>{
+            if(e.target===rh)return;
+            drag=true;startX=e.clientX;startY=e.clientY;
+            origX=parseFloat(el.style.left);origY=parseFloat(el.style.top);
+        });
+        let resize=false;
+        rh.addEventListener("mousedown",e=>{
+            resize=true;startX=e.clientX;startY=e.clientY;
+            origX=parseFloat(el.style.width);origY=parseFloat(el.style.height);
+        });
+        document.addEventListener("mousemove",e=>{
+            const rect = stage.getBoundingClientRect();
+            if(drag){
+                const dx = (e.clientX-startX)/rect.width*100;
+                const dy = (e.clientY-startY)/rect.height*100;
+                el.style.left = Math.max(0,Math.min(100,origX+dx))+"%";
+                el.style.top = Math.max(0,Math.min(100,origY+dy))+"%";
+            }
+            if(resize){
+                const dx = (e.clientX-startX)/rect.width*100;
+                const dy = (e.clientY-startY)/rect.height*100;
+                el.style.width = Math.max(5,Math.min(100,origX+dx))+"%";
+                el.style.height = Math.max(5,Math.min(100,origY+dy))+"%";
+            }
+        });
+        document.addEventListener("mouseup",()=>{drag=false;resize=false;});
         stage.appendChild(el);
     });
 }
 
-// UPDATE BLOCK
-async function updateBlock() {
-    if (!selectedBlock) return;
+async function updateBlock(){
+    if(!selectedBlock)return;
     selectedBlock.title = document.getElementById("blockTitle").value;
     selectedBlock.content = document.getElementById("blockContent").value;
     selectedBlock.bg = bgColor.value;
     selectedBlock.text = textColor.value;
     renderBlocks();
-    await fetch(`${API_URL}/${selectedProgram.id}/blocks`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ blocks })
+    await fetch(`${API_URL}/${selectedProgram.id}/blocks`,{
+        method:"PATCH",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({blocks})
     });
 }
-
-// SAVE LAYOUT
-async function saveLayout() {
-    blocks.forEach(b => {
+async function saveLayout(){
+    blocks.forEach(b=>{
         const el = document.querySelector(`[data-id="${b.id}"]`);
         b.x = parseFloat(el.style.left);
         b.y = parseFloat(el.style.top);
         b.w = parseFloat(el.style.width);
         b.h = parseFloat(el.style.height);
     });
-    await fetch(`${API_URL}/${selectedProgram.id}/blocks`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ blocks })
+    await fetch(`${API_URL}/${selectedProgram.id}/blocks`,{
+        method:"PATCH",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({blocks})
     });
-    alert("✅ Layout saved!");
+    alert("Layout saved");
     renderBlocks();
 }
-
-// TEMPLATE
-function generateTemplate() {
+function generateTemplate(){
     blocks = [
-        { id:"info", title:"Info", content:"", x:2,y:5,w:46,h:90, bg:"#fff", text:"#000", border:"2px solid #ccc" },
-        { id:"contact", title:"Contact", content:"", x:52,y:5,w:46,h:90, bg:"#fff", text:"#000", border:"2px solid #ccc" }
+        {id:"info",title:"Info",content:"",x:2,y:5,w:46,h:90,bg:"#fff",text:"#000",border:"2px solid #ccc"},
+        {id:"contact",title:"Contact",content:"",x:52,y:5,w:46,h:90,bg:"#fff",text:"#000",border:"2px solid #ccc"}
     ];
     renderBlocks();
 }
