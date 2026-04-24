@@ -12,3 +12,8 @@
     "start": "node server.js"
   }
 }
+{
+  "dependencies": {
+    "@vercel/postgres": "^0.5.1"
+  }
+}
