@@ -7,13 +7,16 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // 1. Check if the environment variable exists
+  // 1. Debug: Check if the variable exists
   if (!process.env.DATABASE_URL) {
-    return res.status(500).json({ error: 'DATABASE_URL is not set in Vercel environment variables' });
+    return res.status(500).json({
+      error: 'DATABASE_URL is missing',
+      availableVars: Object.keys(process.env)
+    });
   }
 
   const pool = new Pool({
-    connectionString: process.env.DATABASE_URL, // ✅ Fixed the typo
+    connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
   });
 
@@ -26,7 +29,6 @@ module.exports = async (req, res) => {
       data: rows
     });
   } catch (err) {
-    // 3. Return the exact error message
     return res.status(500).json({
       error: 'Database query failed',
       details: err.message
