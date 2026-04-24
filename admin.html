@@ -182,20 +182,8 @@
         </div>
     </div>
 
-    <!-- Program Layout Tab -->
     <div class="tab-content" id="programLayout">
-        <div class="box" id="teacherManagementSection" style="display:none;">
-            <h3>Teacher Management</h3>
-            <div class="form-group">
-                <input type="text" id="newTeacherUser" placeholder="Username">
-            </div>
-            <div class="form-group">
-                <input type="password" id="newTeacherPass" placeholder="Password">
-            </div>
-            <button class="btn-green" onclick="createTeacher()">Create Teacher</button>
-            <div id="teacherList"></div>
-        </div>
-
+        <div class="box" id="teacherManagementSection" style="display:none;"></div>
         <div class="box">
             <h3>Programs</h3>
             <div class="form-group">
@@ -204,6 +192,9 @@
             </div>
             <select id="programSelect" onchange="selectProgram(this.value)"></select>
             <button class="btn-red" onclick="deleteProgram()">Delete Program</button>
+            <p style="margin-top:8px;color:#666;font-size:13px;">
+                ✅ News articles are saved <strong>only to this selected program</strong>
+            </p>
         </div>
 
         <div class="box">
@@ -243,10 +234,9 @@
         </div>
     </div>
 
-    <!-- Full News Manager Tab (Everything you requested) -->
     <div class="tab-content hidden" id="newsManager">
         <div class="box">
-            <h3>News Manager</h3>
+            <h3>News Manager — Bound to Current Program</h3>
             <button class="btn-green" onclick="createNewNews()">Create New News Article</button>
             <div class="news-item-select" id="newsItemList"></div>
         </div>
@@ -270,18 +260,18 @@
         </div>
 
         <div class="box">
-            <h3>News Image Upload</h3>
+            <h3>News Images</h3>
             <div class="form-group">
-                <input type="text" id="newsImageUrl" placeholder="Paste image URL here">
+                <input type="text" id="newsImageUrl" placeholder="Paste image URL">
             </div>
-            <button class="btn-purple" onclick="addNewsImage()">Add Image to News</button>
+            <button class="btn-purple" onclick="addNewsImage()">Add Image</button>
             <div id="newsImagePreviewRow"></div>
         </div>
 
         <div class="box">
             <h3>News Page Visual Editor</h3>
             <button class="btn-purple" onclick="addNewsTextBox()">Add Movable Text Box</button>
-            <button class="btn-blue" onclick="saveNewsLayout()">Save News Page Layout</button>
+            <button class="btn-blue" onclick="saveNewsLayout()">Save News Layout</button>
             <div class="preview">
                 <div id="newsStage"></div>
             </div>
@@ -295,7 +285,6 @@ let currentUser = "master";
 let programs = [], selectedProgram;
 let blocks = [], selectedBlock;
 
-// News Global State
 let allNews = [];
 let selectedNewsId = null;
 let newsLayoutBlocks = [];
@@ -305,7 +294,6 @@ const textColor = document.getElementById("textColor");
 const bgBox = document.getElementById("bgBox");
 const textColorBox = document.getElementById("textColorBox");
 
-// Tabs Switch Logic
 document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.onclick = () => {
         document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
@@ -323,7 +311,6 @@ function syncColors(){
     textColorBox.style.backgroundColor = textColor.value;
 }
 
-// Login (No API Call)
 function login(){
     document.getElementById("loginPanel").classList.add("hidden");
     document.getElementById("dashboard").classList.remove("hidden");
@@ -334,7 +321,6 @@ function logout(){ location.reload(); }
 async function loadTeachers(){}
 async function createTeacher(){}
 
-// Load Programs + Attach News
 async function loadPrograms(){
     try{
         const res = await fetch(API_URL);
@@ -351,13 +337,16 @@ async function loadPrograms(){
     }catch(e){console.error(e);}
 }
 
+// CRITICAL: Load ONLY this program's news
 function selectProgram(id){
     selectedProgram = programs.find(p=>p.id == id);
+    selectedNewsId = null;
+
     try{
         blocks = Array.isArray(selectedProgram.blocks) ? selectedProgram.blocks : JSON.parse(selectedProgram.blocks||"[]");
     }catch(e){blocks=[];}
 
-    // Load News for this program
+    // Isolated per-program news
     try{
         allNews = Array.isArray(selectedProgram.news) ? selectedProgram.news : JSON.parse(selectedProgram.news||"[]");
     }catch(e){allNews=[];}
@@ -366,13 +355,17 @@ function selectProgram(id){
     renderNewsList();
 }
 
-// Program CRUD
 async function createProgram(){
     const name = document.getElementById("newProgName").value.trim()||"New Program";
     await fetch(API_URL,{
         method:"POST",
         headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({name, created_by:currentUser, blocks:[], news:[]})
+        body:JSON.stringify({
+            name,
+            created_by:currentUser,
+            blocks:[],
+            news: [] // New program starts with empty isolated news
+        })
     });
     loadPrograms();
 }
@@ -382,7 +375,7 @@ async function deleteProgram(){
     loadPrograms();
 }
 
-// === NEWS SYSTEM FUNCTIONS ===
+// ========== PER-PROGRAM NEWS SYSTEM ==========
 function renderNewsList(){
     const wrap = document.getElementById("newsItemList");
     wrap.innerHTML = "";
@@ -397,6 +390,7 @@ function renderNewsList(){
 }
 
 function createNewNews(){
+    if(!selectedProgram) return alert("Select a program first");
     const newNews = {
         id: "news_"+Date.now(),
         title: "New News Article",
@@ -407,7 +401,7 @@ function createNewNews(){
     };
     allNews.push(newNews);
     selectedNewsId = newNews.id;
-    saveAllNewsToDB();
+    saveAllNewsToCurrentProgram();
     renderNewsList();
     loadSelectedNewsData();
 }
@@ -445,16 +439,16 @@ async function saveNewsMeta(){
     news.title = document.getElementById("newsTitle").value;
     news.overview = document.getElementById("newsOverview").value;
     news.content = document.getElementById("newsFullContent").value;
-    await saveAllNewsToDB();
-    alert("News metadata saved");
+    await saveAllNewsToCurrentProgram();
+    alert("Saved to current program");
     renderNewsList();
 }
 
 async function deleteSelectedNews(){
-    if(!selectedNewsId||!confirm("Delete this news article?"))return;
+    if(!selectedNewsId||!confirm("Delete news?"))return;
     allNews = allNews.filter(n=>n.id!==selectedNewsId);
     selectedNewsId = null;
-    await saveAllNewsToDB();
+    await saveAllNewsToCurrentProgram();
     renderNewsList();
 }
 
@@ -467,7 +461,7 @@ function addNewsImage(){
     news.imageUrls.push(url);
     document.getElementById("newsImageUrl").value = "";
     renderNewsImages();
-    saveAllNewsToDB();
+    saveAllNewsToCurrentProgram();
 }
 
 function renderNewsImages(){
@@ -488,7 +482,7 @@ function renderNewsImages(){
         delBtn.onclick = ()=>{
             news.imageUrls.splice(idx,1);
             renderNewsImages();
-            saveAllNewsToDB();
+            saveAllNewsToCurrentProgram();
         };
         wrap.appendChild(imgEl);
         wrap.appendChild(delBtn);
@@ -496,12 +490,8 @@ function renderNewsImages(){
     });
 }
 
-// News Visual Layout Editor (Drag/Resize Text Boxes)
 function addNewsTextBox(){
-    if(!selectedNewsId){
-        alert("Select or create a news article first");
-        return;
-    }
+    if(!selectedNewsId) return alert("Create/select news first");
     const newBox = {
         id: "news_txt_"+Date.now(),
         type:"text",
@@ -536,7 +526,6 @@ function renderNewsLayout(){
         rh.className = "resize-handle";
         el.appendChild(rh);
 
-        // Drag
         let drag=false, startX,startY,oX,oY;
         el.addEventListener("mousedown",e=>{
             if(e.target===rh)return;
@@ -545,7 +534,6 @@ function renderNewsLayout(){
             startX=e.clientX; startY=e.clientY;
             oX=parseFloat(el.style.left); oY=parseFloat(el.style.top);
         });
-        // Resize
         let resize=false;
         rh.addEventListener("mousedown",e=>{
             e.preventDefault();
@@ -576,7 +564,6 @@ function renderNewsLayout(){
 async function saveNewsLayout(){
     const news = allNews.find(n=>n.id===selectedNewsId);
     if(!news)return;
-    // Save position/size + text content
     newsLayoutBlocks.forEach(b=>{
         const el = document.querySelector(`#newsStage [data-id="${b.id}"]`);
         if(el){
@@ -588,11 +575,12 @@ async function saveNewsLayout(){
         }
     });
     news.layoutBlocks = newsLayoutBlocks;
-    await saveAllNewsToDB();
-    alert("News page layout saved");
+    await saveAllNewsToCurrentProgram();
+    alert("News layout saved to program");
 }
 
-async function saveAllNewsToDB(){
+// KEY: Saves news ONLY to the currently selected program row in DB
+async function saveAllNewsToCurrentProgram(){
     if(!selectedProgram) return;
     selectedProgram.news = allNews;
     await fetch(`${API_URL}/${selectedProgram.id}/news`,{
@@ -601,8 +589,8 @@ async function saveAllNewsToDB(){
         body:JSON.stringify({news: allNews})
     });
 }
+// ============================================
 
-// Original Program Block Editor
 function renderBlocks(){
     const stage = document.getElementById("stage");
     stage.innerHTML = "";
@@ -630,7 +618,6 @@ function renderBlocks(){
             textColor.value = block.text;
             syncColors();
         };
-        // drag resize logic
         let drag=false,startX,startY,origX,origY;
         el.addEventListener("mousedown",e=>{
             if(e.target===rh)return;
