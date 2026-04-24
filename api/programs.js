@@ -1,4 +1,4 @@
-const { Pool } = require('@vercel/postgres');
+const { Pool } = require('pg');
 
 module.exports = async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
@@ -7,17 +7,21 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-  });
-
   try {
-    const { rows } = await pool.sql`SELECT id, name, blocks, news FROM programs`;
-    return res.status(200).json(rows);
+    const pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false }
+    });
+
+    const client = await pool.connect();
+    const result = await client.query('SELECT id, name, blocks, news FROM programs');
+    client.release();
+
+    res.status(200).json(result.rows);
   } catch (err) {
     console.error('Database error:', err);
-    return res.status(500).json({
-      error: 'Failed to load programs',
+    res.status(500).json({
+      error: 'Internal server error',
       details: err.message
     });
   }
