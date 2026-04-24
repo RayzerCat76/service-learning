@@ -5,6 +5,7 @@
   ],
   "routes": [
     { "src": "/api/programs", "dest": "/api/programs.js" },
-    { "src": "/", "dest": "/index.html", "dest": "/admin.html" }
+    { "src": "/", "dest": "/index.html"},
+    { "src": "/", "dest": "/admin.html"}
   ]
 }
