@@ -1,45 +1,24 @@
-const { Pool } = require('pg');
+const { Pool } = require('@vercel/postgres');
 
-module.exports = async (req, res) =>
-{
-  try
-  {
-    // FORCE PRINT THE CONNECTION STRING (for debug only)
-    const conString = process.env.DATABASE_URL;
-    let masked = conString ? conString.substring(0,30)+"..." : "NOT SET";
+module.exports = async (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
 
-    // CONNECT
-    const pool = new Pool({
-      connectionString: conString,
-      ssl: { rejectUnauthorized: false }
-    });
-
-    // CHECK WHAT TABLES EXIST
-    const tables = await pool.query(`
-      SELECT table_name
-      FROM information_schema.tables
-      WHERE table_schema = 'public'
-      ORDER BY table_name;
-    `);
-
-    // CHECK ROWS IN programs
-    const data = await pool.query("SELECT * FROM programs");
-
-    // RETURN EVERYTHING
-    res.status(200).json({
-      envWorking: !!conString,
-      connectionPreview: masked,
-      tablesInDatabase: tables.rows.map(t => t.table_name),
-      programCount: data.rows.length,
-      programs: data.rows
-    });
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
-  catch (err)
-  {
-    res.status(500).json({
-      error: "FULL DEBUG ERROR",
-      details: err.message,
-      stack: err.stack
+
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+  });
+
+  try {
+    const { rows } = await pool.sql`SELECT id, name, blocks, news FROM programs`;
+    return res.status(200).json(rows);
+  } catch (err) {
+    console.error('Database error:', err);
+    return res.status(500).json({
+      error: 'Failed to load programs',
+      details: err.message
     });
   }
 };
