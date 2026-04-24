@@ -183,7 +183,6 @@
     </div>
 
     <div class="tab-content" id="programLayout">
-        <div class="box" id="teacherManagementSection" style="display:none;"></div>
         <div class="box">
             <h3>Programs</h3>
             <div class="form-group">
@@ -192,9 +191,6 @@
             </div>
             <select id="programSelect" onchange="selectProgram(this.value)"></select>
             <button class="btn-red" onclick="deleteProgram()">Delete Program</button>
-            <p style="margin-top:8px;color:#666;font-size:13px;">
-                ✅ News articles are saved <strong>only to this selected program</strong>
-            </p>
         </div>
 
         <div class="box">
@@ -236,41 +232,41 @@
 
     <div class="tab-content hidden" id="newsManager">
         <div class="box">
-            <h3>News Manager — Bound to Current Program</h3>
+            <h3>News Manager</h3>
             <button class="btn-green" onclick="createNewNews()">Create New News Article</button>
             <div class="news-item-select" id="newsItemList"></div>
         </div>
 
         <div class="box">
-            <h3>Edit News Metadata</h3>
+            <h3>Edit News</h3>
             <div class="form-group">
-                <label>News Title</label>
-                <input type="text" id="newsTitle" placeholder="Enter news title">
+                <label>Title</label>
+                <input type="text" id="newsTitle" placeholder="News Title">
             </div>
             <div class="form-group">
-                <label>Short Overview</label>
-                <textarea id="newsOverview" rows="2" placeholder="Short summary preview"></textarea>
+                <label>Overview</label>
+                <textarea id="newsOverview" rows="2"></textarea>
             </div>
             <div class="form-group">
                 <label>Full Content</label>
-                <textarea id="newsFullContent" rows="4" placeholder="Main news content"></textarea>
+                <textarea id="newsFullContent" rows="4"></textarea>
             </div>
-            <button class="btn-blue" onclick="saveNewsMeta()">Save Title / Overview / Content</button>
-            <button class="btn-red" onclick="deleteSelectedNews()">Delete This News</button>
+            <button class="btn-blue" onclick="saveNewsMeta()">Save News</button>
+            <button class="btn-red" onclick="deleteSelectedNews()">Delete News</button>
         </div>
 
         <div class="box">
             <h3>News Images</h3>
             <div class="form-group">
-                <input type="text" id="newsImageUrl" placeholder="Paste image URL">
+                <input type="text" id="newsImageUrl" placeholder="Image URL">
             </div>
             <button class="btn-purple" onclick="addNewsImage()">Add Image</button>
             <div id="newsImagePreviewRow"></div>
         </div>
 
         <div class="box">
-            <h3>News Page Visual Editor</h3>
-            <button class="btn-purple" onclick="addNewsTextBox()">Add Movable Text Box</button>
+            <h3>News Layout</h3>
+            <button class="btn-purple" onclick="addNewsTextBox()">Add Text Box</button>
             <button class="btn-blue" onclick="saveNewsLayout()">Save News Layout</button>
             <div class="preview">
                 <div id="newsStage"></div>
@@ -318,284 +314,103 @@ function login(){
     syncColors();
 }
 function logout(){ location.reload(); }
-async function loadTeachers(){}
-async function createTeacher(){}
 
 async function loadPrograms(){
-    try{
-        const res = await fetch(API_URL);
+    try {
+        const res = await fetch(API_URL, { cache: "no-store" });
         programs = await res.json();
         const sel = document.getElementById("programSelect");
         sel.innerHTML = "";
-        programs.forEach(p=>{
+        programs.forEach(p => {
             const opt = document.createElement("option");
             opt.value = p.id;
             opt.innerText = p.name;
             sel.appendChild(opt);
         });
-        if(programs.length) selectProgram(programs[0].id);
-    }catch(e){console.error(e);}
+        if (programs.length) selectProgram(programs[0].id);
+    } catch(e) {}
 }
 
-// CRITICAL: Load ONLY this program's news
 function selectProgram(id){
-    selectedProgram = programs.find(p=>p.id == id);
+    selectedProgram = programs.find(p => p.id == id);
     selectedNewsId = null;
 
-    try{
-        blocks = Array.isArray(selectedProgram.blocks) ? selectedProgram.blocks : JSON.parse(selectedProgram.blocks||"[]");
-    }catch(e){blocks=[];}
+    try {
+        blocks = Array.isArray(selectedProgram.blocks)
+            ? [...selectedProgram.blocks]
+            : JSON.parse(selectedProgram.blocks || "[]");
+    } catch(e) { blocks = []; }
 
-    // Isolated per-program news
-    try{
-        allNews = Array.isArray(selectedProgram.news) ? selectedProgram.news : JSON.parse(selectedProgram.news||"[]");
-    }catch(e){allNews=[];}
+    try {
+        allNews = Array.isArray(selectedProgram.news)
+            ? [...selectedProgram.news]
+            : JSON.parse(selectedProgram.news || "[]");
+    } catch(e) { allNews = []; }
 
     renderBlocks();
     renderNewsList();
 }
 
 async function createProgram(){
-    const name = document.getElementById("newProgName").value.trim()||"New Program";
-    await fetch(API_URL,{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-            name,
-            created_by:currentUser,
-            blocks:[],
-            news: [] // New program starts with empty isolated news
-        })
+    const name = document.getElementById("newProgName").value.trim() || "New Program";
+    await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, created_by: currentUser, blocks: [], news: [] })
     });
     loadPrograms();
 }
+
 async function deleteProgram(){
-    if(!selectedProgram||!confirm("Delete program?"))return;
-    await fetch(`${API_URL}/${selectedProgram.id}`,{method:"DELETE"});
+    if (!selectedProgram || !confirm("Delete program?")) return;
+    await fetch(`${API_URL}/${selectedProgram.id}`, { method: "DELETE" });
     loadPrograms();
 }
 
-// ========== PER-PROGRAM NEWS SYSTEM ==========
-function renderNewsList(){
-    const wrap = document.getElementById("newsItemList");
-    wrap.innerHTML = "";
-    allNews.forEach(item=>{
-        const card = document.createElement("div");
-        card.className = "news-item-card"+(item.id===selectedNewsId?" active":"");
-        card.innerText = item.title || "Untitled News";
-        card.onclick = () => selectNewsItem(item.id);
-        wrap.appendChild(card);
+// ----------------------------
+// FIXED: Layout Saves to DB
+// ----------------------------
+async function updateBlock(){
+    if (!selectedBlock || !selectedProgram) return;
+    selectedBlock.title = document.getElementById("blockTitle").value;
+    selectedBlock.content = document.getElementById("blockContent").value;
+    selectedBlock.bg = bgColor.value;
+    selectedBlock.text = textColor.value;
+    renderBlocks();
+
+    await fetch(`${API_URL}/${selectedProgram.id}/blocks`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ blocks: blocks })
     });
-    clearNewsEditorFields();
+    alert("✅ Block saved to database");
 }
 
-function createNewNews(){
-    if(!selectedProgram) return alert("Select a program first");
-    const newNews = {
-        id: "news_"+Date.now(),
-        title: "New News Article",
-        overview: "",
-        content: "",
-        imageUrls: [],
-        layoutBlocks: []
-    };
-    allNews.push(newNews);
-    selectedNewsId = newNews.id;
-    saveAllNewsToCurrentProgram();
-    renderNewsList();
-    loadSelectedNewsData();
-}
-
-function selectNewsItem(newsId){
-    selectedNewsId = newsId;
-    renderNewsList();
-    loadSelectedNewsData();
-}
-
-function loadSelectedNewsData(){
-    const news = allNews.find(n=>n.id===selectedNewsId);
-    if(!news) return;
-    document.getElementById("newsTitle").value = news.title;
-    document.getElementById("newsOverview").value = news.overview;
-    document.getElementById("newsFullContent").value = news.content;
-    newsLayoutBlocks = news.layoutBlocks || [];
-    renderNewsImages();
-    renderNewsLayout();
-}
-
-function clearNewsEditorFields(){
-    document.getElementById("newsTitle").value = "";
-    document.getElementById("newsOverview").value = "";
-    document.getElementById("newsFullContent").value = "";
-    document.getElementById("newsImageUrl").value = "";
-    document.getElementById("newsImagePreviewRow").innerHTML = "";
-    document.getElementById("newsStage").innerHTML = "";
-    newsLayoutBlocks = [];
-}
-
-async function saveNewsMeta(){
-    const news = allNews.find(n=>n.id===selectedNewsId);
-    if(!news) return;
-    news.title = document.getElementById("newsTitle").value;
-    news.overview = document.getElementById("newsOverview").value;
-    news.content = document.getElementById("newsFullContent").value;
-    await saveAllNewsToCurrentProgram();
-    alert("Saved to current program");
-    renderNewsList();
-}
-
-async function deleteSelectedNews(){
-    if(!selectedNewsId||!confirm("Delete news?"))return;
-    allNews = allNews.filter(n=>n.id!==selectedNewsId);
-    selectedNewsId = null;
-    await saveAllNewsToCurrentProgram();
-    renderNewsList();
-}
-
-function addNewsImage(){
-    const url = document.getElementById("newsImageUrl").value.trim();
-    if(!url) return;
-    const news = allNews.find(n=>n.id===selectedNewsId);
-    if(!news) return;
-    if(!news.imageUrls) news.imageUrls = [];
-    news.imageUrls.push(url);
-    document.getElementById("newsImageUrl").value = "";
-    renderNewsImages();
-    saveAllNewsToCurrentProgram();
-}
-
-function renderNewsImages(){
-    const row = document.getElementById("newsImagePreviewRow");
-    row.innerHTML = "";
-    const news = allNews.find(n=>n.id===selectedNewsId);
-    if(!news||!news.imageUrls)return;
-    news.imageUrls.forEach((img,idx)=>{
-        const wrap = document.createElement("div");
-        wrap.style.display="inline-block";
-        const imgEl = document.createElement("img");
-        imgEl.src = img;
-        imgEl.className = "image-preview-small";
-        const delBtn = document.createElement("button");
-        delBtn.className="btn-red";
-        delBtn.style.fontSize="12px";
-        delBtn.innerText="Remove";
-        delBtn.onclick = ()=>{
-            news.imageUrls.splice(idx,1);
-            renderNewsImages();
-            saveAllNewsToCurrentProgram();
-        };
-        wrap.appendChild(imgEl);
-        wrap.appendChild(delBtn);
-        row.appendChild(wrap);
-    });
-}
-
-function addNewsTextBox(){
-    if(!selectedNewsId) return alert("Create/select news first");
-    const newBox = {
-        id: "news_txt_"+Date.now(),
-        type:"text",
-        text:"New Text Box",
-        x:10, y:10, w:30, h:20,
-        bg:"#ffffff",
-        color:"#222",
-        border:"2px solid #9b59b6"
-    };
-    newsLayoutBlocks.push(newBox);
-    renderNewsLayout();
-}
-
-function renderNewsLayout(){
-    const stage = document.getElementById("newsStage");
-    stage.innerHTML = "";
-    newsLayoutBlocks.forEach(block=>{
-        const el = document.createElement("div");
-        el.className = "block news-block";
-        el.dataset.id = block.id;
-        el.style.left = block.x+"%";
-        el.style.top = block.y+"%";
-        el.style.width = block.w+"%";
-        el.style.height = block.h+"%";
-        el.style.background = block.bg;
-        el.style.color = block.color;
-        el.style.border = block.border;
-        el.contentEditable = true;
-        el.innerText = block.text;
-
-        const rh = document.createElement("div");
-        rh.className = "resize-handle";
-        el.appendChild(rh);
-
-        let drag=false, startX,startY,oX,oY;
-        el.addEventListener("mousedown",e=>{
-            if(e.target===rh)return;
-            e.preventDefault();
-            drag=true;
-            startX=e.clientX; startY=e.clientY;
-            oX=parseFloat(el.style.left); oY=parseFloat(el.style.top);
-        });
-        let resize=false;
-        rh.addEventListener("mousedown",e=>{
-            e.preventDefault();
-            resize=true;
-            startX=e.clientX; startY=e.clientY;
-            oX=parseFloat(el.style.width); oY=parseFloat(el.style.height);
-        });
-        document.addEventListener("mousemove",e=>{
-            const rect = stage.getBoundingClientRect();
-            if(drag){
-                let dx = (e.clientX - startX)/rect.width*100;
-                let dy = (e.clientY - startY)/rect.height*100;
-                el.style.left = Math.max(0,Math.min(95,oX+dx))+"%";
-                el.style.top = Math.max(0,Math.min(95,oY+dy))+"%";
-            }
-            if(resize){
-                let dx = (e.clientX - startX)/rect.width*100;
-                let dy = (e.clientY - startY)/rect.height*100;
-                el.style.width = Math.max(8,Math.min(60,oX+dx))+"%";
-                el.style.height = Math.max(8,Math.min(60,oY+dy))+"%";
-            }
-        });
-        document.addEventListener("mouseup",()=>{drag=false;resize=false;});
-        stage.appendChild(el);
-    });
-}
-
-async function saveNewsLayout(){
-    const news = allNews.find(n=>n.id===selectedNewsId);
-    if(!news)return;
-    newsLayoutBlocks.forEach(b=>{
-        const el = document.querySelector(`#newsStage [data-id="${b.id}"]`);
-        if(el){
+async function saveLayout(){
+    blocks.forEach(b => {
+        const el = document.querySelector(`[data-id="${b.id}"]`);
+        if (el) {
             b.x = parseFloat(el.style.left);
             b.y = parseFloat(el.style.top);
             b.w = parseFloat(el.style.width);
             b.h = parseFloat(el.style.height);
-            b.text = el.innerText;
         }
     });
-    news.layoutBlocks = newsLayoutBlocks;
-    await saveAllNewsToCurrentProgram();
-    alert("News layout saved to program");
-}
 
-// KEY: Saves news ONLY to the currently selected program row in DB
-async function saveAllNewsToCurrentProgram(){
-    if(!selectedProgram) return;
-    selectedProgram.news = allNews;
-    await fetch(`${API_URL}/${selectedProgram.id}/news`,{
-        method:"PATCH",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({news: allNews})
+    await fetch(`${API_URL}/${selectedProgram.id}/blocks`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ blocks: blocks })
     });
+    alert("✅ Layout saved to database");
+    renderBlocks();
 }
-// ============================================
 
 function renderBlocks(){
     const stage = document.getElementById("stage");
     stage.innerHTML = "";
-    if(!Array.isArray(blocks))return;
-    blocks.forEach(block=>{
+    if (!Array.isArray(blocks)) return;
+    blocks.forEach(block => {
         const el = document.createElement("div");
         el.className = "block";
         el.dataset.id = block.id;
@@ -610,7 +425,7 @@ function renderBlocks(){
         const rh = document.createElement("div");
         rh.className = "resize-handle";
         el.appendChild(rh);
-        el.onclick = ()=>{
+        el.onclick = () => {
             selectedBlock = block;
             document.getElementById("blockTitle").value = block.title;
             document.getElementById("blockContent").value = block.content;
@@ -618,72 +433,174 @@ function renderBlocks(){
             textColor.value = block.text;
             syncColors();
         };
-        let drag=false,startX,startY,origX,origY;
-        el.addEventListener("mousedown",e=>{
-            if(e.target===rh)return;
-            drag=true;startX=e.clientX;startY=e.clientY;
-            origX=parseFloat(el.style.left);origY=parseFloat(el.style.top);
-        });
-        let resize=false;
-        rh.addEventListener("mousedown",e=>{
-            resize=true;startX=e.clientX;startY=e.clientY;
-            origX=parseFloat(el.style.width);origY=parseFloat(el.style.height);
-        });
-        document.addEventListener("mousemove",e=>{
-            const rect = stage.getBoundingClientRect();
-            if(drag){
-                const dx = (e.clientX-startX)/rect.width*100;
-                const dy = (e.clientY-startY)/rect.height*100;
-                el.style.left = Math.max(0,Math.min(100,origX+dx))+"%";
-                el.style.top = Math.max(0,Math.min(100,origY+dy))+"%";
-            }
-            if(resize){
-                const dx = (e.clientX-startX)/rect.width*100;
-                const dy = (e.clientY-startY)/rect.height*100;
-                el.style.width = Math.max(5,Math.min(100,origX+dx))+"%";
-                el.style.height = Math.max(5,Math.min(100,origY+dy))+"%";
-            }
-        });
-        document.addEventListener("mouseup",()=>{drag=false;resize=false;});
         stage.appendChild(el);
     });
 }
 
-async function updateBlock(){
-    if(!selectedBlock)return;
-    selectedBlock.title = document.getElementById("blockTitle").value;
-    selectedBlock.content = document.getElementById("blockContent").value;
-    selectedBlock.bg = bgColor.value;
-    selectedBlock.text = textColor.value;
-    renderBlocks();
-    await fetch(`${API_URL}/${selectedProgram.id}/blocks`,{
-        method:"PATCH",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({blocks})
-    });
-}
-async function saveLayout(){
-    blocks.forEach(b=>{
-        const el = document.querySelector(`[data-id="${b.id}"]`);
-        b.x = parseFloat(el.style.left);
-        b.y = parseFloat(el.style.top);
-        b.w = parseFloat(el.style.width);
-        b.h = parseFloat(el.style.height);
-    });
-    await fetch(`${API_URL}/${selectedProgram.id}/blocks`,{
-        method:"PATCH",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({blocks})
-    });
-    alert("Layout saved");
-    renderBlocks();
-}
 function generateTemplate(){
     blocks = [
-        {id:"info",title:"Info",content:"",x:2,y:5,w:46,h:90,bg:"#fff",text:"#000",border:"2px solid #ccc"},
-        {id:"contact",title:"Contact",content:"",x:52,y:5,w:46,h:90,bg:"#fff",text:"#000",border:"2px solid #ccc"}
+        {id:"info",title:"Basic Information",content:"",x:2,y:5,w:46,h:90,bg:"#fff",text:"#000",border:"2px solid #ccc"},
+        {id:"contact",title:"Contact Information",content:"",x:52,y:5,w:46,h:90,bg:"#fff",text:"#000",border:"2px solid #ccc"}
     ];
     renderBlocks();
+}
+
+// ----------------------------
+// FIXED: NEWS FULLY SAVES TO DB
+// ----------------------------
+function renderNewsList(){
+    const wrap = document.getElementById("newsItemList");
+    wrap.innerHTML = "";
+    allNews.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "news-item-card"+(item.id===selectedNewsId?" active":"");
+        card.innerText = item.title || "Untitled News";
+        card.onclick = () => selectNewsItem(item.id);
+        wrap.appendChild(card);
+    });
+}
+
+function createNewNews(){
+    if (!selectedProgram) return;
+    const newNews = {
+        id: "news_"+Date.now(),
+        title: "New Article",
+        overview: "",
+        content: "",
+        imageUrls: [],
+        layoutBlocks: []
+    };
+    allNews.push(newNews);
+    selectedNewsId = newNews.id;
+    syncNewsToDB();
+    renderNewsList();
+    loadSelectedNewsData();
+}
+
+function selectNewsItem(newsId){
+    selectedNewsId = newsId;
+    renderNewsList();
+    loadSelectedNewsData();
+}
+
+function loadSelectedNewsData(){
+    const news = allNews.find(n => n.id === selectedNewsId);
+    if (!news) return;
+    document.getElementById("newsTitle").value = news.title;
+    document.getElementById("newsOverview").value = news.overview;
+    document.getElementById("newsFullContent").value = news.content;
+    newsLayoutBlocks = news.layoutBlocks || [];
+    renderNewsImages();
+    renderNewsLayout();
+}
+
+async function saveNewsMeta(){
+    const news = allNews.find(n => n.id === selectedNewsId);
+    if (!news) return;
+    news.title = document.getElementById("newsTitle").value;
+    news.overview = document.getElementById("newsOverview").value;
+    news.content = document.getElementById("newsFullContent").value;
+    await syncNewsToDB();
+    alert("✅ News saved to database");
+}
+
+async function deleteSelectedNews(){
+    if (!selectedNewsId || !confirm("Delete news?")) return;
+    allNews = allNews.filter(n => n.id !== selectedNewsId);
+    selectedNewsId = null;
+    await syncNewsToDB();
+    renderNewsList();
+}
+
+function addNewsImage(){
+    const url = document.getElementById("newsImageUrl").value.trim();
+    if (!url) return;
+    const news = allNews.find(n => n.id === selectedNewsId);
+    if (!news) return;
+    news.imageUrls = news.imageUrls || [];
+    news.imageUrls.push(url);
+    document.getElementById("newsImageUrl").value = "";
+    renderNewsImages();
+    syncNewsToDB();
+}
+
+function renderNewsImages(){
+    const row = document.getElementById("newsImagePreviewRow");
+    row.innerHTML = "";
+    const news = allNews.find(n => n.id === selectedNewsId);
+    if (!news || !news.imageUrls) return;
+    news.imageUrls.forEach((img, i) => {
+        const div = document.createElement("div");
+        div.style.display="inline-block";
+        div.innerHTML = `<img src="${img}" class="image-preview-small"><br><button class='btn-red' onclick="removeNewsImage(${i})">Remove</button>`;
+        row.appendChild(div);
+    });
+}
+
+function removeNewsImage(index){
+    const news = allNews.find(n => n.id === selectedNewsId);
+    news.imageUrls.splice(index, 1);
+    renderNewsImages();
+    syncNewsToDB();
+}
+
+function addNewsTextBox(){
+    if (!selectedNewsId) return;
+    newsLayoutBlocks.push({
+        id: "txt_"+Date.now(),
+        text: "Edit me",
+        x:10,y:10,w:30,h:20,
+        bg:"#fff", color:"#000", border:"2px solid #9b59b6"
+    });
+    renderNewsLayout();
+}
+
+function renderNewsLayout(){
+    const stage = document.getElementById("newsStage");
+    stage.innerHTML = "";
+    newsLayoutBlocks.forEach(bl => {
+        const el = document.createElement("div");
+        el.className = "block news-block";
+        el.dataset.id = bl.id;
+        el.style.left = bl.x+"%";
+        el.style.top = bl.y+"%";
+        el.style.width = bl.w+"%";
+        el.style.height = bl.h+"%";
+        el.style.background = bl.bg;
+        el.style.color = bl.color;
+        el.style.border = bl.border;
+        el.contentEditable = true;
+        el.innerText = bl.text;
+        stage.appendChild(el);
+    });
+}
+
+async function saveNewsLayout(){
+    const news = allNews.find(n => n.id === selectedNewsId);
+    if (!news) return;
+    newsLayoutBlocks.forEach(b => {
+        const el = document.querySelector(`#newsStage [data-id="${b.id}"]`);
+        if (el) {
+            b.x = parseFloat(el.style.left);
+            b.y = parseFloat(el.style.top);
+            b.w = parseFloat(el.style.width);
+            b.h = parseFloat(el.style.height);
+            b.text = el.innerText;
+        }
+    });
+    news.layoutBlocks = newsLayoutBlocks;
+    await syncNewsToDB();
+    alert("✅ News layout saved to database");
+}
+
+// ✅ CORE FIX: ALL news changes saved to DB
+async function syncNewsToDB(){
+    if (!selectedProgram) return;
+    await fetch(`${API_URL}/${selectedProgram.id}/news`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ news: allNews })
+    });
 }
 </script>
 </body>
