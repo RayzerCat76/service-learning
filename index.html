@@ -27,6 +27,7 @@
             display: flex;
             gap: 12px;
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
         .tab-btn {
             padding: 10px 20px;
@@ -34,6 +35,7 @@
             border-radius: 6px;
             cursor: pointer;
             font-size: 16px;
+            background: #e0e0e0;
         }
         .tab-btn.active {
             background: #3498db;
@@ -48,9 +50,16 @@
         .block-row {
             display: flex;
             gap: 20px;
+            flex-wrap: wrap;
         }
         .block-half {
             flex: 1;
+            min-width: 300px;
+        }
+        #newsContent div {
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
         }
     </style>
 </head>
@@ -59,108 +68,98 @@
         <h1>Service Learning Projects</h1>
     </div>
 
-    <div class="program-tabs" id="programTabs">
-        <!-- Tabs will load here -->
-    </div>
+    <div class="program-tabs" id="programTabs"></div>
 
     <div class="block-row">
-        <div class="block block-half" id="infoBlock">
+        <div class="block block-half">
             <h3>Basic Information</h3>
-            <p id="infoContent"></p>
+            <p id="infoText"></p>
         </div>
-        <div class="block block-half" id="contactBlock">
+        <div class="block block-half">
             <h3>Contact Information</h3>
-            <p id="contactContent"></p>
+            <p id="contactText"></p>
         </div>
     </div>
 
-    <div class="block" id="newsBlock">
+    <div class="block">
         <h3>Latest News</h3>
-        <div id="newsContent">No news yet</div>
+        <div id="newsContent">Loading news...</div>
     </div>
 
     <script>
         const API_URL = "/api/programs";
         let programs = [];
-        let currentProgramId = null;
+        let activeProgramId = null;
 
-        async function init() {
-            try {
-                const res = await fetch(API_URL);
-                programs = await res.json();
-                renderTabs();
-                if (programs.length > 0) {
-                    switchProgram(programs[0].id);
-                }
-            } catch (err) {
-                console.error(err);
-            }
+        // FORCE FRESH DATA — NO CACHING
+        async function fetchFresh(url) {
+            const res = await fetch(url, { cache: "no-store" });
+            return await res.json();
         }
 
-        function renderTabs() {
-            const tabsContainer = document.getElementById("programTabs");
-            tabsContainer.innerHTML = "";
-            programs.forEach(p => {
+        // Load ALL programs fresh
+        async function loadAllPrograms() {
+            programs = await fetchFresh(API_URL);
+            renderProgramTabs();
+            if (programs.length) switchProgram(programs[0].id);
+        }
+
+        // Render clickable program tabs
+        function renderProgramTabs() {
+            const container = document.getElementById("programTabs");
+            container.innerHTML = "";
+            programs.forEach(prog => {
                 const btn = document.createElement("button");
-                btn.className = "tab-btn" + (p.id === currentProgramId ? " active" : "");
-                btn.textContent = p.name;
-                btn.onclick = () => switchProgram(p.id);
-                tabsContainer.appendChild(btn);
+                btn.className = "tab-btn" + (prog.id === activeProgramId ? " active" : "");
+                btn.innerText = prog.name;
+                btn.onclick = () => switchProgram(prog.id);
+                container.appendChild(btn);
             });
         }
 
-        async function switchProgram(id) {
-            currentProgramId = id;
-            renderTabs();
-            try {
-                const res = await fetch(`${API_URL}/${id}`);
-                const program = await res.json();
-                updateLayoutBlocks(program.blocks);
-                updateNews(program.news);
-            } catch (err) {
-                console.error(err);
-            }
+        // Switch to a program — LOAD FRESH FROM DATABASE
+        async function switchProgram(programId) {
+            activeProgramId = programId;
+            renderProgramTabs();
+
+            // 👇 THIS LINE FORCES FULL REFRESH FROM DB
+            const program = await fetchFresh(`${API_URL}/${programId}`);
+
+            // Update layout blocks LIVE
+            renderLayout(program.blocks || []);
+
+            // Update news LIVE
+            renderNews(program.news || []);
         }
 
-        function updateLayoutBlocks(blocks = []) {
-            const infoBlock = document.getElementById("infoContent");
-            const contactBlock = document.getElementById("contactContent");
-
-            // Clear existing content
-            infoBlock.innerHTML = "";
-            contactBlock.innerHTML = "";
-
-            // Fill Basic/Contact blocks
+        // Render layout blocks from DB
+        function renderLayout(blocks) {
+            let info = "", contact = "";
             blocks.forEach(b => {
-                if (b.title.toLowerCase().includes("info")) {
-                    infoBlock.textContent = b.content || "";
-                } else if (b.title.toLowerCase().includes("contact")) {
-                    contactBlock.textContent = b.content || "";
-                }
+                if (b.id === "info" || b.title.toLowerCase().includes("info")) info = b.content;
+                if (b.id === "contact" || b.title.toLowerCase().includes("contact")) contact = b.content;
             });
+            document.getElementById("infoText").innerText = info || "No content yet";
+            document.getElementById("contactText").innerText = contact || "No content yet";
         }
 
-        function updateNews(news = []) {
-            const newsContainer = document.getElementById("newsContent");
-            if (!news || news.length === 0) {
-                newsContainer.innerHTML = "No news yet";
+        // Render news from DB
+        function renderNews(newsList) {
+            const container = document.getElementById("newsContent");
+            if (!newsList || newsList.length === 0) {
+                container.innerHTML = "No news available";
                 return;
             }
-
-            newsContainer.innerHTML = "";
-            news.forEach(item => {
-                const newsItem = document.createElement("div");
-                newsItem.style.marginBottom = "10px";
-                newsItem.innerHTML = `
-                    <strong>${item.title}</strong>
-                    <p style="margin:4px 0;color:#555;">${item.overview || ""}</p>
-                `;
-                newsContainer.appendChild(newsItem);
-            });
+            container.innerHTML = newsList.map(item => `
+                <div>
+                    <strong>${item.title}</strong><br>
+                    ${item.overview || ""}
+                </div>
+            `).join("");
         }
 
-        // Start
-        init();
+        // Start the page
+        loadAllPrograms();
     </script>
 </body>
 </html>
