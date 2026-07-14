@@ -1,11 +1,12 @@
 {
   "version": 2,
   "builds": [
-    { "src": "api/programs.js", "use": "@vercel/node" },
+    { "src": "api/**/*.js", "use": "@vercel/node" },
     { "src": "*.html", "use": "@vercel/static" }
   ],
   "routes": [
-    { "src": "/api/programs", "dest": "/api/programs.js" },
+    { "src": "/api/auth/(.*)", "dest": "/api/auth/$1.js" },
+    { "src": "/api/programs(.*)", "dest": "/api/programs.js" },
     { "src": "/(.*)", "dest": "/$1" }
   ]
 }

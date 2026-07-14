@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { neon } = require('@neondatabase/serverless');
+const { requireStaff } = require('./_auth');
 
 const sql = neon(process.env.DATABASE_URL);
 
@@ -32,6 +33,8 @@ router.get('/:id', async (req, res) => {
 
 // POST create new program
 router.post('/', async (req, res) => {
+  const staff = requireStaff(req, res);
+  if (!staff) return;
   const { name, created_by } = req.body;
   try {
     await sql`
@@ -47,6 +50,8 @@ router.post('/', async (req, res) => {
 
 // ✅ PATCH update program (blocks + news)
 router.patch('/:id', async (req, res) => {
+  const staff = requireStaff(req, res);
+  if (!staff) return;
   const { id } = req.params;
   const { blocks, news } = req.body;
   try {
@@ -65,6 +70,8 @@ router.patch('/:id', async (req, res) => {
 
 // DELETE program
 router.delete('/:id', async (req, res) => {
+  const staff = requireStaff(req, res);
+  if (!staff) return;
   const { id } = req.params;
   try {
     await sql`DELETE FROM programs WHERE id = ${id}`;
