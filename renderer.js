@@ -2,16 +2,49 @@
   const META_ID = "__meta__";
   const SAFE_FONTS = ["Arial", "Georgia", "Verdana", "Trebuchet MS", "Times New Roman", "Courier New"];
 
+  function normalizeColor(value, fallback) {
+    const color = String(value || '').trim();
+    if (/^#[0-9a-f]{6}$/i.test(color)) return color;
+    if (/^#[0-9a-f]{3}$/i.test(color)) return '#' + color.slice(1).split('').map((c) => c + c).join('');
+    return fallback;
+  }
+
   function metaOf(blocks) {
-    const meta = Array.isArray(blocks) ? blocks.find((block) => block && block.id === META_ID) : null;
-    return meta || { id: META_ID, type: "meta", logo: "", editors: [] };
+    if (!Array.isArray(blocks)) return { id: META_ID, type: "meta", logo: "", editors: [] };
+    let meta = blocks.find((block) => block && block.id === META_ID);
+    if (!meta) {
+      meta = { id: META_ID, type: "meta", logo: "", editors: [] };
+      blocks.unshift(meta);
+    }
+    if (!Array.isArray(meta.editors)) meta.editors = [];
+    if (typeof meta.logo !== 'string') meta.logo = '';
+    return meta;
   }
 
   function visibleBlocks(blocks) {
     return Array.isArray(blocks) ? blocks.filter((block) => block && block.id !== META_ID) : [];
   }
 
+  function legacyWidth(block) {
+    if ([25, 50, 75, 100].includes(Number(block.width))) return Number(block.width);
+    const old = Number(block.w);
+    if (!Number.isFinite(old)) return 100;
+    return [25, 50, 75, 100].reduce((best, width) => Math.abs(width - old) < Math.abs(best - old) ? width : best, 100);
+  }
+
+  function legacyBorder(block) {
+    const raw = String(block.border || '');
+    const widthMatch = raw.match(/(\d+(?:\.\d+)?)px/);
+    const colorMatch = raw.match(/#[0-9a-f]{3,6}/i);
+    return {
+      enabled: block.borderEnabled !== undefined ? block.borderEnabled !== false : !/^(none|0)/i.test(raw || 'solid'),
+      width: block.borderWidth !== undefined ? Number(block.borderWidth) : (widthMatch ? Number(widthMatch[1]) : 1),
+      color: block.borderColor || (colorMatch ? colorMatch[0] : '#d9dee7')
+    };
+  }
+
   function normalizeBlock(block = {}) {
+    const border = legacyBorder(block);
     return {
       id: block.id || `block_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
       type: block.type || "text",
@@ -20,16 +53,16 @@
       imageUrl: block.imageUrl || "",
       linkUrl: block.linkUrl || "",
       linkLabel: block.linkLabel || "Sign up",
-      width: [25, 50, 75, 100].includes(Number(block.width)) ? Number(block.width) : 100,
+      width: legacyWidth(block),
       minHeight: Math.max(80, Math.min(800, Number(block.minHeight) || 180)),
-      bg: block.bg || "#ffffff",
-      text: block.text || "#172e5c",
+      bg: normalizeColor(block.bg, "#ffffff"),
+      text: normalizeColor(block.text, "#172e5c"),
       fontFamily: SAFE_FONTS.includes(block.fontFamily) ? block.fontFamily : "Arial",
       fontSize: Math.max(12, Math.min(72, Number(block.fontSize) || 16)),
       align: ["left", "center", "right"].includes(block.align) ? block.align : "left",
-      borderEnabled: block.borderEnabled !== false,
-      borderColor: block.borderColor || "#d9dee7",
-      borderWidth: Math.max(0, Math.min(8, Number(block.borderWidth) || 1)),
+      borderEnabled: border.enabled,
+      borderColor: normalizeColor(border.color, "#d9dee7"),
+      borderWidth: Math.max(0, Math.min(8, Number(border.width) || 1)),
       backgroundImage: block.backgroundImage || ""
     };
   }
@@ -41,7 +74,6 @@
     style.textContent = `
       .sl-layout{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:18px;align-items:start}
       .sl-block{position:relative;padding:24px;border-radius:10px;background:#fff;background-size:cover;background-position:center;overflow:hidden;min-width:0}
-      .sl-block::before{content:"";position:absolute;inset:0;background:rgba(255,255,255,.00);pointer-events:none}
       .sl-block>*{position:relative;z-index:1}
       .sl-block h3{margin:0 0 10px;font-size:1.25em;line-height:1.2;color:inherit}
       .sl-block p{margin:0;white-space:pre-wrap;color:inherit}
