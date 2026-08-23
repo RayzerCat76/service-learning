@@ -1,12 +1,33 @@
 (function () {
   const META_ID = "__meta__";
   const SAFE_FONTS = ["Arial", "Georgia", "Verdana", "Trebuchet MS", "Times New Roman", "Courier New"];
+  const MIN_WIDTH = 15;
+  const SNAP_POINTS = [0, 25, 50, 75, 100];
+  const SNAP_DISTANCE = 2;
+
+  function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+  }
 
   function normalizeColor(value, fallback) {
-    const color = String(value || '').trim();
+    const color = String(value || "").trim();
     if (/^#[0-9a-f]{6}$/i.test(color)) return color;
-    if (/^#[0-9a-f]{3}$/i.test(color)) return '#' + color.slice(1).split('').map((c) => c + c).join('');
+    if (/^#[0-9a-f]{3}$/i.test(color)) return "#" + color.slice(1).split("").map((c) => c + c).join("");
     return fallback;
+  }
+
+  function snapNear(value, points = SNAP_POINTS, distance = SNAP_DISTANCE) {
+    const n = Number(value);
+    let best = n;
+    let gap = Infinity;
+    points.forEach((point) => {
+      const d = Math.abs(point - n);
+      if (d <= distance && d < gap) {
+        best = point;
+        gap = d;
+      }
+    });
+    return best;
   }
 
   function metaOf(blocks) {
@@ -17,7 +38,7 @@
       blocks.unshift(meta);
     }
     if (!Array.isArray(meta.editors)) meta.editors = [];
-    if (typeof meta.logo !== 'string') meta.logo = '';
+    if (typeof meta.logo !== "string") meta.logo = "";
     return meta;
   }
 
@@ -26,25 +47,29 @@
   }
 
   function legacyWidth(block) {
-    if ([25, 50, 75, 100].includes(Number(block.width))) return Number(block.width);
+    const direct = Number(block.width);
+    if (Number.isFinite(direct)) return clamp(Math.round(direct), MIN_WIDTH, 100);
     const old = Number(block.w);
     if (!Number.isFinite(old)) return 100;
-    return [25, 50, 75, 100].reduce((best, width) => Math.abs(width - old) < Math.abs(best - old) ? width : best, 100);
+    return clamp(Math.round(old), MIN_WIDTH, 100);
   }
 
   function legacyBorder(block) {
-    const raw = String(block.border || '');
+    const raw = String(block.border || "");
     const widthMatch = raw.match(/(\d+(?:\.\d+)?)px/);
     const colorMatch = raw.match(/#[0-9a-f]{3,6}/i);
     return {
-      enabled: block.borderEnabled !== undefined ? block.borderEnabled !== false : !/^(none|0)/i.test(raw || 'solid'),
+      enabled: block.borderEnabled !== undefined ? block.borderEnabled !== false : !/^(none|0)/i.test(raw || "solid"),
       width: block.borderWidth !== undefined ? Number(block.borderWidth) : (widthMatch ? Number(widthMatch[1]) : 1),
-      color: block.borderColor || (colorMatch ? colorMatch[0] : '#d9dee7')
+      color: block.borderColor || (colorMatch ? colorMatch[0] : "#d9dee7")
     };
   }
 
   function normalizeBlock(block = {}) {
     const border = legacyBorder(block);
+    const width = legacyWidth(block);
+    const rawOffset = Number(block.offsetX ?? block.xOffset ?? block.x ?? 0);
+    const offsetX = clamp(Number.isFinite(rawOffset) ? Math.round(rawOffset) : 0, 0, Math.max(0, 100 - width));
     return {
       id: block.id || `block_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
       type: block.type || "text",
@@ -53,16 +78,17 @@
       imageUrl: block.imageUrl || "",
       linkUrl: block.linkUrl || "",
       linkLabel: block.linkLabel || "Sign up",
-      width: legacyWidth(block),
-      minHeight: Math.max(80, Math.min(800, Number(block.minHeight) || 180)),
+      width,
+      offsetX,
+      minHeight: clamp(Number(block.minHeight) || 180, 80, 800),
       bg: normalizeColor(block.bg, "#ffffff"),
       text: normalizeColor(block.text, "#172e5c"),
       fontFamily: SAFE_FONTS.includes(block.fontFamily) ? block.fontFamily : "Arial",
-      fontSize: Math.max(12, Math.min(72, Number(block.fontSize) || 16)),
+      fontSize: clamp(Number(block.fontSize) || 16, 12, 72),
       align: ["left", "center", "right"].includes(block.align) ? block.align : "left",
       borderEnabled: border.enabled,
       borderColor: normalizeColor(border.color, "#d9dee7"),
-      borderWidth: Math.max(0, Math.min(8, Number(border.width) || 1)),
+      borderWidth: clamp(Number(border.width) || 1, 0, 8),
       backgroundImage: block.backgroundImage || ""
     };
   }
@@ -72,15 +98,14 @@
     const style = document.createElement("style");
     style.id = "sl-renderer-styles";
     style.textContent = `
-      .sl-layout{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:18px;align-items:start}
-      .sl-block{position:relative;padding:24px;border-radius:10px;background:#fff;background-size:cover;background-position:center;overflow:hidden;min-width:0}
+      .sl-layout{display:grid;grid-template-columns:repeat(100,minmax(0,1fr));grid-auto-flow:row;column-gap:0;row-gap:18px;align-items:start;min-width:0}
+      .sl-block{position:relative;padding:24px;border-radius:10px;background:#fff;background-size:cover;background-position:center;overflow:hidden;min-width:0;margin-inline:6px}
       .sl-block>*{position:relative;z-index:1}
       .sl-block h3{margin:0 0 10px;font-size:1.25em;line-height:1.2;color:inherit}
       .sl-block p{margin:0;white-space:pre-wrap;color:inherit}
       .sl-block img{display:block;max-width:100%;max-height:520px;margin:auto;object-fit:contain;border-radius:8px}
       .sl-block .sl-link{display:inline-flex;margin-top:16px;padding:10px 16px;border-radius:999px;background:#123e8f;color:white;text-decoration:none;font-weight:700}
-      .sl-block[data-width="25"]{grid-column:span 3}.sl-block[data-width="50"]{grid-column:span 6}.sl-block[data-width="75"]{grid-column:span 9}.sl-block[data-width="100"]{grid-column:span 12}
-      @media(max-width:760px){.sl-layout{grid-template-columns:1fr;gap:14px}.sl-block[data-width]{grid-column:1/-1}.sl-block{padding:20px;min-height:0!important}}
+      @media(max-width:760px){.sl-layout{grid-template-columns:1fr;gap:14px}.sl-block{grid-column:1/-1!important;margin-inline:0;padding:20px;min-height:0!important}}
     `;
     document.head.appendChild(style);
   }
@@ -91,6 +116,8 @@
     el.className = "sl-block";
     el.dataset.blockId = normalized.id;
     el.dataset.width = String(normalized.width);
+    el.dataset.offsetX = String(normalized.offsetX);
+    el.style.gridColumn = `${normalized.offsetX + 1} / span ${normalized.width}`;
     el.style.minHeight = `${normalized.minHeight}px`;
     el.style.backgroundColor = normalized.bg;
     el.style.color = normalized.text;
@@ -155,5 +182,19 @@
     return elements;
   }
 
-  window.SLRenderer = { META_ID, SAFE_FONTS, metaOf, visibleBlocks, normalizeBlock, renderBlock, renderLayout, mountStyles };
+  window.SLRenderer = {
+    META_ID,
+    SAFE_FONTS,
+    MIN_WIDTH,
+    SNAP_POINTS,
+    SNAP_DISTANCE,
+    clamp,
+    snapNear,
+    metaOf,
+    visibleBlocks,
+    normalizeBlock,
+    renderBlock,
+    renderLayout,
+    mountStyles
+  };
 })();
