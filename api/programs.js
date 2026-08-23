@@ -1,85 +1,85 @@
-const express = require('express');
-const router = express.Router();
 const { neon } = require('@neondatabase/serverless');
 const { requireStaff } = require('./_auth');
 
 const sql = neon(process.env.DATABASE_URL);
 
-// GET all programs (this was the crashing one)
-router.get('/', async (req, res) => {
-  try {
-    const result = await sql`SELECT * FROM programs`;
-    res.json(result);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to fetch programs" });
-  }
-});
-
-// GET single program
-router.get('/:id', async (req, res) => {
-  const { id } = req.params;
-  try {
-    const result = await sql`SELECT * FROM programs WHERE id = ${id}`;
-    if (result.length === 0) {
-      return res.status(404).json({ error: "Program not found" });
+function parseBody(req) {
+  if (!req.body) return {};
+  if (typeof req.body === 'string') {
+    try {
+      return JSON.parse(req.body);
+    } catch {
+      return {};
     }
-    res.json(result[0]);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to fetch program" });
   }
-});
+  return req.body;
+}
 
-// POST create new program
-router.post('/', async (req, res) => {
-  const staff = requireStaff(req, res);
-  if (!staff) return;
-  const { name, created_by } = req.body;
+function getProgramId(req) {
+  const pathname = String(req.url || '').split('?')[0];
+  const match = pathname.match(/^\/api\/programs\/([^/]+)\/?$/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+module.exports = async (req, res) => {
+  const id = getProgramId(req);
+
   try {
-    await sql`
-      INSERT INTO programs (name, created_by, blocks, news)
-      VALUES (${name}, ${created_by}, '[]', '[]')
-    `;
-    res.status(201).json({ message: "Program created" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to create program" });
-  }
-});
+    if (req.method === 'GET') {
+      if (id) {
+        const rows = await sql`SELECT * FROM programs WHERE id = ${id} LIMIT 1`;
+        if (!rows.length) return res.status(404).json({ error: 'Program not found' });
+        return res.status(200).json(rows[0]);
+      }
 
-// ✅ PATCH update program (blocks + news)
-router.patch('/:id', async (req, res) => {
-  const staff = requireStaff(req, res);
-  if (!staff) return;
-  const { id } = req.params;
-  const { blocks, news } = req.body;
-  try {
-    await sql`
-      UPDATE programs
-      SET blocks = ${JSON.stringify(blocks)},
-          news = ${JSON.stringify(news)}
-      WHERE id = ${id}
-    `;
-    res.json({ message: "Updated successfully" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to update program" });
-  }
-});
+      const rows = await sql`SELECT * FROM programs ORDER BY id`;
+      return res.status(200).json(rows);
+    }
 
-// DELETE program
-router.delete('/:id', async (req, res) => {
-  const staff = requireStaff(req, res);
-  if (!staff) return;
-  const { id } = req.params;
-  try {
-    await sql`DELETE FROM programs WHERE id = ${id}`;
-    res.json({ message: "Deleted" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to delete program" });
-  }
-});
+    const staff = requireStaff(req, res);
+    if (!staff) return;
 
-module.exports = router;
+    if (req.method === 'POST' && !id) {
+      const body = parseBody(req);
+      const name = String(body.name || '').trim();
+      if (!name) return res.status(400).json({ error: 'Program name is required' });
+
+      const createdBy = staff.username;
+      const rows = await sql`
+        INSERT INTO programs (name, created_by, blocks, news)
+        VALUES (${name}, ${createdBy}, '[]', '[]')
+        RETURNING *
+      `;
+      return res.status(201).json(rows[0]);
+    }
+
+    if (req.method === 'PATCH' && id) {
+      const body = parseBody(req);
+      if (!Array.isArray(body.blocks) || !Array.isArray(body.news)) {
+        return res.status(400).json({ error: 'blocks and news must be arrays' });
+      }
+
+      const rows = await sql`
+        UPDATE programs
+        SET blocks = ${JSON.stringify(body.blocks)},
+            news = ${JSON.stringify(body.news)}
+        WHERE id = ${id}
+        RETURNING *
+      `;
+      if (!rows.length) return res.status(404).json({ error: 'Program not found' });
+      return res.status(200).json(rows[0]);
+    }
+
+    if (req.method === 'DELETE' && id) {
+      const rows = await sql`DELETE FROM programs WHERE id = ${id} RETURNING id`;
+      if (!rows.length) return res.status(404).json({ error: 'Program not found' });
+      return res.status(200).json({ message: 'Deleted' });
+    }
+
+    res.setHeader('Allow', 'GET, POST, PATCH, DELETE');
+    return res.status(405).json({ error: 'Method not allowed' });
+  } catch (error) {
+    console.error('Programs API failed', error);
+    return res.status(500).json({ error: 'Unable to process programs request' });
+  }
+};
