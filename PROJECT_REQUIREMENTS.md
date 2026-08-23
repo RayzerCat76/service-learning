@@ -1,313 +1,300 @@
-# YCIS Service Learning Platform — Consolidated Requirements
+# YCIS Service Learning Platform — Source of Truth
 
-This file is the source of truth for the Service Learning platform before further implementation. It combines the original brief (the requirements beginning with “I am an IB student…”) with the later permission, editor, layout, logo, border, color, and news requirements.
+This file is the source of truth for the Service Learning prototype. It combines the original IB-project brief with the later permissions, modular-editor, logo, news, layout, and migration requirements.
+
+## 0. Original product brief — preserve this architecture
+
+The original prototype concept must remain recognizable even as features are added:
+
+- **Home page first:** explain the purpose of the website and present a prominent wall/grid of Service Learning project logos.
+- **Project discovery through logos:** visitors click a project logo/icon to open that project's page.
+- **Project tabs:** project pages provide a horizontally accessible set of project tabs/icons so visitors can switch projects without returning home.
+- **News is page-based:** news cards are previews/links; a news story opens on its own dedicated page rather than expanding inline on the home page.
+- **Accessible scrollable news:** the home page shows a horizontally scrollable latest-news area.
+- **Service Learning sidebar:** keep contextual information about Service Learning visible on the home page.
+- **Seeds of Hope:** reserve a clear sidebar area for the school's Seeds of Hope / donation service. During prototype development this may remain a connection placeholder until the exact school donation URL/service is supplied.
+- **Growth across campuses/locations:** keep an area explaining that the platform can expand across YCIS campuses/locations.
+- **YCIS visual language:** use the YCIS navy/red/white family and a polished school-community aesthetic.
+- **Historical milestone:** the original brief targeted a prototype by the end of May 1. This is retained as project history, not a current delivery date.
+
+Later features must not replace the home-page logo wall with a single selected-project page or turn public news into inline accordion content.
 
 ## 1. Product goal
 
-Create one public YCIS Service Learning website containing all Service Learning projects available at school. Project owners should be able to manage their own project without needing design expertise, while a master administrator can edit every project.
+Create one public YCIS Service Learning website containing all Service Learning projects available at school. The site should help students and families understand what projects exist, what each project does, how to participate, and what projects have recently done.
 
-The editing experience should be fast, visual, modular, and difficult to break. The public page should preserve the layout created in the editor across desktop and mobile.
+Project owners should be able to manage their own project without needing design expertise, while a master administrator can edit every program. The editor should be fast, visual, modular, and difficult to break.
 
-## 2. User roles and permissions
+The prototype backend should stay intentionally lightweight and portable so the frontend can later be connected to the school's database, identity system, network services, media storage, and donation services without a frontend rewrite.
 
-### 2.1 Master administrator
+## 2. Public information architecture
+
+### 2.1 Home page (`index.html`)
+
+The home page is a discovery page, not a project-detail page. It contains:
+
+1. YCIS-branded header and concise explanation of the site's purpose.
+2. A **prominent Service Learning project logo wall**.
+3. Logo cards that open dedicated project pages.
+4. A global latest-news area containing **at most the three newest published stories**, newest first/left, horizontally scrollable.
+5. A sidebar containing:
+   - Service Learning context/purpose
+   - Seeds of Hope / donation portal connection area
+   - growth across YCIS campuses/locations
+6. Responsive behavior for desktop, tablet, and phone.
+
+The logo wall grows automatically as programs are added. Actual saved project logos are used; initials are only a fallback.
+
+### 2.2 Project pages (`program.html`)
+
+Each project opens as its own page-style view.
+
+- The selected project occupies the main content area.
+- The top of the page provides horizontally accessible project tabs/icons so users can switch projects.
+- The project page displays the saved modular project layout.
+- Each project displays only its own published news.
+- Project news appears as cards/previews that link to dedicated news pages.
+- A visitor can return to the home/project wall easily.
+
+### 2.3 News pages (`news.html`)
+
+Each published article has its own page-style view.
+
+- title
+- program identity
+- publication date
+- overview
+- full content
+- modular content blocks
+- optional overall background image
+- link/back-navigation to the associated project
+
+News must not require an admin account to read once published.
+
+### 2.4 Global latest news
+
+- Pull published news from all Service Learning programs.
+- Show no more than three items on the home page.
+- Sort by publication timestamp descending.
+- Newest appears on the left.
+- Horizontally scrollable and keyboard reachable.
+- Each card identifies its program and links to that story's dedicated news page.
+
+## 3. User roles and permissions
+
+### Master administrator
 
 - Can sign in to the admin portal.
 - Can see every Service Learning program.
-- Can open and edit every program, including its tab/name, logo, program content, and news.
-- Does not need to be explicitly added as a collaborator.
-- Program deletion remains owner-only unless this requirement is explicitly changed later.
+- Can edit every program's name/tab, logo, content/layout, and news without being added as a collaborator.
+- Program deletion remains owner-only unless explicitly changed later.
 
-### 2.2 Program owner / creator
+### Program owner / creator
 
-- The account that creates a Service Learning program becomes its owner.
-- Can see and edit that program.
-- Can edit the program tab/name, logo, program page/layout, and all news belonging to that program.
-- Can assign or revoke other staff accounts as editors/collaborators for that program.
-- Is the only normal user who can permanently delete that program.
-- Ownership must be enforced by the server, not only hidden/shown in the browser UI.
+- Creator automatically becomes owner.
+- Can see and edit their program.
+- Can edit name/tab, logo, modular page, and program news.
+- Can assign/remove additional staff editors.
+- Is the only normal account that can permanently delete the program.
 
-### 2.3 Program collaborator / editor
+### Program collaborator / editor
 
-- Must be explicitly granted access by the program owner.
-- Can edit the assigned program’s tab/name, logo, page content/layout, and news.
+- Must be explicitly granted access by the owner.
+- Can edit the assigned program's name/tab, logo, content/layout, and news.
 - Cannot delete the program.
 - Cannot transfer ownership.
-- Cannot grant/revoke collaborators unless this requirement is explicitly changed later.
-- Cannot access unassigned programs in the admin portal.
+- Cannot grant/revoke collaborators.
+- Cannot manage unassigned programs.
 
-### 2.4 Security rules
+### Security rules
 
-- All write permissions are checked server-side.
-- Passwords are stored as secure hashes.
-- Authentication uses a secure session.
-- Public visitors need no account to view programs and published news.
-- Admin API responses should expose only the programs the signed-in account may manage, except that the master administrator sees all programs.
+- Write permissions are checked server-side.
+- Passwords use hashes rather than new plaintext storage.
+- Sessions are signed/secure.
+- Public reads require no site account.
+- Admin program lists are permission-scoped; master sees all.
 
-## 3. Program data
+## 4. Program data and default template
 
-Each Service Learning program needs at least:
+Each program needs at least:
 
 - unique ID
-- program name / public tab label
-- owner account
-- assigned collaborator accounts
-- logo
-- modular program-page layout
-- program-specific news articles
-- created/updated timestamps where useful
+- public program name/tab label
+- owner identity
+- collaborator identities
+- program logo
+- modular layout data
+- program-specific news
 
-A default program template should include:
+The prototype may keep this portable in the current programs row/JSON structure; the school migration may normalize it later.
 
-1. Basic Information
-2. How to Sign Up
-3. News
+A newly created program begins with:
 
-The owner/editor may add, remove, resize, reorder, or restyle modular blocks rather than being forced into a fixed two-column layout.
+1. **Basic Information**
+2. **How to Sign Up**
+3. **News**
 
-## 4. Public website (`index.html`)
+This is a starting template, not a fixed column layout.
 
-### 4.1 Program navigation
-
-- All Service Learning programs appear as selectable tabs/cards/icons with their actual program logo.
-- Selecting a program switches the main content to that program.
-- The selected program should occupy the main page/content area rather than displaying every program as simultaneous columns.
-- Each program keeps its own content and its own news.
-
-### 4.2 Program page rendering
-
-- Render the modular layout stored by the admin editor.
-- Preserve relative block position, size, typography, colors, borders, background images, and responsive behavior.
-- The public renderer and admin preview should use the same layout rules/schema so that the index page does not become distorted compared with the preview.
-- On smaller screens, layouts must reflow safely rather than overlap or overflow.
-
-### 4.3 Global latest-news banner
-
-- Keep a global latest-news section/banner containing news from all Service Learning programs.
-- Show at most the three newest published news articles overall.
-- Newest item appears on the left.
-- The banner is horizontally scrollable when necessary.
-- Each item identifies its program and opens/selects the associated program/news item.
-
-### 4.4 Program-specific news
-
-- Each program has its own news section.
-- News created while editing Program A must not appear as Program B’s project news.
-- News can contain a title, short overview, full content, images, and a modular layout.
-- News may use an image as the article/page background.
-
-## 5. Admin portal (`admin.html`)
-
-### 5.1 Login/dashboard
+## 5. Admin portal
 
 After sign-in:
 
-- master administrator sees all programs
-- owner sees programs they own plus programs shared with them
-- collaborator sees only programs shared with them (and any they own)
-- each program shows the user’s relationship: Owner, Editor, or Master Admin
+- master sees all programs
+- owners see owned plus shared programs
+- collaborators see shared plus owned programs
+- the UI indicates Owner / Editor / Master access
 
-### 5.2 Program settings
+For an editable program, permitted users can change:
 
-For an editable program, users with permission can change:
+- program name / public tab label
+- logo
+- page/layout
+- news
 
-- program name/tab label
-- program logo
-- program page/layout
-- program news
-
-Owner-only settings:
+Owner-only controls:
 
 - add collaborator
 - remove collaborator
 - delete program
 
-### 5.3 Program logo
-
-- Program logo can be changed from the admin page.
-- Public program selector/tab/icon uses that saved logo.
-- Editor should show the current logo and a preview of the replacement before saving.
-- A fallback based on initials may be used only when no logo is configured.
+The admin should provide direct preview links to the associated public project/news pages.
 
 ## 6. Modular visual editor
 
-The program editor and news editor should follow the same modular editing model.
+Program pages and news layouts use the same modular editing model and the same public renderer.
 
-### 6.1 Editing workflow
+### Workflow
 
-- large live canvas/preview
-- block palette or Add Block control
-- click a block to edit its properties
-- drag/reorder/move blocks
-- resize blocks easily
-- preview should closely match the published result
-- changes should not require writing HTML/CSS
+- live canvas
+- add-block palette
+- click block to select
+- drag blocks to reorder
+- move blocks horizontally
+- resize blocks
+- edit precise values in a properties panel
+- no HTML/CSS knowledge required
 
-### 6.2 Block controls
+### Flexible positioning and limited snapping
 
-Every applicable block should support:
+The editor must not force blocks into only 25/50/75/100 percent widths or highly regular positions.
 
+- Width can be set in **1% increments** within safe limits.
+- Horizontal position can be set in **1% increments**.
+- Common guides are 0%, 25%, 50%, 75%, and 100%.
+- A value snaps to a common guide **only when it is within 2 percentage points** of that guide.
+- Outside that small snap range, irregular positioning is preserved.
+- Existing legacy `x`/`w` percentage layouts should remain visually compatible.
+- On narrow/mobile screens, blocks may safely stack full-width rather than preserve desktop offsets that would overflow.
+
+### Block controls
+
+Applicable blocks support:
+
+- block type: text, image, sign-up/link
 - title/text content
-- block width and height / easy visual resizing
-- text size
-- text font/family
+- image URL/upload
+- link URL/label
+- exact width
+- horizontal position
+- minimum height
+- font family
+- font size
+- text alignment
 - text color
 - background color
-- optional background image
+- optional block background image
 - border on/off
 - border color
-- reasonable border width/style controls
-- alignment where applicable
+- border width
 
-### 6.3 Borders and editor guides
+### Borders and guides
 
-- User can turn a visible border on or off.
-- When the saved/published border is OFF, the admin preview still shows a dotted editor-only outline so the user can see the block’s region.
-- The dotted editor guide must never appear on the public website.
+- Visible border can be enabled/disabled.
+- A borderless block still shows a dotted editor-only outline while editing.
+- Editor guides never appear publicly.
 
-### 6.4 Color picker
+### Color controls
 
-- Replace the confusing multi-dot color UI with one clear color control/well that opens a color wheel/picker.
-- The color well should be an obvious single swatch/button.
-- Background and text color each use this same interaction.
-
-### 6.5 Block size
-
-- Users can change block dimensions visually with resize handles.
-- Width/height should also have understandable values/controls when useful.
-- Resizing in the editor must translate predictably to the public page.
-
-### 6.6 Font controls
-
-- Provide a font-family dropdown with approved/browser-safe fonts.
-- Provide text-size controls with understandable values.
-- Typography selected in the editor must render the same way publicly.
+- Use one clear native color swatch/well per color property rather than the old multi-dot interaction.
+- The control should be large enough to click comfortably.
 
 ## 7. News editor
 
-News is created inside the selected Service Learning program’s admin area.
+News is created inside the selected program's admin area.
 
-For each news item:
+Each article supports:
 
-- create/delete article
+- create/delete
 - title
-- short overview for cards/banner
+- short overview
 - full content
-- images
-- optional overall background image
-- modular content blocks
-- text/font/size/color controls
-- block background colors/images
-- border on/off and editor-only dotted guides
-- visual block resizing/reordering
-- publication ordering/timestamp so newest news can be determined globally
+- publication date/time
+- draft/published state
+- optional article background image URL/upload
+- modular layout blocks
+- text/font/size/colors
+- block backgrounds/images
+- border controls and dotted editor guides
+- flexible position/size controls using the same limited-snap behavior as program pages
+- public preview link to its dedicated news page
 
-## 8. Default templates
+## 8. Preview/public parity
 
-### 8.1 Program template
+This is mandatory.
 
-A newly created program starts with a friendly template containing:
+- Admin preview and public program/news pages use one shared layout schema and `renderer.js` logic.
+- Editor-only handles/guides are layered on top of the shared renderer.
+- Saved width, position, typography, colors, borders, and background images should look materially the same publicly.
+- Responsive rules must prevent overlap/overflow on smaller screens.
 
-- Basic Information
-- How to Sign Up
-- News
+## 9. School migration boundary
 
-The template is a starting point, not a fixed layout.
+The current prototype backend should remain simple. Migration should be able to replace or adapt:
 
-### 8.2 News template
+- authentication/session source
+- staff/permission lookup
+- programs/news persistence
+- logo/image storage
+- Seeds of Hope/donation URL or service
+- campus/location data
 
-A new news article starts with a simple usable structure such as:
+The public page structure, admin editing experience, modular JSON layout, and shared renderer should remain reusable.
 
-- title/hero area
-- overview/body area
-- optional image area
+## 10. Acceptance checklist
 
-Users can modify it using the same modular editor.
+V1 is functionally complete when:
 
-## 9. Preview/public parity
+- [x] Home page explains the site's purpose.
+- [x] Home page prominently displays the Service Learning logo wall.
+- [x] Clicking a logo opens that project's dedicated page.
+- [x] Project pages provide project tabs/icons for switching projects.
+- [x] Home page includes Service Learning / Seeds of Hope / campus-growth sidebar areas.
+- [x] YCIS navy/red visual language is used.
+- [x] Global news shows up to the three newest published stories and is horizontally scrollable.
+- [x] News cards open dedicated news pages rather than expanding inline.
+- [x] Each program displays only its own project news.
+- [x] Program logo can be edited and appears on the public logo wall/tabs.
+- [x] Program name/tab can be edited.
+- [x] New program starts with Basic Information, How to Sign Up, and News.
+- [x] Program and news editors are modular and visual.
+- [x] Blocks support 1% width and horizontal-position values.
+- [x] Snapping is limited to within 2% of common guides.
+- [x] Blocks can be moved/reordered/resized.
+- [x] Text size and font can be changed.
+- [x] Text/background/border colors use clear single color controls.
+- [x] Borders can be enabled/disabled.
+- [x] Borderless blocks show dotted editor-only guides.
+- [x] News can use an overall background image.
+- [x] Admin preview and public project/news rendering share the same renderer.
+- [x] Master admin can edit every program.
+- [x] Program owner can edit own program and assign/remove editors.
+- [x] Assigned editor can edit assigned programs but cannot manage editors/delete.
+- [x] Only owner can delete a program under current requirements.
+- [x] Server-side authorization protects writes.
+- [ ] Exact school Seeds of Hope/donation service is connected (requires school URL/service details).
+- [ ] Protected Vercel preview receives a final authenticated browser click-through on desktop and phone before production merge.
 
-This is a mandatory acceptance requirement because the current public formatting can become inconsistent with the admin editor.
+## 11. Production rule
 
-- The admin preview and public page must be driven by one shared layout schema/rendering logic.
-- Do not maintain one unrelated layout implementation for `admin.html` and another for `index.html`.
-- Editor-only controls/guides are layered on top of the same rendered block model.
-- Responsive rules must be tested at desktop, tablet, and phone widths.
-
-## 10. Current implementation gap summary
-
-As of branch `agent/stabilize-v1`:
-
-### Present or partially present
-
-- public program listing
-- program-specific stored blocks and news
-- basic program create/edit/delete UI
-- basic movable/resizable editor concept
-- basic text/background color selection
-- news creation and news images by URL
-- secure login/session work in progress
-- master/teacher roles exist in the database
-
-### Missing or not correctly enforced
-
-- owner-only access control
-- per-program collaborator assignment
-- owner-only deletion
-- true master-admin override logic
-- admin list filtered by permissions
-- program logo storage/editing
-- program tab/name editing after creation
-- actual logos on public program tabs/icons
-- full-page program tab behavior based on the requested design
-- default Basic Information + How to Sign Up + News template
-- global newest-three-news scrollable banner
-- publication timestamps/order for global news
-- news background image setting
-- modular font controls
-- text-size controls
-- border on/off control
-- dotted editor-only block outlines when borders are disabled
-- single clear color-wheel/well interaction
-- robust preview/public layout parity
-- responsive modular rendering that prevents the public format from becoming distorted
-
-## 11. Data-model direction
-
-The current `created_by` text field is not sufficient for robust permissions. The intended model should move toward:
-
-- `users`
-- `programs` with an owner user ID and logo reference
-- `program_editors` mapping programs to additional permitted users
-- program layout data
-- news records belonging to one program, with publication timestamps and modular layout data
-
-Exact database migration details should be implemented and tested separately before production deployment.
-
-## 12. Acceptance checklist
-
-V1 feature-complete means all of the following are true:
-
-- [ ] Master admin can edit every program.
-- [ ] Program owner can edit their program.
-- [ ] Program owner can assign/remove editors.
-- [ ] Assigned editor can edit only assigned programs.
-- [ ] Unassigned user cannot read private admin data or modify a program through direct API calls.
-- [ ] Only the program owner can delete their program under normal user permissions.
-- [ ] Program name/tab can be edited.
-- [ ] Program logo can be edited and appears publicly.
-- [ ] New program starts with Basic Information, How to Sign Up, and News.
-- [ ] Program page uses full main-content area when selected.
-- [ ] Each program displays only its own project news.
-- [ ] Global banner displays the three newest news items, newest on the left, and is scrollable.
-- [ ] News background image can be selected.
-- [ ] Program and news editors are modular and visual.
-- [ ] Blocks can be resized.
-- [ ] Text size can be changed.
-- [ ] Font can be changed.
-- [ ] Text/background colors use a clear single color picker/well.
-- [ ] Borders can be enabled/disabled.
-- [ ] Borderless blocks show dotted editor-only region guides.
-- [ ] Public page never shows editor-only dotted guides.
-- [ ] Admin preview and public rendering match closely.
-- [ ] Desktop, tablet, and phone layouts do not overlap or become distorted.
-- [ ] Authentication and authorization are enforced on the server.
+Do not merge this prototype to `main` solely because the build is green. Complete the protected-preview interaction check first, especially login/permissions, save-and-refresh behavior, project navigation, dedicated news navigation, and desktop/mobile rendering.
