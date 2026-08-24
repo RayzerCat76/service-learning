@@ -256,6 +256,33 @@
       typeof defaultValue === "string" ? defaultValue.replace("New Service Learning Program", "New Service Learning Programme") : defaultValue
     );
 
+    if (typeof window.newBlock === "function" && !window.newBlock.__borderlessDefault) {
+      const originalNewBlock = window.newBlock;
+      const wrappedNewBlock = function (type) {
+        const block = originalNewBlock(type);
+        if (block) block.borderEnabled = false;
+        return block;
+      };
+      wrappedNewBlock.__borderlessDefault = true;
+      window.newBlock = wrappedNewBlock;
+    }
+
+    if (typeof window.addNewsBlock === "function" && !window.addNewsBlock.__borderlessDefault) {
+      const originalAddNewsBlock = window.addNewsBlock;
+      const wrappedAddNewsBlock = function (type) {
+        originalAddNewsBlock(type);
+        if (typeof window.selectedNews === "function") {
+          const article = window.selectedNews();
+          if (article && Array.isArray(article.layoutBlocks) && article.layoutBlocks.length) {
+            article.layoutBlocks[article.layoutBlocks.length - 1].borderEnabled = false;
+            if (typeof window.renderNewsCanvas === "function") window.renderNewsCanvas();
+          }
+        }
+      };
+      wrappedAddNewsBlock.__borderlessDefault = true;
+      window.addNewsBlock = wrappedAddNewsBlock;
+    }
+
     translateStatic(document.body);
     const observer = new MutationObserver(() => translateStatic(document.body));
     observer.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["href", "title", "alt"] });
