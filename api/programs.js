@@ -61,9 +61,9 @@ function publicProgram(program) {
 function defaultBlocks() {
   return [
     { id: META_ID, type: 'meta', logo: '', editors: [] },
-    { id: 'basic_info', type: 'text', title: 'Basic Information', content: 'Introduce your Service Learning project here.', width: 100, offsetX: 0, minHeight: 180, bg: '#ffffff', text: '#172e5c', fontFamily: 'Arial', fontSize: 16, align: 'left', borderEnabled: true, borderColor: '#d9dee7', borderWidth: 1, backgroundImage: '' },
-    { id: 'signup', type: 'signup', title: 'How to Sign Up', content: 'Explain how students can join or help.', linkLabel: 'Sign up', linkUrl: '', width: 46, offsetX: 0, minHeight: 180, bg: '#ffffff', text: '#172e5c', fontFamily: 'Arial', fontSize: 16, align: 'left', borderEnabled: true, borderColor: '#d9dee7', borderWidth: 1, backgroundImage: '' },
-    { id: 'news_intro', type: 'text', title: 'News', content: 'Published project stories appear below and open on their own news pages.', width: 46, offsetX: 54, minHeight: 180, bg: '#fff0f2', text: '#172e5c', fontFamily: 'Arial', fontSize: 16, align: 'left', borderEnabled: false, borderColor: '#e54555', borderWidth: 1, backgroundImage: '' }
+    { id: 'basic_info', type: 'text', title: 'Basic Information', content: 'Introduce your Service Learning project here.', width: 100, offsetX: 0, offsetY: 0, minHeight: 180, bg: '#ffffff', text: '#172e5c', fontFamily: 'Arial', fontSize: 16, align: 'left', borderEnabled: true, borderColor: '#d9dee7', borderWidth: 1, backgroundImage: '' },
+    { id: 'signup', type: 'signup', title: 'How to Sign Up', content: 'Explain how students can join or help.', linkLabel: 'Sign up', linkUrl: '', width: 46, offsetX: 0, offsetY: 220, minHeight: 180, bg: '#ffffff', text: '#172e5c', fontFamily: 'Arial', fontSize: 16, align: 'left', borderEnabled: true, borderColor: '#d9dee7', borderWidth: 1, backgroundImage: '' },
+    { id: 'news_intro', type: 'text', title: 'News', content: 'Published project stories appear below and open on their own news pages.', width: 46, offsetX: 54, offsetY: 220, minHeight: 180, bg: '#fff0f2', text: '#172e5c', fontFamily: 'Arial', fontSize: 16, align: 'left', borderEnabled: false, borderColor: '#e54555', borderWidth: 1, backgroundImage: '' }
   ];
 }
 
