@@ -200,6 +200,69 @@
     return elements;
   }
 
+  function installBritishAdminUI() {
+    if (!/Service Learning Admin/i.test(document.title)) return;
+    document.documentElement.lang = "en-GB";
+    const exact = new Map([
+      ["Sign in to manage Service Learning projects you own or have permission to edit.", "Sign in to manage Service Learning programmes you own or have permission to edit."],
+      ["Program", "Programme"],
+      ["+ New program", "+ New programme"],
+      ["No program selected", "No programme selected"],
+      ["No editable programs yet", "No editable programmes yet"],
+      ["Program Settings", "Programme Settings"],
+      ["Program settings", "Programme settings"],
+      ["Program name / tab label", "Programme name / tab label"],
+      ["Edit the public project-tab name, logo and access permissions.", "Edit the public programme-tab name, logo and access permissions."],
+      ["This logo appears in the homepage hero logo area and in the project tabs.", "This logo appears in the homepage hero logo area and in the programme tabs."],
+      ["Only the program owner can change editor access.", "Only the programme owner can change editor access."],
+      ["Delete this program", "Delete this programme"],
+      ["Program news", "Programme news"]
+    ]);
+
+    function translateStatic(root) {
+      const walker = document.createTreeWalker(root || document.body, NodeFilter.SHOW_TEXT);
+      const nodes = [];
+      while (walker.nextNode()) nodes.push(walker.currentNode);
+      nodes.forEach((node) => {
+        const parent = node.parentElement;
+        if (!parent || ["SCRIPT", "STYLE", "TEXTAREA", "INPUT"].includes(parent.tagName)) return;
+        const raw = node.nodeValue;
+        const trimmed = raw.trim();
+        if (!exact.has(trimmed)) return;
+        node.nodeValue = raw.replace(trimmed, exact.get(trimmed));
+      });
+
+      const logo = document.getElementById("logoPreview");
+      if (logo && logo.alt === "Program logo preview") logo.alt = "Programme logo preview";
+      const deleteButton = document.getElementById("deleteProgramBtn");
+      if (deleteButton && deleteButton.title === "Only the program owner can delete this program") deleteButton.title = "Only the programme owner can delete this programme";
+      const preview = document.getElementById("publicPreview");
+      if (preview && preview.getAttribute("href")) preview.setAttribute("href", preview.getAttribute("href").replace("#projects", "#programmes"));
+
+      document.querySelectorAll('select[id$="PropAlign"]').forEach((select) => {
+        [...select.options].forEach((option) => {
+          if (option.value === "center" || option.textContent === "center" || option.textContent === "centre") {
+            option.value = "center";
+            option.textContent = "centre";
+          }
+        });
+      });
+    }
+
+    const nativePrompt = window.prompt.bind(window);
+    window.prompt = (message, defaultValue) => nativePrompt(
+      String(message ?? "").replace("Program name?", "Programme name?"),
+      typeof defaultValue === "string" ? defaultValue.replace("New Service Learning Program", "New Service Learning Programme") : defaultValue
+    );
+
+    translateStatic(document.body);
+    const observer = new MutationObserver(() => translateStatic(document.body));
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["href", "title", "alt"] });
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", installBritishAdminUI);
+  else installBritishAdminUI();
+
   window.SLRenderer = {
     META_ID,
     SAFE_FONTS,
