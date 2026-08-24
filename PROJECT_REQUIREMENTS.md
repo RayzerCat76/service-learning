@@ -12,8 +12,9 @@ These points supersede earlier homepage-navigation wording where they conflict:
 - Clicking a hero project logo selects that program and moves the visitor to the project-tab area below.
 - Immediately below the hero is a horizontally accessible set of Service Learning project tabs.
 - Switching a project tab changes the main project content area underneath without leaving the homepage.
-- Dedicated `program.html` pages may remain as shareable/direct project URLs, but they are secondary to the homepage tab experience.
+- The tabbed homepage is the only public project view. The legacy standalone `program.html` page must not exist or be linked.
 - News cards open dedicated `news.html` article pages.
+- Returning from a news article goes directly to the homepage with the originating project tab selected.
 - The informational sidebar is not a permanently visible right column. It is a toggleable drawer that slides in/out from the left side.
 - The left drawer contains Service Learning context/navigation, Seeds of Hope donation-portal space, and growth into additional campuses/locations.
 - The homepage keeps the accessible, horizontally scrollable global latest-news area.
@@ -85,7 +86,7 @@ The owner/editor may add, remove, resize, reposition, or restyle modular blocks 
 - Selecting a tab switches the main content area to that program without leaving the homepage.
 - Only the selected program occupies the main content area.
 - Each program keeps its own content and news.
-- A dedicated shareable project page may also be offered, but is secondary to the homepage tab interaction.
+- There is no standalone public project page. Project-specific deep links use the homepage query/hash state, e.g. `/?program=<id>#projects`.
 
 ### Program rendering
 - Render the modular layout stored by the admin editor.
@@ -105,6 +106,7 @@ The owner/editor may add, remove, resize, reposition, or restyle modular blocks 
 - Program A news must not appear as Program B project news.
 - News supports title, overview, full content, images, modular layout, background image, and publication time.
 - Published news opens on its own `news.html` page.
+- News-page back/project links return directly to `/?program=<id>#projects` so the originating project remains selected.
 
 ### Left toggleable sidebar/drawer
 - The sidebar is a drawer that slides in/out from the left side.
@@ -239,6 +241,8 @@ The prototype may keep lightweight portable metadata while awaiting school-syste
 - [ ] Project logos are visible in the first-screen hero area.
 - [ ] Hero logo click selects the matching project/tab.
 - [ ] Project tabs switch main content without leaving the homepage.
+- [ ] No standalone legacy project page exists or is linked.
+- [ ] News-page return links restore the originating homepage project tab.
 - [ ] Left sidebar/drawer opens and closes correctly.
 - [ ] Each program displays only its own news.
 - [ ] Global latest area shows the three newest published items, newest left, and is scrollable.
