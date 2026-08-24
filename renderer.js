@@ -3,7 +3,7 @@
   const SAFE_FONTS = ["Arial", "Georgia", "Verdana", "Trebuchet MS", "Times New Roman", "Courier New"];
   const MIN_WIDTH = 15;
   const SNAP_POINTS = [0, 25, 50, 75, 100];
-  const SNAP_DISTANCE = 2;
+  const SNAP_DISTANCE = 0;
 
   function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
