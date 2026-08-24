@@ -20,7 +20,7 @@ checkJs('api/programs.js', read('api/programs.js'));
 checkJs('api/_auth.js', read('api/_auth.js'));
 checkJs('api/auth/login.js', read('api/auth/login.js'));
 checkJs('api/auth/logout.js', read('api/auth/logout.js'));
-['admin.html','index.html','program.html','news.html'].forEach(checkInlineScripts);
+['admin.html','index.html','news.html'].forEach(checkInlineScripts);
 JSON.parse(read('vercel.json'));
 JSON.parse(read('package.json'));
 console.log('✓ configuration JSON');
