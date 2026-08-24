@@ -16,18 +16,8 @@
     return fallback;
   }
 
-  function snapNear(value, points = SNAP_POINTS, distance = SNAP_DISTANCE) {
-    const n = Number(value);
-    let best = n;
-    let gap = Infinity;
-    points.forEach((point) => {
-      const d = Math.abs(point - n);
-      if (d <= distance && d < gap) {
-        best = point;
-        gap = d;
-      }
-    });
-    return best;
+  function snapNear(value) {
+    return Number(value);
   }
 
   function metaOf(blocks) {
@@ -48,10 +38,26 @@
 
   function legacyWidth(block) {
     const direct = Number(block.width);
-    if (Number.isFinite(direct)) return clamp(Math.round(direct), MIN_WIDTH, 100);
+    if (Number.isFinite(direct)) return clamp(direct, MIN_WIDTH, 100);
     const old = Number(block.w);
     if (!Number.isFinite(old)) return 100;
-    return clamp(Math.round(old), MIN_WIDTH, 100);
+    return clamp(old, MIN_WIDTH, 100);
+  }
+
+  function legacyHeight(block) {
+    const direct = Number(block.minHeight);
+    if (Number.isFinite(direct)) return clamp(direct, 80, 1200);
+    const old = Number(block.h);
+    if (Number.isFinite(old)) return clamp(Math.round(old * 4), 80, 1200);
+    return 180;
+  }
+
+  function legacyY(block) {
+    const direct = Number(block.offsetY);
+    if (Number.isFinite(direct)) return clamp(direct, 0, 5000);
+    const old = Number(block.y);
+    if (Number.isFinite(old)) return clamp(Math.round(old * 6), 0, 5000);
+    return 0;
   }
 
   function legacyBorder(block) {
@@ -68,8 +74,8 @@
   function normalizeBlock(block = {}) {
     const border = legacyBorder(block);
     const width = legacyWidth(block);
-    const rawOffset = Number(block.offsetX ?? block.xOffset ?? block.x ?? 0);
-    const offsetX = clamp(Number.isFinite(rawOffset) ? Math.round(rawOffset) : 0, 0, Math.max(0, 100 - width));
+    const rawX = Number(block.offsetX ?? block.xOffset ?? block.x ?? 0);
+    const offsetX = clamp(Number.isFinite(rawX) ? rawX : 0, 0, Math.max(0, 100 - width));
     return {
       id: block.id || `block_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
       type: block.type || "text",
@@ -80,7 +86,8 @@
       linkLabel: block.linkLabel || "Sign up",
       width,
       offsetX,
-      minHeight: clamp(Number(block.minHeight) || 180, 80, 800),
+      offsetY: legacyY(block),
+      minHeight: legacyHeight(block),
       bg: normalizeColor(block.bg, "#ffffff"),
       text: normalizeColor(block.text, "#172e5c"),
       fontFamily: SAFE_FONTS.includes(block.fontFamily) ? block.fontFamily : "Arial",
@@ -98,14 +105,17 @@
     const style = document.createElement("style");
     style.id = "sl-renderer-styles";
     style.textContent = `
-      .sl-layout{display:grid;grid-template-columns:repeat(100,minmax(0,1fr));grid-auto-flow:row;column-gap:0;row-gap:18px;align-items:start;min-width:0}
-      .sl-block{position:relative;padding:24px;border-radius:10px;background:#fff;background-size:cover;background-position:center;overflow:hidden;min-width:0;margin-inline:6px}
+      .sl-layout{position:relative;min-width:0;min-height:220px}
+      .sl-block{position:absolute;padding:24px;border-radius:10px;background:#fff;background-size:cover;background-position:center;overflow:hidden;min-width:0;box-sizing:border-box}
       .sl-block>*{position:relative;z-index:1}
       .sl-block h3{margin:0 0 10px;font-size:1.25em;line-height:1.2;color:inherit}
       .sl-block p{margin:0;white-space:pre-wrap;color:inherit}
       .sl-block img{display:block;max-width:100%;max-height:520px;margin:auto;object-fit:contain;border-radius:8px}
       .sl-block .sl-link{display:inline-flex;margin-top:16px;padding:10px 16px;border-radius:999px;background:#123e8f;color:white;text-decoration:none;font-weight:700}
-      @media(max-width:760px){.sl-layout{grid-template-columns:1fr;gap:14px}.sl-block{grid-column:1/-1!important;margin-inline:0;padding:20px;min-height:0!important}}
+      @media(max-width:760px){
+        .sl-layout{display:grid!important;gap:14px;min-height:0!important}
+        .sl-block{position:relative!important;left:auto!important;top:auto!important;width:100%!important;min-height:0!important;padding:20px}
+      }
     `;
     document.head.appendChild(style);
   }
@@ -117,7 +127,10 @@
     el.dataset.blockId = normalized.id;
     el.dataset.width = String(normalized.width);
     el.dataset.offsetX = String(normalized.offsetX);
-    el.style.gridColumn = `${normalized.offsetX + 1} / span ${normalized.width}`;
+    el.dataset.offsetY = String(normalized.offsetY);
+    el.style.left = `${normalized.offsetX}%`;
+    el.style.top = `${normalized.offsetY}px`;
+    el.style.width = `${normalized.width}%`;
     el.style.minHeight = `${normalized.minHeight}px`;
     el.style.backgroundColor = normalized.bg;
     el.style.color = normalized.text;
@@ -173,12 +186,16 @@
     mountStyles();
     container.innerHTML = "";
     container.classList.add("sl-layout");
+    const normalizedBlocks = visibleBlocks(blocks).map(normalizeBlock);
+    let bottom = 220;
     const elements = [];
-    visibleBlocks(blocks).forEach((block) => {
+    normalizedBlocks.forEach((block) => {
       const el = renderBlock(block, options);
       container.appendChild(el);
       elements.push(el);
+      bottom = Math.max(bottom, block.offsetY + block.minHeight + 24);
     });
+    container.style.minHeight = `${bottom}px`;
     return elements;
   }
 
