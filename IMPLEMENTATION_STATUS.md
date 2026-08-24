@@ -4,23 +4,7 @@ Branch: `agent/stabilize-v1`
 
 ## Implemented
 
-### Public experience
-
-- YCIS-branded home page with clear website-purpose copy
-- prominent Service Learning project logo wall on the home page
-- saved project logos displayed publicly, initials only as fallback
-- each logo opens a dedicated `program.html` project page
-- project pages include horizontally scrollable project tabs/icons
-- each project renders its saved modular page layout
-- each project displays only its own published news
-- each news story opens on a dedicated `news.html` page rather than expanding inline
-- dedicated news pages render title, overview, date, full copy, modular blocks, and optional background image
-- global home-page news strip shows at most the newest three published stories, newest first/left, horizontally scrollable
-- home-page sidebar includes Service Learning context, Seeds of Hope/donation connection placeholder, and cross-campus growth area
-- responsive desktop/mobile layouts
-
-### Admin and permissions
-
+### Permissions and backend
 - master administrator can edit every program
 - creator/owner can edit their own program
 - creator/owner can add and remove editor usernames
@@ -30,73 +14,66 @@ Branch: `agent/stabilize-v1`
 - server-side write authorization
 - program name/tab editing
 - program logo URL or image upload
-- direct public project/news preview links
+- lightweight portable backend remains suitable for later school-system migration
+
+### Homepage/public structure
+- YCIS navy/red/white visual language
+- first-screen hero includes the Service Learning project-logo area on the right
+- hero logos select the corresponding project/tab below
+- horizontally accessible project tabs directly below the hero
+- tabs switch the selected project content without leaving the homepage
+- selected project renders its own modular page and its own news
+- dedicated `program.html` remains available as a shareable/direct project URL
+- dedicated `news.html` for published news articles
+- global newest-three published-news strip, newest first, horizontally scrollable
+- toggleable left-side Service Learning drawer
+- drawer contains Service Learning context/navigation, Seeds of Hope portal space, and campus/location growth
 
 ### Modular editor
-
-- shared `renderer.js` used by admin preview, project pages, and news pages
+- program-page and news-layout editors use the shared `renderer.js`
+- desktop blocks use independent X/Y positioning rather than row-based flow
+- no automatic guide snapping
+- four-direction free-move handle
+- separate resize handle
+- exact horizontal X percentage input
+- exact vertical Y pixel input
+- exact width percentage and height pixel inputs
+- intentional overlap supported with Bring to front
 - text/image/sign-up blocks
-- drag-to-reorder
-- horizontal move handle
-- visual resize handle
-- exact 1% width values with a safe 15% minimum
-- exact 1% horizontal-position values
-- limited snapping: only within 2 percentage points of 0/25/50/75/100 guides
-- old `x`/`w` percentage positions remain compatible with existing saved layouts
-- minimum-height control
 - font-family selector
 - text-size control
-- native single-swatch color pickers for text/background/border colors
+- native single-swatch color pickers
 - visible-border on/off control
 - editor-only dotted outline for borderless blocks
-- block background image URL/upload
-- responsive mobile renderer stacks blocks safely
+- background image per modular block
+- old `x`, `y`, `w`, `h`, shorthand colors and border strings remain compatible
+- mobile safely stacks positioned blocks full-width
 
-### News editor
+### News
+- news title, overview, full content, publication time, draft/published state
+- news background image URL or upload
+- modular free-positioned article blocks
+- public project news stays scoped to its own program
+- public news opens on a dedicated article page
 
-- program-scoped news creation/deletion
-- title, overview, full content
-- publication time
-- published/draft state
-- article background image URL/upload
-- modular news blocks using the same flexible editor and renderer
+### Verification
+- Vercel install runs `scripts/validate.js`
+- syntax validation covers renderer, API/auth, admin inline JS, homepage inline JS, project-page inline JS, news-page inline JS, and JSON config
+- latest free-X/Y + hero-logo + tabbed-home build passed Vercel validation and deployed READY
 
-### Portability
+## Interactive verification still required before production merge
 
-- lightweight existing `programs` storage retained instead of adding a sophisticated migration-only backend
-- owner remains represented by existing `created_by`
-- logo/editor metadata stored in portable JSON metadata
-- migration notes for replacing Neon/auth/media/donation integrations with school services
-- obsolete Express backend removed
-- build-time JavaScript/config syntax validation
+1. Open the exact latest Vercel preview rather than an older branch preview tab.
+2. Confirm hero logos appear inside the first-screen right-side area.
+3. Confirm clicking a hero logo selects/scrolls to the matching project tab.
+4. Confirm tabs switch the project content area without leaving the homepage.
+5. Confirm the left SL Menu drawer opens/closes and contains all three required areas.
+6. In Admin → Page Design, drag the ✥ handle horizontally and vertically and confirm there is no snapping.
+7. Save, reload, and confirm X/Y positions persist publicly.
+8. Resize blocks and confirm width/height persist.
+9. Check intentional overlap + Bring to front.
+10. Verify master / owner / collaborator permissions.
+11. Verify desktop and phone rendering.
+12. Connect the exact Seeds of Hope donation service when supplied by the school.
 
-## Build verification
-
-Vercel runs `scripts/validate.js` during install. It currently validates:
-
-- `renderer.js`
-- `api/programs.js`
-- `api/_auth.js`
-- `api/auth/login.js`
-- `api/auth/logout.js`
-- inline script in `admin.html`
-- inline script in `index.html`
-- inline script in `program.html`
-- inline script in `news.html`
-- JSON configuration
-
-The current branch build passes these syntax checks. Static home-page delivery has also been confirmed from the Vercel preview.
-
-## Remaining external/integration items
-
-1. Connect the exact school Seeds of Hope/donation URL or service when supplied.
-2. Complete an authenticated browser click-through on the protected Vercel preview:
-   - master/owner/editor permission behavior
-   - save/reload edits
-   - logo-wall → project-page navigation
-   - project tabs
-   - project-news → dedicated news-page navigation
-   - free block placement and limited snapping
-   - admin/public layout parity
-   - desktop and phone visual check
-3. Do not merge to `main` until the protected-preview interaction check passes.
+No production merge should happen until these protected-preview checks are completed.
