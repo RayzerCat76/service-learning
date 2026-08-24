@@ -65,7 +65,7 @@
     const widthMatch = raw.match(/(\d+(?:\.\d+)?)px/);
     const colorMatch = raw.match(/#[0-9a-f]{3,6}/i);
     return {
-      enabled: block.borderEnabled !== undefined ? block.borderEnabled !== false : !/^(none|0)/i.test(raw || "solid"),
+      enabled: block.borderEnabled !== undefined ? block.borderEnabled !== false : (raw ? !/^(none|0)/i.test(raw) : false),
       width: block.borderWidth !== undefined ? Number(block.borderWidth) : (widthMatch ? Number(widthMatch[1]) : 1),
       color: block.borderColor || (colorMatch ? colorMatch[0] : "#d9dee7")
     };
@@ -106,15 +106,16 @@
     style.id = "sl-renderer-styles";
     style.textContent = `
       .sl-layout{position:relative;min-width:0;min-height:220px}
-      .sl-block{position:absolute;padding:24px;border-radius:10px;background:#fff;background-size:cover;background-position:center;overflow:hidden;min-width:0;box-sizing:border-box}
+      .sl-block{position:absolute;padding:22px;border-radius:0;background:#fff;background-size:cover;background-position:center;overflow:hidden;min-width:0;box-sizing:border-box}
       .sl-block>*{position:relative;z-index:1}
-      .sl-block h3{margin:0 0 10px;font-size:1.25em;line-height:1.2;color:inherit}
+      .sl-block h3{margin:0 0 11px;font-size:1.3em;line-height:1.18;color:inherit;letter-spacing:-.015em}
       .sl-block p{margin:0;white-space:pre-wrap;color:inherit}
-      .sl-block img{display:block;max-width:100%;max-height:520px;margin:auto;object-fit:contain;border-radius:8px}
-      .sl-block .sl-link{display:inline-flex;margin-top:16px;padding:10px 16px;border-radius:999px;background:#123e8f;color:white;text-decoration:none;font-weight:700}
+      .sl-block img{display:block;max-width:100%;max-height:520px;margin:auto;object-fit:contain;border-radius:0}
+      .sl-block .sl-link{display:inline-flex;margin-top:17px;padding:0 0 2px;border-radius:0;border-bottom:1px solid currentColor;background:transparent;color:#123e8f;text-decoration:none;font-weight:700}
+      .sl-block .sl-link:hover{color:#e54555}
       @media(max-width:760px){
-        .sl-layout{display:grid!important;gap:14px;min-height:0!important}
-        .sl-block{position:relative!important;left:auto!important;top:auto!important;width:100%!important;min-height:0!important;padding:20px}
+        .sl-layout{display:grid!important;gap:8px;min-height:0!important}
+        .sl-block{position:relative!important;left:auto!important;top:auto!important;width:100%!important;min-height:0!important;padding:20px 0}
       }
     `;
     document.head.appendChild(style);
