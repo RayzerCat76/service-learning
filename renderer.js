@@ -237,11 +237,12 @@
       const deleteButton = document.getElementById("deleteProgramBtn");
       if (deleteButton && deleteButton.title === "Only the program owner can delete this program") deleteButton.title = "Only the programme owner can delete this programme";
       const preview = document.getElementById("publicPreview");
-      if (preview && preview.getAttribute("href")) preview.setAttribute("href", preview.getAttribute("href").replace("#projects", "#programmes"));
+      const href = preview && preview.getAttribute("href");
+      if (preview && href && href.includes("#projects")) preview.setAttribute("href", href.replace("#projects", "#programmes"));
 
       document.querySelectorAll('select[id$="PropAlign"]').forEach((select) => {
         [...select.options].forEach((option) => {
-          if (option.value === "center" || option.textContent === "center" || option.textContent === "centre") {
+          if (option.textContent === "center") {
             option.value = "center";
             option.textContent = "centre";
           }
