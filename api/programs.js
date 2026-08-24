@@ -61,9 +61,9 @@ function publicProgram(program) {
 function defaultBlocks() {
   return [
     { id: META_ID, type: 'meta', logo: '', editors: [] },
-    { id: 'basic_info', type: 'text', title: 'Basic Information', content: 'Introduce your Service Learning project here.', width: 100, offsetX: 0, offsetY: 0, minHeight: 180, bg: '#ffffff', text: '#172e5c', fontFamily: 'Arial', fontSize: 16, align: 'left', borderEnabled: true, borderColor: '#d9dee7', borderWidth: 1, backgroundImage: '' },
-    { id: 'signup', type: 'signup', title: 'How to Sign Up', content: 'Explain how students can join or help.', linkLabel: 'Sign up', linkUrl: '', width: 46, offsetX: 0, offsetY: 220, minHeight: 180, bg: '#ffffff', text: '#172e5c', fontFamily: 'Arial', fontSize: 16, align: 'left', borderEnabled: true, borderColor: '#d9dee7', borderWidth: 1, backgroundImage: '' },
-    { id: 'news_intro', type: 'text', title: 'News', content: 'Published project stories appear below and open on their own news pages.', width: 46, offsetX: 54, offsetY: 220, minHeight: 180, bg: '#fff0f2', text: '#172e5c', fontFamily: 'Arial', fontSize: 16, align: 'left', borderEnabled: false, borderColor: '#e54555', borderWidth: 1, backgroundImage: '' }
+    { id: 'basic_info', type: 'text', title: 'Basic Information', content: 'Introduce your Service Learning programme here.', width: 100, offsetX: 0, offsetY: 0, minHeight: 180, bg: '#ffffff', text: '#172e5c', fontFamily: 'Arial', fontSize: 16, align: 'left', borderEnabled: false, borderColor: '#d9dee7', borderWidth: 1, backgroundImage: '' },
+    { id: 'signup', type: 'signup', title: 'How to Sign Up', content: 'Explain how students can join or help.', linkLabel: 'Sign up', linkUrl: '', width: 46, offsetX: 0, offsetY: 220, minHeight: 180, bg: '#ffffff', text: '#172e5c', fontFamily: 'Arial', fontSize: 16, align: 'left', borderEnabled: false, borderColor: '#d9dee7', borderWidth: 1, backgroundImage: '' },
+    { id: 'news_intro', type: 'text', title: 'News', content: 'Published programme stories appear below and open on their own news pages.', width: 46, offsetX: 54, offsetY: 220, minHeight: 180, bg: '#ffffff', text: '#172e5c', fontFamily: 'Arial', fontSize: 16, align: 'left', borderEnabled: false, borderColor: '#e54555', borderWidth: 1, backgroundImage: '' }
   ];
 }
 
@@ -97,7 +97,7 @@ module.exports = async (req, res) => {
         if (!staff) return;
         if (id) {
           const program = await getProgram(id);
-          if (!program || !canEdit(program, staff)) return res.status(404).json({ error: 'Program not found' });
+          if (!program || !canEdit(program, staff)) return res.status(404).json({ error: 'Programme not found' });
           return res.status(200).json({ ...program, blocks: asArray(program.blocks), news: asArray(program.news), accessRole: accessRole(program, staff) });
         }
         const rows = await sql`SELECT * FROM programs ORDER BY id`;
@@ -107,7 +107,7 @@ module.exports = async (req, res) => {
 
       if (id) {
         const program = await getProgram(id);
-        if (!program) return res.status(404).json({ error: 'Program not found' });
+        if (!program) return res.status(404).json({ error: 'Programme not found' });
         return res.status(200).json(publicProgram(program));
       }
       const rows = await sql`SELECT * FROM programs ORDER BY id`;
@@ -120,7 +120,7 @@ module.exports = async (req, res) => {
     if (req.method === 'POST' && !id) {
       const body = parseBody(req);
       const name = String(body.name || '').trim();
-      if (!name) return res.status(400).json({ error: 'Program name is required' });
+      if (!name) return res.status(400).json({ error: 'Programme name is required' });
       const blocks = defaultBlocks();
       const rows = await sql`
         INSERT INTO programs (name, created_by, blocks, news)
@@ -136,10 +136,10 @@ module.exports = async (req, res) => {
     }
 
     const program = await getProgram(id);
-    if (!program) return res.status(404).json({ error: 'Program not found' });
+    if (!program) return res.status(404).json({ error: 'Programme not found' });
 
     if (req.method === 'PATCH') {
-      if (!canEdit(program, staff)) return res.status(403).json({ error: 'You do not have permission to edit this program' });
+      if (!canEdit(program, staff)) return res.status(403).json({ error: 'You do not have permission to edit this programme' });
       const body = parseBody(req);
       const currentBlocks = asArray(program.blocks);
       const proposedBlocks = Array.isArray(body.blocks) ? body.blocks : currentBlocks;
@@ -149,11 +149,11 @@ module.exports = async (req, res) => {
       const proposedEditors = Array.isArray(proposedMeta.editors) ? proposedMeta.editors.map(String).sort() : [];
       const editorsChanged = JSON.stringify(currentEditors) !== JSON.stringify([...new Set(proposedEditors)].sort());
 
-      if (editorsChanged && !isOwner(program, staff)) return res.status(403).json({ error: 'Only the program owner can manage editors' });
+      if (editorsChanged && !isOwner(program, staff)) return res.status(403).json({ error: 'Only the programme owner can manage editors' });
       if (editorsChanged) proposedMeta.editors = await validateEditors(proposedEditors, String(program.created_by));
 
       const name = body.name === undefined ? program.name : String(body.name || '').trim();
-      if (!name) return res.status(400).json({ error: 'Program name is required' });
+      if (!name) return res.status(400).json({ error: 'Programme name is required' });
 
       const rows = await sql`
         UPDATE programs
@@ -165,7 +165,7 @@ module.exports = async (req, res) => {
     }
 
     if (req.method === 'DELETE') {
-      if (!isOwner(program, staff)) return res.status(403).json({ error: 'Only the program owner can delete this program' });
+      if (!isOwner(program, staff)) return res.status(403).json({ error: 'Only the programme owner can delete this programme' });
       await sql`DELETE FROM programs WHERE id = ${id}`;
       return res.status(200).json({ message: 'Deleted' });
     }
@@ -173,7 +173,7 @@ module.exports = async (req, res) => {
     res.setHeader('Allow', 'GET, PATCH, DELETE');
     return res.status(405).json({ error: 'Method not allowed' });
   } catch (error) {
-    console.error('Programs API failed', error);
-    return res.status(error.statusCode || 500).json({ error: error.statusCode ? error.message : 'Unable to process programs request' });
+    console.error('Programmes API failed', error);
+    return res.status(error.statusCode || 500).json({ error: error.statusCode ? error.message : 'Unable to process programmes request' });
   }
 };
