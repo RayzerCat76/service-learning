@@ -1,6 +1,9 @@
 {
+  "scripts": {
+    "validate": "node scripts/validate.js",
+    "postinstall": "node scripts/validate.js"
+  },
   "dependencies": {
-    "@neondatabase/serverless": "^1.0.2",
-    "pg": "^8.11.3"
+    "@neondatabase/serverless": "^1.0.2"
   }
 }
